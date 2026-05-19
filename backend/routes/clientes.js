@@ -1,0 +1,145 @@
+import express from 'express';
+import Cliente from '../models/Cliente.js';
+import Cita from '../models/Cita.js';
+import { protegerRuta, soloAdmin } from '../middleware/auth.js';
+
+const router = express.Router();
+
+// GET /api/clientes
+router.get('/', protegerRuta, async (req, res) => {
+  try {
+    const { busqueda, pagina = 1, limite = 20 } = req.query;
+    const query = {};
+
+    if (busqueda) {
+      const regex = new RegExp(busqueda, 'i');
+      query.$or = [
+        { nombre: regex },
+        { dni: regex },
+        { numero_telefono: regex },
+        { email: regex },
+        { 'vehiculos.patente': regex }
+      ];
+    }
+
+    const skip = (parseInt(pagina) - 1) * parseInt(limite);
+    const total = await Cliente.countDocuments(query);
+    const clientes = await Cliente.find(query)
+      .sort({ creado_en: -1 })
+      .skip(skip)
+      .limit(parseInt(limite));
+
+    res.json({
+      clientes,
+      total,
+      pagina: parseInt(pagina),
+      paginas_totales: Math.ceil(total / parseInt(limite))
+    });
+  } catch (error) {
+    console.error('Error al obtener clientes:', error);
+    res.status(500).json({ error: 'Error al obtener clientes' });
+  }
+});
+
+// GET /api/clientes/:id
+router.get('/:id', protegerRuta, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cliente = await Cliente.findById(id);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    // Buscar historial de citas del cliente
+    const citas = await Cita.find({ cliente: id }).sort({ fecha_cita: -1 });
+
+    res.json({ cliente, citas });
+  } catch (error) {
+    console.error('Error al obtener detalle del cliente:', error);
+    res.status(500).json({ error: 'Error al obtener detalles del cliente' });
+  }
+});
+
+// POST /api/clientes
+router.post('/', protegerRuta, async (req, res) => {
+  try {
+    const { nombre, dni, numero_telefono, email, vehiculos, notas } = req.body;
+    
+    if (!numero_telefono) {
+      return res.status(400).json({ error: 'El número de teléfono es requerido' });
+    }
+
+    const existe = await Cliente.findOne({ numero_telefono });
+    if (existe) {
+      return res.status(400).json({ error: 'Ya existe un cliente con ese número de teléfono' });
+    }
+
+    const nuevoCliente = new Cliente({
+      nombre: nombre || '',
+      dni: dni || '',
+      numero_telefono,
+      email: email || '',
+      vehiculos: vehiculos || [],
+      notas: notas || ''
+    });
+
+    await nuevoCliente.save();
+    res.status(201).json({ ok: true, cliente: nuevoCliente });
+  } catch (error) {
+    console.error('Error al crear cliente:', error);
+    res.status(500).json({ error: 'Error al crear el cliente' });
+  }
+});
+
+// PUT /api/clientes/:id
+router.put('/:id', protegerRuta, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, dni, numero_telefono, email, vehiculos, notas } = req.body;
+
+    const cliente = await Cliente.findById(id);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    if (nombre !== undefined) cliente.nombre = nombre;
+    if (dni !== undefined) cliente.dni = dni;
+    if (numero_telefono !== undefined) {
+      const duplicado = await Cliente.findOne({ numero_telefono, _id: { $ne: id } });
+      if (duplicado) {
+        return res.status(400).json({ error: 'Ya existe otro cliente con ese número de teléfono' });
+      }
+      cliente.numero_telefono = numero_telefono;
+    }
+    if (email !== undefined) cliente.email = email;
+    if (vehiculos !== undefined) cliente.vehiculos = vehiculos;
+    if (notas !== undefined) cliente.notas = notas;
+
+    await cliente.save();
+    res.json({ ok: true, cliente });
+  } catch (error) {
+    console.error('Error al actualizar cliente:', error);
+    res.status(500).json({ error: 'Error al actualizar cliente' });
+  }
+});
+
+// DELETE /api/clientes/:id (admin)
+router.delete('/:id', protegerRuta, soloAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cliente = await Cliente.findByIdAndDelete(id);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+    
+    // Eliminar las citas vinculadas
+    await Cita.deleteMany({ cliente: id });
+
+    res.json({ ok: true, mensaje: 'Cliente y sus citas asociadas han sido eliminados' });
+  } catch (error) {
+    console.error('Error al eliminar cliente:', error);
+    res.status(500).json({ error: 'Error al eliminar cliente' });
+  }
+});
+
+export default router;
