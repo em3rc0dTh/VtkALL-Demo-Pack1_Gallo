@@ -75,9 +75,12 @@ const inicializarDatos = async () => {
           { nombre: 'Mantenimiento General', descripcion: 'Chequeo completo de 25 puntos clave de seguridad de tu vehículo.', duracion_minutos: 180, precio_base: 400, icono: '🔧', activo: true }
         ],
         galeria: [
-          'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=800',
-          'https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&q=80&w=800',
-          'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800'
+          '/images/Mecanicos-certificados.png',
+          '/images/galeria_pintura.png',
+          '/images/galeria_flota.png',
+          '/images/galeria_diagnostico.png',
+          '/images/galeria_detailing.png',
+          '/images/galeria_planchado.png'
         ]
       });
       await nuevoTaller.save();

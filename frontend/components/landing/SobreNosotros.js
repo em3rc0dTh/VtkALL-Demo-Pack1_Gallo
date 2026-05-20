@@ -1,77 +1,91 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Award, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Award, CheckCircle2, Users, Wrench } from 'lucide-react';
 
 export default function SobreNosotros({ taller = {} }) {
   const caracteristicas = [
-    { titulo: 'Técnicos Certificados', desc: 'Profesionales altamente capacitados en mecánica general y electrónica automotriz.' },
-    { titulo: 'Garantía Escrita', desc: 'Todos nuestros trabajos cuentan con garantía de repuestos y mano de obra.' },
-    { titulo: 'Equipamiento de Fábrica', desc: 'Escáneres y herramientas de diagnóstico originales homologadas.' }
+    { icono: Wrench,       titulo: 'Técnicos Certificados',    desc: 'Profesionales capacitados en mecánica general y electrónica automotriz de alta gama.' },
+    { icono: CheckCircle2, titulo: 'Garantía por Escrito',      desc: 'Todos nuestros trabajos tienen garantía documentada de repuestos y mano de obra.' },
+    { icono: Users,        titulo: 'Equipamiento de Fábrica',   desc: 'Escáneres y herramientas de diagnóstico originales homologadas para tu marca.' },
   ];
 
   return (
-    <section id="nosotros" className="py-28 bg-[#070b13] relative border-b border-gray-900">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+    <section id="nosotros" className="py-32 bg-[#F4F5FF] relative overflow-hidden">
+
+      {/* Ambient orb */}
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-[#6EC1E4]/8 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          
-          {/* Columna Izquierda: Imagen Decorativa */}
-          <motion.div 
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="relative h-[480px] rounded-3xl overflow-hidden border border-gray-800"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url('https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=800')` }}
+
+          {/* Left: Image */}
+          <div className="reveal-left relative h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-[#2908F1]/10">
+            <img
+              src="/images/sobre_nosotros.png"
+              alt="Equipo del taller"
+              className="w-full h-full object-cover"
             />
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070b13] via-transparent to-transparent" />
-            
-            {/* Badge de Experiencia flotante */}
-            <div className="absolute bottom-6 left-6 p-6 rounded-2xl glass-panel border border-orange-500/30 flex items-center gap-4">
-              <Award className="w-10 h-10 text-orange-500" />
-              <div>
-                <h4 className="text-xl font-bold text-white">{taller.anos_experiencia || 12} Años</h4>
-                <p className="text-xs text-gray-400">Trayectoria Ininterrumpida</p>
+            {/* Overlay gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/60 via-transparent to-transparent" />
+
+            {/* Floating badge */}
+            <div className="absolute bottom-6 left-6 right-6">
+              <div className="glass-panel-dark rounded-2xl p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#2908F1] flex items-center justify-center shrink-0">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-white leading-tight">
+                    {taller.anos_experiencia || 12}+ Años
+                  </h4>
+                  <p className="text-xs text-white/60 font-light">Trayectoria ininterrumpida</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-2xl font-black text-[#FFC800]">4.9</p>
+                  <p className="text-[10px] text-white/50">★★★★★ rating</p>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Columna Derecha: Texto e Información */}
-          <motion.div 
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <span className="text-xs font-bold tracking-widest text-orange-500 uppercase block mb-3">
-              ¿QUIÉNES SOMOS?
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-6">
-              Compromiso Con La Calidad De Tu Auto
+          {/* Right: Text */}
+          <div className="reveal-right">
+            <span className="section-label">¿Quiénes Somos?</span>
+
+            <h2
+              className="text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-tight mb-6"
+              style={{ fontFamily: "'Readex Pro', sans-serif" }}
+            >
+              Compromiso con la{' '}
+              <span className="text-gradient">Calidad de Tu Auto</span>
             </h2>
-            <p className="text-gray-400 font-light leading-relaxed mb-8">
-              {taller.sobre_nosotros || 'En MecánicaPro contamos con más de 10 años de trayectoria brindando servicios mecánicos integrales de alta calidad. Contamos con tecnología de diagnóstico computarizado avanzada y un equipo de profesionales apasionados por el cuidado de tu automóvil.'}
+
+            <p className="text-[#54595F] font-light leading-relaxed mb-10 text-sm">
+              {taller.sobre_nosotros ||
+                'En Gallo Autos contamos con más de una década de trayectoria brindando servicios mecánicos integrales de alta calidad. Disponemos de tecnología de diagnóstico computarizado avanzada, cabinas de pintura al horno y un equipo de profesionales apasionados por el cuidado de tu vehículo.'}
             </p>
 
-            {/* Listado de características */}
-            <div className="space-y-6">
-              {caracteristicas.map((item, idx) => (
-                <div key={item.titulo} className="flex gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <CheckCircle2 className="w-5 h-5 text-orange-500" />
+            {/* Feature list */}
+            <div className="space-y-5">
+              {caracteristicas.map((item, idx) => {
+                const Icono = item.icono;
+                return (
+                  <div
+                    key={item.titulo}
+                    className={`reveal delay-${idx + 1} flex gap-4 p-4 rounded-2xl bg-white border border-[#2908F1]/8 card-lift`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#2908F1]/8 flex items-center justify-center shrink-0">
+                      <Icono className="w-5 h-5 text-[#2908F1]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#0F172A] mb-0.5">{item.titulo}</h4>
+                      <p className="text-xs text-[#54595F] font-light leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-md font-semibold text-white mb-1">{item.titulo}</h4>
-                    <p className="text-sm text-gray-400 font-light">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

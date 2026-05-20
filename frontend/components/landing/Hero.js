@@ -2,99 +2,148 @@
 
 import { motion } from 'framer-motion';
 import { MessageSquare, Wrench } from 'lucide-react';
+import PitStopAnimation from './PitStopAnimation.js';
 
 export default function Hero({ taller = {}, onOpenChat }) {
   const nombreAgente = taller.config_agente?.nombre_agente || 'Max';
   return (
-    <section id="inicio" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#070b13]">
-      {/* Background Image Overlay with Ken Burns Zoom Effect */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 scale-105"
-        style={{ 
-          backgroundImage: `url('https://images.unsplash.com/photo-1616788494707-ec28f08d05a1?auto=format&fit=crop&q=80&w=1920')`,
-          animation: 'zoomSlow 30s infinite alternate'
+    <section id="inicio" className="relative min-h-[600px] max-h-[965px] h-screen w-full overflow-hidden bg-gradient-to-br from-[#EAF0FF] via-[#EEF3FF] to-[#F4F5FF]">
+      
+      {/* Background Video (with CSS hue filter to turn the orange car into electric blue) */}
+      {/* <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-12 pointer-events-none z-0"
+        style={{ filter: 'hue-rotate(205deg) saturate(1.3)' }}
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260213_051817_c7d8ccc6-bfaa-417c-8474-e5cefeea26b4.mp4"
+      /> */}
+
+      {/* Electric blue car — right-side decorative video loop (replaces the static image) */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute right-0 bottom-0 w-full h-full object-cover object-right-bottom pointer-events-none z-[1]"
+        style={{
+          filter: 'brightness(1.05) saturate(1.15)',
+          maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+          opacity: 0.28,
         }}
+        src="/videos/PixVerse_V6_Image_Text_360P_“Create_a_seamless.mp4"
       />
-      
-      {/* Sleek Dark Vignette and Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19]/70 to-[#070b13]/90" />
-      
-      {/* Interactive Glowing Tech Accent */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-orange-600/10 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-600/5 blur-[120px] animate-pulse" />
 
-      {/* Hero Content Wrapper */}
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-6 flex flex-col items-center">
-        {/* Uppercase Small Tag */}
-        <motion.span 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-orange-500 bg-orange-500/10 border border-orange-500/20 mb-6 uppercase"
-        >
-          <Wrench className="w-3.5 h-3.5" /> TECNOLOGÍA Y CONFIANZA
-        </motion.span>
+      {/* Subtle Top & Bottom Gradient Overlays for Readability */}
+      <div className="absolute top-0 left-0 right-0 h-[260px] bg-gradient-to-b from-white/90 via-[#EFF1FE]/55 to-transparent pointer-events-none z-[2]" />
+      <div className="absolute bottom-0 left-0 right-0 h-[260px] bg-gradient-to-t from-white/90 via-[#F4F5FF]/60 to-transparent pointer-events-none z-[2]" />
 
-        {/* Large Overlapping Heading */}
-        <div className="mb-6 flex flex-col items-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-[#94a3b8] leading-none tracking-tighter"
-          >
-            Precisión.
-          </motion.h1>
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-orange-500 leading-none tracking-tighter -mt-2 sm:-mt-3 md:-mt-4 relative"
-            style={{ textShadow: '0 0 40px rgba(249, 115, 22, 0.15)' }}
-          >
-            Profesionalismo.
-          </motion.h1>
-        </div>
-
-        {/* Subtitle */}
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-lg md:text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed font-light"
-        >
-          El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-white font-medium">{nombreAgente}</span>, nuestro agente inteligente de reservas.
-        </motion.p>
-
-        {/* Action Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4"
-        >
-          <a
-            href="#servicios"
-            className="px-8 py-3.5 rounded-full text-sm font-semibold border border-gray-700 bg-gray-900/50 backdrop-blur text-white hover:bg-gray-800 hover:border-gray-600 transition-all duration-300"
-          >
-            Ver Servicios
-          </a>
-          <button
-            onClick={onOpenChat}
-            className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 transition-all duration-300 shadow-lg shadow-orange-600/20 hover:scale-105 active:scale-95 cursor-pointer"
-          >
-            <MessageSquare className="w-4 h-4 fill-current" /> Agendar con {nombreAgente}
-          </button>
-        </motion.div>
+      {/* Large Decorative All-Caps Backdrop Typography */}
+      <div className="absolute inset-x-0 top-[12%] flex justify-center items-center pointer-events-none z-2">
+        <h2 className="text-[12vw] font-bold tracking-widest text-center select-none uppercase font-bebas opacity-70"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              background: 'linear-gradient(180deg, rgba(41, 8, 241, 0.08) 0%, rgba(41, 8, 241, 0.01) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+          {(taller.nombre_taller || 'MECANICAPRO').replace(/\s+/g, '')}
+        </h2>
       </div>
 
-      {/* CSS Animation for Background Ken Burns effect */}
-      <style jsx global>{`
-        @keyframes zoomSlow {
-          0% { transform: scale(1) translate(0, 0); }
-          100% { transform: scale(1.08) translate(-1%, -1%); }
-        }
-      `}</style>
+      {/* Main Foreground Content Grid */}
+      <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full pt-16">
+          
+          {/* Left Side: Elegant Premium Copy */}
+          <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
+            
+            {/* Upper Badge */}
+            <motion.span 
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-[#2908F1] bg-[#2908F1]/10 border border-[#2908F1]/20 mb-6 uppercase"
+            >
+              <Wrench className="w-3 h-3" /> TECNOLOGÍA & CONFIANZA
+            </motion.span>
+
+            {/* Main Headline */}
+            <div className="mb-6">
+              <motion.h1 
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#0F172A] tracking-tight uppercase leading-none"
+                style={{ fontFamily: "'Readex Pro', sans-serif" }}
+              >
+                Precisión de Alto
+              </motion.h1>
+              <motion.h1 
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#2908F1] tracking-tight uppercase leading-none mt-1"
+                style={{ 
+                  fontFamily: "'Readex Pro', sans-serif",
+                  textShadow: '0 0 40px rgba(41, 8, 241, 0.1)'
+                }}
+              >
+                Rendimiento.
+              </motion.h1>
+            </div>
+
+            {/* Subtitle */}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="text-sm md:text-base text-[#54595F] max-w-lg mb-8 leading-relaxed font-light"
+            >
+              El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-[#0F172A] font-semibold">{nombreAgente}</span>, nuestro agente inteligente de reservas.
+            </motion.p>
+
+            {/* Action Buttons */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+            >
+              <a
+                href="#servicios"
+                className="px-6 py-3 rounded-full text-xs font-bold tracking-wider border border-gray-200 bg-white text-[#54595F] hover:bg-gray-50 hover:text-[#2908F1] hover:border-[#2908F1]/30 transition-all duration-300 text-center"
+              >
+                VER SERVICIOS
+              </a>
+              <button
+                onClick={onOpenChat}
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs font-bold tracking-wider text-[#0F172A] bg-[#FFC800] hover:bg-[#e6b400] transition-all duration-300 shadow-lg shadow-yellow-500/15 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5 fill-current" /> AGENDAR CON {nombreAgente}
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Right Side: Integrated Live Simulator HUD */}
+          {/* <motion.div 
+            initial={{ opacity: 0, scale: 0.96, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="lg:col-span-5 w-full flex flex-col justify-center"
+          >
+            <div className="w-full relative rounded-3xl p-0.5 bg-gradient-to-b from-[#2908F1]/30 to-transparent shadow-xl backdrop-blur-md">
+              <span className="absolute -top-3 left-6 px-2.5 py-0.5 rounded bg-[#2908F1] text-white font-mono font-bold text-[8px] uppercase tracking-widest z-20 shadow-md">
+                TELEMETRÍA EN VIVO
+              </span>
+              <PitStopAnimation />
+            </div>
+          </motion.div> */}
+
+        </div>
+      </div>
     </section>
   );
 }

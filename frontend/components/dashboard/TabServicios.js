@@ -115,7 +115,7 @@ export default function TabServicios() {
         </div>
         <button
           onClick={handleOpenCrear}
-          className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-orange-600/10 cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#2908F1] hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-[#2908F1]/10 cursor-pointer"
         >
           <Plus className="w-4 h-4" /> AGREGAR SERVICIO
         </button>
@@ -136,7 +136,7 @@ export default function TabServicios() {
                   <div className="flex gap-1">
                     <button 
                       onClick={() => handleOpenEditar(s)}
-                      className="p-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-850 hover:border-orange-500/35 text-gray-400 hover:text-orange-500 cursor-pointer"
+                      className="p-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-850 hover:border-[#2908F1]/35 text-gray-400 hover:text-[#2908F1] cursor-pointer"
                       title="Editar"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -157,7 +157,7 @@ export default function TabServicios() {
 
               <div className="flex justify-between items-center text-[10px] text-gray-400 pt-4 border-t border-gray-850/60">
                 <span>Duración: <b>{s.duracion_minutos} min</b></span>
-                <span className="text-orange-500 font-bold text-xs">S/. {s.precio_base}</span>
+                <span className="text-[#2908F1] font-bold text-xs">S/. {s.precio_base}</span>
               </div>
             </div>
           ))}
@@ -201,7 +201,7 @@ export default function TabServicios() {
                     placeholder="ej: Service de Frenos"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
                 <div>
@@ -212,7 +212,7 @@ export default function TabServicios() {
                     placeholder="🔧"
                     value={icono}
                     onChange={(e) => setIcono(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs text-center outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs text-center outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function TabServicios() {
                   rows="3"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                 />
               </div>
 
@@ -237,7 +237,7 @@ export default function TabServicios() {
                     placeholder="120"
                     value={precio}
                     onChange={(e) => setPrecio(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
                 <div>
@@ -248,7 +248,7 @@ export default function TabServicios() {
                     placeholder="60"
                     value={duracion}
                     onChange={(e) => setDuracion(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function TabServicios() {
                 <button
                   type="submit"
                   disabled={guardando}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-orange-600 text-white hover:bg-orange-700 cursor-pointer"
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-[#2908F1] text-white hover:bg-blue-800 cursor-pointer"
                 >
                   {guardando ? 'Guardando...' : 'Guardar'}
                 </button>

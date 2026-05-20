@@ -154,7 +154,7 @@ export default function TabMensajes() {
             <input
               type="text"
               placeholder="Buscar por número..."
-              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-[#2908F1]"
             />
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function TabMensajes() {
                   key={conv.numero_telefono}
                   onClick={() => handleSelectConv(conv.numero_telefono)}
                   className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                    active ? 'bg-orange-600/10 border-l-4 border-orange-500' : 'hover:bg-gray-900/20'
+                    active ? 'bg-[#2908F1]/10 border-l-4 border-[#2908F1]' : 'hover:bg-gray-900/20'
                   }`}
                 >
                   <div className="flex-1 min-w-0">
@@ -212,7 +212,7 @@ export default function TabMensajes() {
             {/* Header del Chat */}
             <div className="p-4 border-b border-gray-800 bg-[#0d1222]/80 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-600/10 border border-orange-500/20 flex items-center justify-center font-bold text-orange-500 text-sm">
+                <div className="w-10 h-10 rounded-full bg-[#2908F1]/10 border border-[#2908F1]/20 flex items-center justify-center font-bold text-[#2908F1] text-sm">
                   {activeCliente?.nombre?.charAt(0) || 'C'}
                 </div>
                 <div>
@@ -248,12 +248,12 @@ export default function TabMensajes() {
                         deCliente
                           ? 'bg-[#1e293b] text-gray-150 border border-gray-800/60 rounded-bl-none'
                           : deAdminManual
-                            ? 'bg-orange-650 text-white rounded-br-none shadow-md shadow-orange-950/20'
+                            ? 'bg-[#2908F1] text-white rounded-br-none shadow-md shadow-blue-950/20'
                             : 'bg-gray-800 text-gray-300 rounded-br-none'
                       }`}>
                         {/* Nombre arriba si no es cliente */}
                         {!deCliente && (
-                          <span className="block text-[8px] font-bold text-orange-400 uppercase tracking-widest mb-1">
+                          <span className="block text-[8px] font-bold text-blue-400 uppercase tracking-widest mb-1">
                             {deAdminManual ? 'Tú (Manual)' : `${nombreAgente} (IA Agent)`}
                           </span>
                         )}
@@ -276,12 +276,12 @@ export default function TabMensajes() {
                 value={nuevoMensaje}
                 onChange={(e) => setNuevoMensaje(e.target.value)}
                 placeholder="Escribe una respuesta manual..."
-                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-orange-500"
+                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-[#2908F1]"
               />
               <button
                 type="submit"
                 disabled={enviando || !nuevoMensaje.trim()}
-                className="p-3 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                className="p-3 bg-[#2908F1] hover:bg-blue-800 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
               >
                 <Send className="w-4 h-4 fill-current" />
               </button>
@@ -289,7 +289,7 @@ export default function TabMensajes() {
           </>
         ) : (
           <div className="flex-1 flex flex-col justify-center items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-orange-600/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+            <div className="w-16 h-16 rounded-3xl bg-[#2908F1]/10 border border-[#2908F1]/20 flex items-center justify-center text-[#2908F1]">
               <MessageSquare className="w-7 h-7" />
             </div>
             <div>

@@ -1,56 +1,128 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+
+const galeria = [
+  { url: '/images/Mecanicos-certificados.png',      label: 'Instalaciones Premium',          desc: 'Equipos de última generación', size: 'lg' },
+  { url: '/images/galeria_pintura.png',     label: 'Cabina de Pintura Profesional',  desc: 'Acabado perfecto al horno',      size: 'sm' },
+  { url: '/images/galeria_flota.png',       label: 'Atención a Flotas de Lujo',      desc: 'Mercedes, Ferrari, Porsche',    size: 'sm' },
+  { url: '/images/galeria_diagnostico.png', label: 'Diagnóstico Computarizado',       desc: 'Escaneo OBD-II avanzado',        size: 'sm' },
+  { url: '/images/galeria_detailing.png',   label: 'Detailing & Cerámica',            desc: "Productos Meguiar's cert.",     size: 'sm' },
+  { url: '/images/galeria_planchado.png',   label: 'Planchado y Carrocería',           desc: 'Restauración total de chasis',  size: 'lg' },
+];
 
 export default function Galeria({ taller = {} }) {
-  const defaultGaleria = [
-    'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1617886326072-1be7c2329c22?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=800'
-  ];
+  const [isPaused, setIsPaused] = useState(false);
 
-  const imagenes = taller.galeria && taller.galeria.length > 0 ? taller.galeria : defaultGaleria;
+  const imagenes = Array.from({ length: galeria.length }, (_, i) => {
+    const url = taller.galeria && taller.galeria[i] ? taller.galeria[i] : galeria[i].url;
+    return {
+      url,
+      label: galeria[i]?.label || `Proyecto ${i + 1}`,
+      desc: galeria[i]?.desc || '',
+      size: galeria[i]?.size || 'sm',
+    };
+  });
 
   return (
-    <section id="galeria" className="py-28 bg-[#070b13] relative border-b border-gray-900">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-20">
-          <span className="text-xs font-bold tracking-widest text-orange-500 uppercase block mb-3">
-            GALERÍA DE TRABAJOS
+    <section id="galeria" className="py-20 bg-transparent relative overflow-hidden flex flex-col justify-center min-h-screen">
+      
+      {/* Inyección de estilos CSS para perspectiva de perspectiva 3D y scroll infinito */}
+      <style jsx global>{`
+        @keyframes wallScroll {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .perspective-container {
+          perspective: 1200px;
+          perspective-origin: 50% 50%;
+        }
+        .gallery-wall {
+          display: flex;
+          gap: 16px;
+          width: max-content;
+          transform-style: preserve-3d;
+          animation: wallScroll 40s linear infinite;
+        }
+        .gallery-wall.paused {
+          animation-play-state: paused;
+        }
+        .gallery-card-3d {
+          transform: rotateY(-15deg) translateZ(0px);
+          transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
+        }
+        /* Al hacer hover individual, la tarjeta se endereza y resalta */
+        .gallery-card-3d:hover {
+          transform: rotateY(0deg) translateZ(40px) scale(1.05);
+          z-index: 50;
+        }
+      `}</style>
+
+      {/* Luces de ambiente traseras */}
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#2908F1]/08 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#FFC800]/08 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="w-full relative z-10">
+
+        {/* Encabezado */}
+        <div className="text-center max-w-2xl mx-auto mb-16 px-4">
+          <span className="text-[#FFC800] uppercase tracking-[0.2em] text-xs font-bold bg-[#FFC800]/10 px-4 py-2 rounded-full">
+            📸 Portafolio de Trabajos
           </span>
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-            Nuestras Instalaciones y Proyectos
+          <h2
+            className="text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-tight mt-6"
+            style={{ fontFamily: "'Readex Pro', sans-serif" }}
+          >
+            Nuestras Instalaciones<br />y Proyectos
           </h2>
-          <div className="w-12 h-1 bg-orange-500 mx-auto mt-4 rounded-full" />
+          <div className="w-16 h-1.5 bg-[#FFC800] mx-auto mt-5 rounded-full" />
+          <p className="text-slate-600 font-light text-sm mt-4 leading-relaxed">
+            Explora nuestra infraestructura premium. Posa el cursor para detener el movimiento y examinar los detalles.
+          </p>
         </div>
 
-        {/* Grid de Imágenes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {imagenes.map((url, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="relative group h-64 rounded-2xl overflow-hidden border border-gray-800 bg-gray-950"
-            >
-              {/* Imagen */}
+        {/* Contenedor con Perspectiva */}
+        <div 
+          className="perspective-container w-full overflow-hidden py-10 path-mask"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Muro en movimiento */}
+          <div className={`gallery-wall ${isPaused ? 'paused' : ''}`}>
+            
+            {/* Duplicamos el array completo para que la transición de reinicio sea invisible */}
+            {[...imagenes, ...imagenes, ...imagenes].map((item, idx) => (
               <div 
-                className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                style={{ backgroundImage: `url('${url}')` }}
-              />
-              {/* Filtro Hover */}
-              <div className="absolute inset-0 bg-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              {/* Borde sutil hover */}
-              <div className="absolute inset-0 border border-transparent group-hover:border-orange-500/30 rounded-2xl transition-all duration-300 pointer-events-none" />
-            </motion.div>
-          ))}
+                key={idx} 
+                className="gallery-card-3d flex-shrink-0 rounded-[24px] overflow-hidden border border-slate-200/20 bg-white shadow-xl"
+                style={{ width: 'clamp(200px, calc((100vw - 140px) / 6), 280px)' }}
+              >
+                {/* Respetando la altura h-64 solicitada */}
+                <div className="relative h-64 overflow-hidden bg-slate-100">
+                  <img
+                    src={item.url}
+                    alt={item.label}
+                    className="h-full w-full object-cover transition-transform duration-700"
+                    loading="lazy"
+                    onError={(e) => { 
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.src = '/images/Mecanicos-certificados.png'; 
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-1.5 px-6 py-5 relative bg-white">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#FFC800]">
+                    {item.desc}
+                  </p>
+                  <h4 className="text-lg font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
+                    {item.label}
+                  </h4>
+                </div>
+              </div>
+            ))}
+
+          </div>
         </div>
 
       </div>

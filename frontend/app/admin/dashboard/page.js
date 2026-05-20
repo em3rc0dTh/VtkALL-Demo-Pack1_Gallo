@@ -71,7 +71,7 @@ export default function DashboardPage() {
           {/* Brand Logo */}
           <div className="p-6 border-b border-gray-850">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="p-2 bg-orange-600/10 rounded-lg text-orange-500 border border-orange-500/20">
+              <div className="p-2 bg-[#2908F1]/10 rounded-lg text-[#2908F1] border border-[#2908F1]/20">
                 <Wrench className="w-5 h-5 animate-pulse" />
               </div>
               <span className="text-lg font-bold tracking-tight text-white">
@@ -80,7 +80,7 @@ export default function DashboardPage() {
                     {taller.nombre_taller.includes(' ') ? (
                       <>
                         {taller.nombre_taller.substring(0, taller.nombre_taller.indexOf(' '))}
-                        <span className="text-orange-500">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
+                        <span className="text-[#2908F1]">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
                       </>
                     ) : (
                       <>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    Mecánica<span className="text-orange-500">Pro</span>
+                    Mecánica<span className="text-[#2908F1]">Pro</span>
                   </>
                 )}
               </span>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${
                     active 
-                      ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/10' 
+                      ? 'bg-[#2908F1] text-white shadow-lg shadow-blue-500/10' 
                       : 'text-gray-450 hover:bg-gray-900/40 hover:text-white'
                   }`}
                 >
@@ -123,7 +123,7 @@ export default function DashboardPage() {
         {/* User Card Profile y Logout */}
         <div className="p-4 border-t border-gray-850 space-y-3 bg-[#0d1222]/30">
           <div className="flex items-center gap-3 p-2">
-            <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-orange-500">
+            <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-[#2908F1]">
               <Shield className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ export default function DashboardPage() {
       {/* VIEWPORT CONTENIDO */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#070b13] relative overflow-hidden">
         {/* Glow ambient */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-600/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#2908F1]/5 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Header Superior del Viewport */}
         <header className="h-20 border-b border-gray-850 flex items-center justify-between px-8 bg-[#0b0f19]/30 relative z-10">

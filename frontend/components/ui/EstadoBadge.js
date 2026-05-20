@@ -9,7 +9,7 @@ export default function EstadoBadge({ estado }) {
       label: 'Confirmada'
     },
     en_proceso: {
-      bg: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+      bg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
       label: 'En Proceso'
     },
     completada: {

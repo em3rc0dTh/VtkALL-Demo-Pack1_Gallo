@@ -113,32 +113,57 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
     }
   };
 
+  const presets = [
+    { name: 'Robot Asistente', url: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=120' },
+    { name: 'Mecánico Especialista', url: 'https://images.unsplash.com/photo-1517524006079-d7ab6d71039d?auto=format&fit=crop&q=80&w=120' },
+    { name: 'Mecánica Experta', url: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&q=80&w=120' },
+    { name: 'Logo Tecnológico', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&q=80&w=120' },
+  ];
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setMensajeError('La imagen debe ser menor a 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="space-y-6">
       
       {/* Sub menu de configuración */}
-      <div className="flex justify-between items-center bg-[#111827]/40 p-4 rounded-2xl border border-gray-800">
-        <div className="flex items-center gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800">
+      <div className="flex justify-between items-center bg-[#F9FAFB] p-4 rounded-2xl border border-gray-200">
+        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
           <button
             onClick={() => setSubTab('general')}
+            type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'general' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'
+              subTab === 'general' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Datos Generales
           </button>
           <button
             onClick={() => setSubTab('agente')}
+            type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'agente' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'
+              subTab === 'agente' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" /> Agente Inteligente Max
+            <Sparkles className="w-3.5 h-3.5" /> Agente Inteligente {nombreAgente}
           </button>
           <button
             onClick={() => setSubTab('api')}
+            type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'api' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'
+              subTab === 'api' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
             }`}
           >
             <Shield className="w-3.5 h-3.5" /> Webhook y APIs
@@ -152,12 +177,12 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
         <form onSubmit={handleGuardar} className="space-y-6">
           
           {mensajeOk && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold shadow-sm">
               {mensajeOk}
             </div>
           )}
           {mensajeError && (
-            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-250 text-red-600 text-xs font-bold shadow-sm">
               {mensajeError}
             </div>
           )}
@@ -167,13 +192,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Bloque de Identidad */}
-              <div className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 space-y-4">
-                <span className="block text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">Identidad de Marca</span>
+              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Identidad de Marca</span>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">
-                      Nombre Taller * {user.rol !== 'soporte' && <span className="text-gray-500 font-normal lowercase">(solo soporte)</span>}
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                      Nombre Taller * {user.rol !== 'soporte' && <span className="text-gray-400 font-normal lowercase">(solo soporte)</span>}
                     </label>
                     <input
                       type="text"
@@ -181,109 +206,109 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       disabled={user.rol !== 'soporte'}
                       value={nombreTaller}
                       onChange={(e) => setNombreTaller(e.target.value)}
-                      className={`w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500 ${
+                      className={`w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] ${
                         user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Slogan</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Slogan</label>
                     <input
                       type="text"
                       value={slogan}
                       onChange={(e) => setSlogan(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Sobre Nosotros</label>
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Sobre Nosotros</label>
                   <textarea
                     rows="4"
                     value={sobreNosotros}
                     onChange={(e) => setSobreNosotros(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
               </div>
 
               {/* Bloque de Contacto */}
-              <div className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 space-y-4">
-                <span className="block text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">Datos de Contacto</span>
+              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Datos de Contacto</span>
                 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Dirección Física</label>
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Dirección Física</label>
                   <input
                     type="text"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Teléfono</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Teléfono</label>
                     <input
                       type="text"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Email</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Email</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Años Exp.</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Años Exp.</label>
                     <input
                       type="number"
                       value={anosExperiencia}
                       onChange={(e) => setAnosExperiencia(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Clientes</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Clientes</label>
                     <input
                       type="number"
                       value={clientesAtendidos}
                       onChange={(e) => setClientesAtendidos(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Autos Rep.</label>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Autos Rep.</label>
                     <input
                       type="number"
                       value={autosReparados}
                       onChange={(e) => setAutosReparados(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Bloque de Galería */}
-              <div className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 md:col-span-2 space-y-3">
-                <span className="block text-xs font-bold text-orange-500 uppercase tracking-wider">Galería de Imágenes (Unsplash URLs)</span>
+              <div className="p-6 rounded-2xl bg-white border border-gray-200 md:col-span-2 space-y-3 shadow-sm">
+                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider">Galería de Imágenes (Unsplash URLs)</span>
                 <p className="text-[10px] text-gray-500">Ingresa una URL de imagen por línea para renderizar en la landing page principal.</p>
                 <textarea
                   rows="4"
                   value={galeriaInput}
                   onChange={(e) => setGaleriaInput(e.target.value)}
                   placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-orange-500"
+                  className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-[#2908F1]"
                 />
               </div>
 
@@ -292,12 +317,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
           {/* TAB 2: CONFIG AGENTE IA */}
           {subTab === 'agente' && (
-            <div className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 space-y-4">
-              <span className="block text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">Comportamiento del Agente Virtual ({nombreAgente})</span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 shadow-sm">
+              <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Comportamiento del Agente Virtual ({nombreAgente})</span>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">
-                    Nombre del Agente IA * {user.rol !== 'soporte' && <span className="text-gray-500 font-normal lowercase">(solo soporte)</span>}
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                    Nombre del Agente IA * {user.rol !== 'soporte' && <span className="text-gray-400 font-normal lowercase">(solo soporte)</span>}
                   </label>
                   <input
                     type="text"
@@ -305,54 +331,117 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     disabled={user.rol !== 'soporte'}
                     value={nombreAgente}
                     onChange={(e) => setNombreAgente(e.target.value)}
-                    className={`w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500 ${
+                    className={`w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] ${
                       user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                     }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">Mensaje de Bienvenida por WhatsApp</label>
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Mensaje de Bienvenida por WhatsApp</label>
                   <input
                     type="text"
                     required
                     value={mensajeBienvenida}
                     onChange={(e) => setMensajeBienvenida(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                   />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">URL de Imagen del Avatar</label>
-                  <div className="flex gap-2 items-center">
-                    {avatarUrl && (
-                      <img 
-                        src={avatarUrl} 
-                        alt="Avatar Preview" 
-                        className="w-8 h-8 rounded-full object-cover border border-gray-700 bg-gray-800"
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
-                        }}
-                      />
-                    )}
+              </div>
+
+              {/* Rediseño de Avatar: presets y carga de archivos */}
+              <div className="p-5 bg-[#F9FAFB] rounded-2xl border border-gray-200 space-y-4">
+                <label className="block text-[10px] font-bold text-[#2908F1] uppercase tracking-widest">Avatar del Asistente Virtual</label>
+                
+                {/* Preview actual */}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img 
+                      src={avatarUrl || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=120'} 
+                      alt="Avatar Preview" 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-[#2908F1] shadow-md bg-white"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
+                      }}
+                    />
+                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#0F172A]">Vista Previa</h5>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Elige un preset, sube un archivo o escribe una URL.</p>
+                  </div>
+                </div>
+
+                {/* Opción 1: Presets */}
+                <div className="space-y-2">
+                  <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción A: Elegir un Avatar Predefinido</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {presets.map((preset) => {
+                      const isSelected = avatarUrl === preset.url;
+                      return (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => setAvatarUrl(preset.url)}
+                          className={`p-2.5 rounded-xl border flex flex-col items-center gap-2 bg-white transition-all hover:scale-102 ${
+                            isSelected 
+                              ? 'border-[#2908F1] ring-1 ring-[#2908F1] shadow-sm' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <img 
+                            src={preset.url} 
+                            alt={preset.name} 
+                            className="w-10 h-10 rounded-full object-cover border border-gray-100" 
+                          />
+                          <span className="text-[9px] font-medium text-[#0F172A] text-center line-clamp-1">{preset.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Opción 2: Subir archivo y convertir a Base64 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción B: Subir Imagen desde la Computadora</span>
+                    <label 
+                      htmlFor="avatar-upload"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-300 bg-white hover:border-[#2908F1] hover:bg-blue-50/10 cursor-pointer text-xs font-semibold text-[#2908F1] transition-all"
+                    >
+                      <Image className="w-4 h-4" /> Seleccionar Imagen (Máx 2MB)
+                    </label>
+                    <input 
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Opción 3: Input de URL tradicional */}
+                  <div className="space-y-2">
+                    <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción C: URL Personalizada</span>
                     <input
                       type="text"
                       value={avatarUrl}
                       onChange={(e) => setAvatarUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/photo-..."
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                      placeholder="https://ejemplo.com/mi-avatar.png"
+                      className="w-full bg-white border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Instrucciones de System Prompt / Personalidad</label>
+                <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Instrucciones de System Prompt / Personalidad</label>
                 <p className="text-[10px] text-gray-500 mb-2">Define las directivas de comportamiento del agente para Gemini (cómo presentarse, consultar la agenda, etc.).</p>
                 <textarea
                   rows="8"
                   value={instruccionesBase}
                   onChange={(e) => setInstruccionesBase(e.target.value)}
                   placeholder="Sos Max, el asistente virtual del taller MecánicaPro..."
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-orange-500 font-light leading-relaxed"
+                  className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] font-light leading-relaxed"
                 />
               </div>
             </div>
@@ -360,31 +449,31 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
           {/* TAB 3: WEBHOOKS Y APIS */}
           {subTab === 'api' && (
-            <div className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 space-y-6 text-xs">
-              <span className="block text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">Conectores de API de Producción</span>
+            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 text-xs shadow-sm">
+              <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Conectores de API de Producción</span>
               
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-gray-900 border border-gray-850">
-                  <h4 className="font-bold text-white mb-2 uppercase text-[10px] tracking-wider text-orange-400">Endpoint Webhook del Taller</h4>
-                  <p className="text-gray-500 mb-2 leading-relaxed">
+                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200">
+                  <h4 className="font-bold text-[#2908F1] mb-2 uppercase text-[10px] tracking-wider">Endpoint Webhook del Taller</h4>
+                  <p className="text-[#54595F] mb-2 leading-relaxed">
                     Para conectar Twilio Sandbox a tu backend, configura el Webhook de WhatsApp entrante en la consola de Twilio con la siguiente URL:
                   </p>
-                  <div className="bg-gray-950 p-3 rounded-xl border border-gray-800 font-mono text-[11px] select-all text-white flex justify-between items-center">
+                  <div className="bg-white p-3 rounded-xl border border-gray-200 font-mono text-[11px] select-all text-[#0F172A] flex justify-between items-center shadow-sm">
                     <span>http://localhost:4000/api/webhook/whatsapp</span>
-                    <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-sans font-semibold">POST</span>
+                    <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded font-sans font-semibold">POST</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-gray-900 border border-gray-850 space-y-3">
-                  <h4 className="font-bold text-white uppercase text-[10px] tracking-wider text-orange-400">Estado de Credenciales (.env)</h4>
+                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200 space-y-3">
+                  <h4 className="font-bold text-[#2908F1] uppercase text-[10px] tracking-wider">Estado de Credenciales (.env)</h4>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center border-b border-gray-850/50 pb-2">
-                      <span className="text-gray-500">Gemini LLM API Key:</span>
-                      <span className="font-mono text-gray-300 font-bold">CONFIGURADO OK</span>
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                      <span className="text-[#54595F]">Gemini LLM API Key:</span>
+                      <span className="font-mono text-emerald-600 font-bold">CONFIGURADO OK</span>
                     </div>
-                    <div className="flex justify-between items-center border-b border-gray-850/50 pb-2">
-                      <span className="text-gray-500">Twilio Webhook:</span>
-                      <span className="font-mono text-gray-350">PRODUCCIÓN MOCK / ACTIVADO</span>
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                      <span className="text-[#54595F]">Twilio Webhook:</span>
+                      <span className="font-mono text-[#0F172A]">PRODUCCIÓN MOCK / ACTIVADO</span>
                     </div>
                   </div>
                 </div>
@@ -393,11 +482,11 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           )}
 
           {/* Botón inferior guardar */}
-          <div className="flex justify-end pt-4 border-t border-gray-850/60">
+          <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
               disabled={guardando}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-lg shadow-orange-600/10 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#2908F1] hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/10 transition-all cursor-pointer"
             >
               <Save className="w-4 h-4" /> {guardando ? 'GUARDANDO...' : 'GUARDAR CONFIGURACIÓN'}
             </button>
