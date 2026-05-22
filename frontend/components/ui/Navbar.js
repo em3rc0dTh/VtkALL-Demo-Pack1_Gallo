@@ -33,20 +33,20 @@ export default function Navbar({ taller = {} }) {
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Brand Brand */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex items-center justify-center w-12 h-12 p-2 rounded-2xl bg-[#2908F1] shadow-[0_18px_40px_rgba(41,8,241,0.12)] ring-1 ring-[#2908F1]/15 transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(41,8,241,0.2)] group-hover:ring-[#2908F1]/25">
+          <div className="flex items-center justify-center w-32 h-12 p-2 rounded-2xl bg-transparent shadow-navbar ring-1 ring-primary/15 transition-all duration-300 group-hover:shadow-navbar-hover group-hover:ring-primary/25">
             <img
-              src="/images/Gallo-Autos-Logo.png"
-              alt="Gallo Autos"
+              src="/images/turagua.jpg"
+              alt="Turagua"
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="text-xl font-bold tracking-tight text-[#0F172A]">
+          <span className="text-xl font-bold tracking-tight text-navy">
             {taller.nombre_taller ? (
               <>
                 {taller.nombre_taller.includes(' ') ? (
                   <>
                     {taller.nombre_taller.substring(0, taller.nombre_taller.indexOf(' '))}
-                    <span className="text-[#2908F1]">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
+                    <span className="text-primary">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
                   </>
                 ) : (
                   <>
@@ -56,7 +56,7 @@ export default function Navbar({ taller = {} }) {
               </>
             ) : (
               <>
-                Mecánica<span className="text-[#2908F1]">Pro</span>
+                Mecánica<span className="text-primary">Pro</span>
               </>
             )}
           </span>
@@ -68,7 +68,7 @@ export default function Navbar({ taller = {} }) {
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-[#54595F] hover:text-[#2908F1] transition-colors duration-200"
+              className="text-sm font-medium text-[#54595F] hover:text-primary transition-colors duration-200"
             >
               {item.name}
             </a>
@@ -79,7 +79,7 @@ export default function Navbar({ taller = {} }) {
         <div className="hidden md:flex items-center gap-4">
           <Link
             href="/admin/login"
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider text-[#54595F] bg-white border border-gray-200 hover:text-[#2908F1] hover:border-[#2908F1]/40 hover:bg-gray-50 transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider text-[#54595F] bg-white border border-gray-200 hover:text-primary hover:border-primary/40 hover:bg-gray-50 transition-all duration-200"
           >
             <Shield className="w-3.5 h-3.5" /> ACCESO TALLER
           </Link>
@@ -89,7 +89,7 @@ export default function Navbar({ taller = {} }) {
         <div className="md:hidden flex items-center">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-[#54595F] hover:text-[#2908F1] bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg text-[#54595F] hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -105,7 +105,7 @@ export default function Navbar({ taller = {} }) {
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 text-base font-medium text-[#54595F] hover:text-[#2908F1] hover:bg-gray-50 rounded-xl transition-all duration-200"
+                className="px-4 py-2 text-base font-medium text-[#54595F] hover:text-primary hover:bg-gray-50 rounded-xl transition-all duration-200"
               >
                 {item.name}
               </a>
@@ -114,7 +114,7 @@ export default function Navbar({ taller = {} }) {
             <Link
               href="/admin/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[#2908F1] hover:bg-blue-800 transition-all duration-200"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-blue-800 transition-all duration-200"
             >
               <Shield className="w-4 h-4" /> ACCESO TALLER
             </Link>

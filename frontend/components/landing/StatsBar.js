@@ -12,7 +12,7 @@ export default function StatsBar({ taller = {} }) {
 
   return (
     <div className="relative z-20 -mt-12 max-w-6xl mx-auto px-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-2xl bg-[#F9FAFF] border border-[#2908F1]/10 shadow-xl shadow-blue-900/5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-2xl bg-[#F9FAFF] border border-primary/10 shadow-xl shadow-blue-900/5">
         {stats.map((stat, idx) => (
           <motion.div
             key={stat.label}
@@ -22,7 +22,7 @@ export default function StatsBar({ taller = {} }) {
             transition={{ duration: 0.6, delay: idx * 0.1 }}
             className="text-center flex flex-col justify-center"
           >
-            <span className="text-3xl md:text-4xl font-black text-[#2908F1] tracking-tight mb-1">
+            <span className="text-3xl md:text-4xl font-black text-primary tracking-tight mb-1">
               {stat.value}{stat.suffix}
             </span>
             <span className="text-[10px] md:text-xs font-semibold text-[#54595F] uppercase tracking-widest">

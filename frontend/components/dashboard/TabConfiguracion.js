@@ -145,7 +145,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('general')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'general' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
+              subTab === 'general' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Datos Generales
@@ -154,7 +154,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('agente')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'agente' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
+              subTab === 'agente' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" /> Agente Inteligente {nombreAgente}
@@ -163,7 +163,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('api')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'api' ? 'bg-[#2908F1] text-white' : 'text-[#54595F] hover:text-[#0F172A]'
+              subTab === 'api' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
             }`}
           >
             <Shield className="w-3.5 h-3.5" /> Webhook y APIs
@@ -193,7 +193,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               
               {/* Bloque de Identidad */}
               <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
-                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Identidad de Marca</span>
+                <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Identidad de Marca</span>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -206,7 +206,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       disabled={user.rol !== 'soporte'}
                       value={nombreTaller}
                       onChange={(e) => setNombreTaller(e.target.value)}
-                      className={`w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] ${
+                      className={`w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                         user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     />
@@ -217,7 +217,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="text"
                       value={slogan}
                       onChange={(e) => setSlogan(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -228,14 +228,14 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     rows="4"
                     value={sobreNosotros}
                     onChange={(e) => setSobreNosotros(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Bloque de Contacto */}
               <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
-                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Datos de Contacto</span>
+                <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Datos de Contacto</span>
                 
                 <div>
                   <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Dirección Física</label>
@@ -243,7 +243,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     type="text"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -254,7 +254,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="text"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -263,7 +263,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={anosExperiencia}
                       onChange={(e) => setAnosExperiencia(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -284,7 +284,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={clientesAtendidos}
                       onChange={(e) => setClientesAtendidos(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -293,7 +293,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={autosReparados}
                       onChange={(e) => setAutosReparados(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -301,14 +301,14 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
               {/* Bloque de Galería */}
               <div className="p-6 rounded-2xl bg-white border border-gray-200 md:col-span-2 space-y-3 shadow-sm">
-                <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider">Galería de Imágenes (Unsplash URLs)</span>
+                <span className="block text-xs font-bold text-primary uppercase tracking-wider">Galería de Imágenes (Unsplash URLs)</span>
                 <p className="text-[10px] text-gray-500">Ingresa una URL de imagen por línea para renderizar en la landing page principal.</p>
                 <textarea
                   rows="4"
                   value={galeriaInput}
                   onChange={(e) => setGaleriaInput(e.target.value)}
                   placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-[#2908F1]"
+                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           {/* TAB 2: CONFIG AGENTE IA */}
           {subTab === 'agente' && (
             <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 shadow-sm">
-              <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Comportamiento del Agente Virtual ({nombreAgente})</span>
+              <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Comportamiento del Agente Virtual ({nombreAgente})</span>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -331,7 +331,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     disabled={user.rol !== 'soporte'}
                     value={nombreAgente}
                     onChange={(e) => setNombreAgente(e.target.value)}
-                    className={`w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] ${
+                    className={`w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                       user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                     }`}
                   />
@@ -343,14 +343,14 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     required
                     value={mensajeBienvenida}
                     onChange={(e) => setMensajeBienvenida(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Rediseño de Avatar: presets y carga de archivos */}
               <div className="p-5 bg-[#F9FAFB] rounded-2xl border border-gray-200 space-y-4">
-                <label className="block text-[10px] font-bold text-[#2908F1] uppercase tracking-widest">Avatar del Asistente Virtual</label>
+                <label className="block text-[10px] font-bold text-primary uppercase tracking-widest">Avatar del Asistente Virtual</label>
                 
                 {/* Preview actual */}
                 <div className="flex items-center gap-4">
@@ -358,7 +358,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <img 
                       src={avatarUrl || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=120'} 
                       alt="Avatar Preview" 
-                      className="w-16 h-16 rounded-full object-cover border-2 border-[#2908F1] shadow-md bg-white"
+                      className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-md bg-white"
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
                       }}
@@ -366,7 +366,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-[#0F172A]">Vista Previa</h5>
+                    <h5 className="text-xs font-bold text-navy">Vista Previa</h5>
                     <p className="text-[10px] text-gray-500 mt-0.5">Elige un preset, sube un archivo o escribe una URL.</p>
                   </div>
                 </div>
@@ -384,7 +384,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                           onClick={() => setAvatarUrl(preset.url)}
                           className={`p-2.5 rounded-xl border flex flex-col items-center gap-2 bg-white transition-all hover:scale-102 ${
                             isSelected 
-                              ? 'border-[#2908F1] ring-1 ring-[#2908F1] shadow-sm' 
+                              ? 'border-primary ring-1 ring-primary shadow-sm' 
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
@@ -393,7 +393,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                             alt={preset.name} 
                             className="w-10 h-10 rounded-full object-cover border border-gray-100" 
                           />
-                          <span className="text-[9px] font-medium text-[#0F172A] text-center line-clamp-1">{preset.name}</span>
+                          <span className="text-[9px] font-medium text-navy text-center line-clamp-1">{preset.name}</span>
                         </button>
                       );
                     })}
@@ -406,7 +406,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción B: Subir Imagen desde la Computadora</span>
                     <label 
                       htmlFor="avatar-upload"
-                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-300 bg-white hover:border-[#2908F1] hover:bg-blue-50/10 cursor-pointer text-xs font-semibold text-[#2908F1] transition-all"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-300 bg-white hover:border-primary hover:bg-blue-50/10 cursor-pointer text-xs font-semibold text-primary transition-all"
                     >
                       <Image className="w-4 h-4" /> Seleccionar Imagen (Máx 2MB)
                     </label>
@@ -427,7 +427,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       value={avatarUrl}
                       onChange={(e) => setAvatarUrl(e.target.value)}
                       placeholder="https://ejemplo.com/mi-avatar.png"
-                      className="w-full bg-white border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                      className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -441,7 +441,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   value={instruccionesBase}
                   onChange={(e) => setInstruccionesBase(e.target.value)}
                   placeholder="Sos Max, el asistente virtual del taller MecánicaPro..."
-                  className="w-full bg-[#F9FAFB] border border-gray-200 text-[#0F172A] rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1] font-light leading-relaxed"
+                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
                 />
               </div>
             </div>
@@ -450,22 +450,22 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           {/* TAB 3: WEBHOOKS Y APIS */}
           {subTab === 'api' && (
             <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 text-xs shadow-sm">
-              <span className="block text-xs font-bold text-[#2908F1] uppercase tracking-wider mb-2">Conectores de API de Producción</span>
+              <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Conectores de API de Producción</span>
               
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200">
-                  <h4 className="font-bold text-[#2908F1] mb-2 uppercase text-[10px] tracking-wider">Endpoint Webhook del Taller</h4>
+                  <h4 className="font-bold text-primary mb-2 uppercase text-[10px] tracking-wider">Endpoint Webhook del Taller</h4>
                   <p className="text-[#54595F] mb-2 leading-relaxed">
                     Para conectar Twilio Sandbox a tu backend, configura el Webhook de WhatsApp entrante en la consola de Twilio con la siguiente URL:
                   </p>
-                  <div className="bg-white p-3 rounded-xl border border-gray-200 font-mono text-[11px] select-all text-[#0F172A] flex justify-between items-center shadow-sm">
+                  <div className="bg-white p-3 rounded-xl border border-gray-200 font-mono text-[11px] select-all text-navy flex justify-between items-center shadow-sm">
                     <span>http://localhost:4000/api/webhook/whatsapp</span>
                     <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded font-sans font-semibold">POST</span>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200 space-y-3">
-                  <h4 className="font-bold text-[#2908F1] uppercase text-[10px] tracking-wider">Estado de Credenciales (.env)</h4>
+                  <h4 className="font-bold text-primary uppercase text-[10px] tracking-wider">Estado de Credenciales (.env)</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                       <span className="text-[#54595F]">Gemini LLM API Key:</span>
@@ -473,7 +473,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     </div>
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                       <span className="text-[#54595F]">Twilio Webhook:</span>
-                      <span className="font-mono text-[#0F172A]">PRODUCCIÓN MOCK / ACTIVADO</span>
+                      <span className="font-mono text-navy">PRODUCCIÓN MOCK / ACTIVADO</span>
                     </div>
                   </div>
                 </div>
@@ -486,7 +486,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             <button
               type="submit"
               disabled={guardando}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#2908F1] hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/10 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs shadow-btn-primary hover:shadow-btn-primary-hover transition-all cursor-pointer"
             >
               <Save className="w-4 h-4" /> {guardando ? 'GUARDANDO...' : 'GUARDAR CONFIGURACIÓN'}
             </button>

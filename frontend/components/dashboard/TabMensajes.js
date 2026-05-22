@@ -133,10 +133,10 @@ export default function TabMensajes() {
   }, [mensajes]);
 
   return (
-    <div className="h-[calc(100vh-210px)] min-h-[480px] flex rounded-3xl border border-gray-800 bg-[#0d1222]/40 overflow-hidden font-sans">
+    <div className="h-[calc(100vh-210px)] min-h-[480px] flex rounded-3xl border border-gray-800 bg-dark-panel/40 overflow-hidden font-sans">
       
       {/* Panel Izquierdo: Conversaciones */}
-      <div className="w-1/3 border-r border-gray-800 flex flex-col bg-[#0b0f19]/80">
+      <div className="w-1/3 border-r border-gray-800 flex flex-col bg-dark-aside/80">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950/20">
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-300">Chats WhatsApp</h3>
           <button 
@@ -154,7 +154,7 @@ export default function TabMensajes() {
             <input
               type="text"
               placeholder="Buscar por número..."
-              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-[#2908F1]"
+              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function TabMensajes() {
                   key={conv.numero_telefono}
                   onClick={() => handleSelectConv(conv.numero_telefono)}
                   className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                    active ? 'bg-[#2908F1]/10 border-l-4 border-[#2908F1]' : 'hover:bg-gray-900/20'
+                    active ? 'bg-primary/10 border-l-4 border-primary' : 'hover:bg-gray-900/20'
                   }`}
                 >
                   <div className="flex-1 min-w-0">
@@ -206,13 +206,13 @@ export default function TabMensajes() {
       </div>
 
       {/* Panel Derecho: Chat Activo */}
-      <div className="flex-1 flex flex-col bg-[#0b0f19]/30">
+      <div className="flex-1 flex flex-col bg-dark-aside/30">
         {activeNro ? (
           <>
             {/* Header del Chat */}
-            <div className="p-4 border-b border-gray-800 bg-[#0d1222]/80 flex justify-between items-center">
+            <div className="p-4 border-b border-gray-800 bg-dark-panel/80 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#2908F1]/10 border border-[#2908F1]/20 flex items-center justify-center font-bold text-[#2908F1] text-sm">
+                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-sm">
                   {activeCliente?.nombre?.charAt(0) || 'C'}
                 </div>
                 <div>
@@ -248,7 +248,7 @@ export default function TabMensajes() {
                         deCliente
                           ? 'bg-[#1e293b] text-gray-150 border border-gray-800/60 rounded-bl-none'
                           : deAdminManual
-                            ? 'bg-[#2908F1] text-white rounded-br-none shadow-md shadow-blue-950/20'
+                            ? 'bg-primary text-white rounded-br-none shadow-btn-primary'
                             : 'bg-gray-800 text-gray-300 rounded-br-none'
                       }`}>
                         {/* Nombre arriba si no es cliente */}
@@ -270,18 +270,18 @@ export default function TabMensajes() {
             </div>
 
             {/* Input Caja de Texto */}
-            <form onSubmit={handleEnviarRespuesta} className="p-4 border-t border-gray-850 bg-[#111827]/30 flex gap-3">
+            <form onSubmit={handleEnviarRespuesta} className="p-4 border-t border-gray-850 bg-dark-card/30 flex gap-3">
               <input
                 type="text"
                 value={nuevoMensaje}
                 onChange={(e) => setNuevoMensaje(e.target.value)}
                 placeholder="Escribe una respuesta manual..."
-                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-[#2908F1]"
+                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-primary"
               />
               <button
                 type="submit"
                 disabled={enviando || !nuevoMensaje.trim()}
-                className="p-3 bg-[#2908F1] hover:bg-blue-800 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                className="p-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
               >
                 <Send className="w-4 h-4 fill-current" />
               </button>
@@ -289,7 +289,7 @@ export default function TabMensajes() {
           </>
         ) : (
           <div className="flex-1 flex flex-col justify-center items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-[#2908F1]/10 border border-[#2908F1]/20 flex items-center justify-center text-[#2908F1]">
+            <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <MessageSquare className="w-7 h-7" />
             </div>
             <div>

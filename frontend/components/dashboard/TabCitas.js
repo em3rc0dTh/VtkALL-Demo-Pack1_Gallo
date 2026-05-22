@@ -150,14 +150,14 @@ export default function TabCitas() {
     <div className="space-y-6">
       
       {/* Barra de Filtros y Vistas */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#111827]/40 p-4 rounded-2xl border border-gray-800">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         
         {/* Toggle de Vistas */}
         <div className="flex items-center gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800">
           <button
             onClick={() => { setVista('lista'); cargarCitas(); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              vista === 'lista' ? 'bg-[#2908F1] text-white' : 'text-gray-400 hover:text-white'
+              vista === 'lista' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <List className="w-4 h-4" /> Lista
@@ -165,7 +165,7 @@ export default function TabCitas() {
           <button
             onClick={() => { setVista('kanban'); cargarCitas(); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              vista === 'kanban' ? 'bg-[#2908F1] text-white' : 'text-gray-400 hover:text-white'
+              vista === 'kanban' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <LayoutGrid className="w-4 h-4" /> Kanban
@@ -173,7 +173,7 @@ export default function TabCitas() {
           <button
             onClick={() => { setVista('agenda'); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              vista === 'agenda' ? 'bg-[#2908F1] text-white' : 'text-gray-400 hover:text-white'
+              vista === 'agenda' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <CalendarRange className="w-4 h-4" /> Agenda Diaria
@@ -187,13 +187,13 @@ export default function TabCitas() {
               type="date"
               value={fechaFiltro}
               onChange={(e) => setFechaFiltro(e.target.value)}
-              className="bg-gray-950 border border-gray-800 text-white text-xs font-semibold px-3 py-2 rounded-xl outline-none focus:border-[#2908F1] transition-colors"
+              className="bg-gray-950 border border-gray-800 text-white text-xs font-semibold px-3 py-2 rounded-xl outline-none focus:border-primary transition-colors"
             />
           )}
 
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#2908F1] hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-[#2908F1]/10 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-btn-primary hover:shadow-btn-primary-hover cursor-pointer"
           >
             <Plus className="w-4 h-4" /> AGENDAR CITA
           </button>
@@ -211,7 +211,7 @@ export default function TabCitas() {
                 <div className="text-center py-12 text-sm text-gray-500">No hay citas registradas en el sistema.</div>
               ) : (
                 <table className="min-w-full divide-y divide-gray-850 text-left text-xs">
-                  <thead className="bg-[#111827]/40 text-gray-400 font-bold uppercase tracking-wider">
+                  <thead className="bg-dark-card/40 text-gray-400 font-bold uppercase tracking-wider">
                     <tr>
                       <th className="px-6 py-4">Cliente / Celular</th>
                       <th className="px-6 py-4">Vehículo</th>
@@ -269,7 +269,7 @@ export default function TabCitas() {
                               <button 
                                 onClick={() => handleCambiarEstado(c._id, 'en_proceso')}
                                 title="Iniciar trabajo"
-                                className="p-1.5 rounded-lg bg-[#2908F1]/10 text-blue-400 border border-[#2908F1]/20 hover:bg-[#2908F1] hover:text-white transition-all cursor-pointer"
+                                className="p-1.5 rounded-lg bg-primary/10 text-blue-400 border border-primary/20 hover:bg-primary hover:text-white transition-all cursor-pointer"
                               >
                                 <Play className="w-3.5 h-3.5" />
                               </button>
@@ -348,7 +348,7 @@ export default function TabCitas() {
                                 </button>
                               )}
                               {colName === 'confirmada' && (
-                                <button onClick={() => handleCambiarEstado(c._id, 'en_proceso')} className="p-1 rounded bg-[#2908F1]/10 text-blue-400 border border-[#2908F1]/20 hover:bg-[#2908F1] hover:text-white cursor-pointer">
+                                <button onClick={() => handleCambiarEstado(c._id, 'en_proceso')} className="p-1 rounded bg-primary/10 text-blue-400 border border-primary/20 hover:bg-primary hover:text-white cursor-pointer">
                                   ▶
                                 </button>
                               )}
@@ -385,7 +385,7 @@ export default function TabCitas() {
 
                   return (
                     <div key={hr} className="flex min-h-[80px]">
-                      <div className="w-20 p-4 border-r border-gray-850 flex items-center justify-center bg-[#111827]/10 font-bold text-xs text-gray-400">
+                      <div className="w-20 p-4 border-r border-gray-850 flex items-center justify-center bg-dark-card/10 font-bold text-xs text-gray-400">
                         {hr}
                       </div>
                       <div className="flex-1 p-3 flex gap-3 overflow-x-auto">
@@ -427,7 +427,7 @@ export default function TabCitas() {
       {/* MODAL DE NUEVA CITA */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl bg-[#0d1222] border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
               <h3 className="text-lg font-bold text-white">Agendar Nueva Cita</h3>
               <button 
@@ -456,7 +456,7 @@ export default function TabCitas() {
                     placeholder="51999888777"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-[#2908F1] outline-none"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div>
@@ -467,7 +467,7 @@ export default function TabCitas() {
                     placeholder="Juan Perez"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-[#2908F1] outline-none"
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
@@ -573,7 +573,7 @@ export default function TabCitas() {
                   rows="3"
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-[#2908F1]"
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -588,7 +588,7 @@ export default function TabCitas() {
                 <button
                   type="submit"
                   disabled={creando}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-[#2908F1] text-white hover:bg-blue-800 disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-50"
                 >
                   {creando ? 'Agendando...' : 'Confirmar Cita'}
                 </button>

@@ -49,13 +49,13 @@ export default function Servicios({ servicios = [], onOpenChat }) {
         
         {/* Métricas rápidas de Gallo Autos */}
         <div className="flex flex-wrap justify-center gap-3 md:gap-6 mb-8 text-center text-[#54595F] text-xs font-semibold uppercase tracking-wider">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2908F1]/5 border border-[#2908F1]/10 backdrop-blur-sm">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 backdrop-blur-sm">
             🕒 Entrega Promedio: 48 Horas
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2908F1]/5 border border-[#2908F1]/10 backdrop-blur-sm">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 backdrop-blur-sm">
             🤝 Clientes Particulares y Flotas
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2908F1]/5 border border-[#2908F1]/10 backdrop-blur-sm">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 backdrop-blur-sm">
             🏆 Garantía por Escrito
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-xs font-bold tracking-widest text-[#2908F1] uppercase block mb-1"
+            className="text-xs font-bold tracking-widest text-primary uppercase block mb-1"
           >
             NUESTRAS ESPECIALIDADES
           </motion.span>
@@ -75,12 +75,12 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-black text-[#0F172A] tracking-tight"
+            className="text-3xl md:text-4xl font-black text-navy tracking-tight"
             style={{ fontFamily: "'Readex Pro', sans-serif" }}
           >
             Mantenimiento y Diagnóstico
           </motion.h2>
-          <div className="w-12 h-1 bg-[#FFC800] mx-auto mt-3 rounded-full" />
+          <div className="w-12 h-1 bg-secondary mx-auto mt-3 rounded-full" />
         </div>
 
         {/* Carrusel horizontal infinito de dos filas (serpentina) */}
@@ -129,12 +129,12 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             {[...listado, ...listado, ...listado].map((s, idx) => (
               <div
                 key={`top-${s.nombre}-${idx}`}
-                className="shrink-0 w-[350px] md:w-[400px] p-5 rounded-[24px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-[#2908F1]/40 transition-all duration-300 transform hover:-translate-y-1"
+                className="shrink-0 w-[350px] md:w-[400px] p-5 rounded-[24px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1"
               >
                 {/* Estructura Contenido Superior */}
                 <div className="flex flex-row items-start gap-4 mb-4">
                   {/* BLOQUE IZQUIERDA: Icono */}
-                  <div className="w-12 h-12 shrink-0 rounded-xl bg-[#2908F1]/10 flex items-center justify-center text-2xl group-hover:bg-[#2908F1]/20 group-hover:scale-110 transition-all duration-300 relative select-none">
+                  <div className="w-12 h-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-2xl group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
                     <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
                       {s.icono || "🔧"}
                     </span>
@@ -142,7 +142,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
 
                   {/* BLOQUE DERECHA: Textos */}
                   <div className="flex flex-col space-y-1 pt-0.5">
-                    <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#2908F1] transition-colors duration-200 leading-snug" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
+                    <h3 className="text-base font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
                       {s.nombre}
                     </h3>
                     <p className="text-[#54595F] text-xs leading-relaxed font-light line-clamp-2">
@@ -155,17 +155,17 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-[#54595F] border-t border-gray-100 pt-3">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <Clock className="w-4 h-4 text-[#2908F1]" />
+                      <Clock className="w-4 h-4 text-primary" />
                       {s.duracion_minutos} min
                     </span>
-                    <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                      <Tag className="w-3.5 h-3.5 text-[#2908F1]" /> desde S/. {s.precio_base}
+                    <span className="flex items-center gap-1 font-bold text-navy">
+                      <Tag className="w-3.5 h-3.5 text-primary" /> desde S/. {s.precio_base}
                     </span>
                   </div>
                   
                   <button
                     onClick={() => onOpenChat(`Hola, me interesa agendar una cita para ${s.nombre}`)}
-                    className="w-full py-2 rounded-xl text-xs font-bold tracking-wider text-[#2908F1] bg-[#2908F1]/5 border border-[#2908F1]/10 group-hover:bg-[#2908F1] group-hover:text-white group-hover:border-[#2908F1] transition-all duration-300 cursor-pointer text-center"
+                    className="w-full py-2 rounded-xl text-xs font-bold tracking-wider text-primary bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300 cursor-pointer text-center"
                   >
                     RESERVAR CITA
                   </button>
@@ -185,12 +185,12 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             {[...listado, ...listado, ...listado].map((s, idx) => (
               <div
                 key={`bottom-${s.nombre}-${idx}`}
-                className="shrink-0 w-[350px] md:w-[400px] p-5 rounded-[24px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-[#2908F1]/40 transition-all duration-300 transform hover:-translate-y-1"
+                className="shrink-0 w-[350px] md:w-[400px] p-5 rounded-[24px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1"
               >
                 {/* Estructura Contenido Superior */}
                 <div className="flex flex-row items-start gap-4 mb-4">
                   {/* BLOQUE IZQUIERDA: Icono */}
-                  <div className="w-12 h-12 shrink-0 rounded-xl bg-[#2908F1]/10 flex items-center justify-center text-2xl group-hover:bg-[#2908F1]/20 group-hover:scale-110 transition-all duration-300 relative select-none">
+                  <div className="w-12 h-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-2xl group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
                     <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
                       {s.icono || "🔧"}
                     </span>
@@ -198,7 +198,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
 
                   {/* BLOQUE DERECHA: Textos */}
                   <div className="flex flex-col space-y-1 pt-0.5">
-                    <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#2908F1] transition-colors duration-200 leading-snug" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
+                    <h3 className="text-base font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
                       {s.nombre}
                     </h3>
                     <p className="text-[#54595F] text-xs leading-relaxed font-light line-clamp-2">
@@ -211,17 +211,17 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-[#54595F] border-t border-gray-100 pt-3">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <Clock className="w-4 h-4 text-[#2908F1]" />
+                      <Clock className="w-4 h-4 text-primary" />
                       {s.duracion_minutos} min
                     </span>
-                    <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                      <Tag className="w-3.5 h-3.5 text-[#2908F1]" /> desde S/. {s.precio_base}
+                    <span className="flex items-center gap-1 font-bold text-navy">
+                      <Tag className="w-3.5 h-3.5 text-primary" /> desde S/. {s.precio_base}
                     </span>
                   </div>
                   
                   <button
                     onClick={() => onOpenChat(`Hola, me interesa agendar una cita para ${s.nombre}`)}
-                    className="w-full py-2 rounded-xl text-xs font-bold tracking-wider text-[#2908F1] bg-[#2908F1]/5 border border-[#2908F1]/10 group-hover:bg-[#2908F1] group-hover:text-white group-hover:border-[#2908F1] transition-all duration-300 cursor-pointer text-center"
+                    className="w-full py-2 rounded-xl text-xs font-bold tracking-wider text-primary bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300 cursor-pointer text-center"
                   >
                     RESERVAR CITA
                   </button>
@@ -239,12 +239,12 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="p-6 rounded-[24px] bg-gradient-to-br from-[#2908F1] to-[#4F46E5] text-white relative overflow-hidden shadow-md group"
+            className="p-6 rounded-[24px] bg-gradient-to-br from-primary to-[#4F46E5] text-white relative overflow-hidden shadow-md group"
           >
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-28 h-28 rounded-full bg-white/5 blur-xl pointer-events-none" />
             <div className="flex flex-col h-full justify-between gap-4 relative z-10">
               <div>
-                <span className="inline-block px-2.5 py-0.5 rounded bg-[#FFC800] text-black font-mono font-black text-[9px] uppercase tracking-widest mb-2.5 shadow-sm">
+                <span className="inline-block px-2.5 py-0.5 rounded bg-secondary text-white font-mono font-black text-[9px] uppercase tracking-widest mb-2.5 shadow-sm">
                   PROMO DEL MES
                 </span>
                 <h3 className="text-xl font-black text-white tracking-tight leading-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
@@ -256,7 +256,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
               </div>
               <button
                 onClick={() => onOpenChat("Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis")}
-                className="w-full py-2.5 rounded-xl text-xs font-bold tracking-wider text-[#0F172A] bg-[#FFC800] hover:bg-white hover:text-[#2908F1] transition-all duration-300 cursor-pointer text-center uppercase"
+                className="w-full py-2.5 rounded-xl text-xs font-bold tracking-wider text-white bg-secondary hover:bg-white hover:text-primary transition-all duration-300 cursor-pointer text-center uppercase"
               >
                 AGENDAR PROMOCIÓN
               </button>
@@ -269,12 +269,12 @@ export default function Servicios({ servicios = [], onOpenChat }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-6 rounded-[24px] bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white border border-[#2908F1]/20 relative overflow-hidden shadow-md group"
+            className="p-6 rounded-[24px] bg-gradient-to-br from-navy to-[#1E293B] text-white border border-primary/20 relative overflow-hidden shadow-md group"
           >
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-28 h-28 rounded-full bg-[#2908F1]/10 blur-xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-28 h-28 rounded-full bg-primary/10 blur-xl pointer-events-none" />
             <div className="flex flex-col h-full justify-between gap-4 relative z-10">
               <div>
-                <span className="inline-block px-2.5 py-0.5 rounded bg-[#2908F1] text-white font-mono font-black text-[9px] uppercase tracking-widest mb-2.5 shadow-sm">
+                <span className="inline-block px-2.5 py-0.5 rounded bg-primary text-white font-mono font-black text-[9px] uppercase tracking-widest mb-2.5 shadow-sm">
                   EDICIÓN LIMITADA
                 </span>
                 <h3 className="text-xl font-black text-white tracking-tight leading-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
@@ -286,7 +286,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
               </div>
               <button
                 onClick={() => onOpenChat("Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura")}
-                className="w-full py-2.5 rounded-xl text-xs font-bold tracking-wider text-white bg-[#2908F1] hover:bg-white hover:text-[#0F172A] transition-all duration-300 cursor-pointer text-center uppercase"
+                className="w-full py-2.5 rounded-xl text-xs font-bold tracking-wider text-white bg-primary hover:bg-white hover:text-navy transition-all duration-300 cursor-pointer text-center uppercase"
               >
                 OBTENER DESCUENTO
               </button>

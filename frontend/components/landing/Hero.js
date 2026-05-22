@@ -31,13 +31,13 @@ export default function Hero({ taller = {}, onOpenChat }) {
           filter: 'brightness(1.05) saturate(1.15)',
           maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
           WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
-          opacity: 0.28,
+          opacity: 0.48,
         }}
-        src="/videos/PixVerse_V6_Image_Text_360P_“Create_a_seamless.mp4"
+        src="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
       />
 
       {/* Subtle Top & Bottom Gradient Overlays for Readability */}
-      <div className="absolute top-0 left-0 right-0 h-[260px] bg-gradient-to-b from-white/90 via-[#EFF1FE]/55 to-transparent pointer-events-none z-[2]" />
+      <div className="absolute top-0 left-0 right-0 h-[260px] bg-gradient-to-b from-white/90 via-lavender/55 to-transparent pointer-events-none z-[2]" />
       <div className="absolute bottom-0 left-0 right-0 h-[260px] bg-gradient-to-t from-white/90 via-[#F4F5FF]/60 to-transparent pointer-events-none z-[2]" />
 
       {/* Large Decorative All-Caps Backdrop Typography */}
@@ -45,7 +45,7 @@ export default function Hero({ taller = {}, onOpenChat }) {
         <h2 className="text-[12vw] font-bold tracking-widest text-center select-none uppercase font-bebas opacity-70"
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
-              background: 'linear-gradient(180deg, rgba(41, 8, 241, 0.08) 0%, rgba(41, 8, 241, 0.01) 100%)',
+              background: 'var(--bg-decorative-text)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
@@ -65,7 +65,7 @@ export default function Hero({ taller = {}, onOpenChat }) {
               initial={{ opacity: 0, y: -15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-[#2908F1] bg-[#2908F1]/10 border border-[#2908F1]/20 mb-6 uppercase"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-primary bg-primary/10 border border-primary/20 mb-6 uppercase"
             >
               <Wrench className="w-3 h-3" /> TECNOLOGÍA & CONFIANZA
             </motion.span>
@@ -76,7 +76,7 @@ export default function Hero({ taller = {}, onOpenChat }) {
                 initial={{ opacity: 0, y: 25 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.1 }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#0F172A] tracking-tight uppercase leading-none"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-navy tracking-tight uppercase leading-none"
                 style={{ fontFamily: "'Readex Pro', sans-serif" }}
               >
                 Precisión de Alto
@@ -85,10 +85,10 @@ export default function Hero({ taller = {}, onOpenChat }) {
                 initial={{ opacity: 0, y: 25 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.2 }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#2908F1] tracking-tight uppercase leading-none mt-1"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-primary tracking-tight uppercase leading-none mt-1"
                 style={{ 
                   fontFamily: "'Readex Pro', sans-serif",
-                  textShadow: '0 0 40px rgba(41, 8, 241, 0.1)'
+                  textShadow: 'var(--text-shadow-hero)'
                 }}
               >
                 Rendimiento.
@@ -102,7 +102,7 @@ export default function Hero({ taller = {}, onOpenChat }) {
               transition={{ duration: 0.7, delay: 0.3 }}
               className="text-sm md:text-base text-[#54595F] max-w-lg mb-8 leading-relaxed font-light"
             >
-              El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-[#0F172A] font-semibold">{nombreAgente}</span>, nuestro agente inteligente de reservas.
+              El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-navy font-semibold">{nombreAgente}</span>, nuestro agente inteligente de reservas.
             </motion.p>
 
             {/* Action Buttons */}
@@ -114,13 +114,13 @@ export default function Hero({ taller = {}, onOpenChat }) {
             >
               <a
                 href="#servicios"
-                className="px-6 py-3 rounded-full text-xs font-bold tracking-wider border border-gray-200 bg-white text-[#54595F] hover:bg-gray-50 hover:text-[#2908F1] hover:border-[#2908F1]/30 transition-all duration-300 text-center"
+                className="px-6 py-3 rounded-full text-xs font-bold tracking-wider border border-gray-200 bg-white text-[#54595F] hover:bg-gray-50 hover:text-primary hover:border-primary/30 transition-all duration-300 text-center"
               >
                 VER SERVICIOS
               </a>
               <button
                 onClick={onOpenChat}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs font-bold tracking-wider text-[#0F172A] bg-[#FFC800] hover:bg-[#e6b400] transition-all duration-300 shadow-lg shadow-yellow-500/15 hover:scale-105 active:scale-95 cursor-pointer"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs font-bold tracking-wider text-navy bg-primary hover:bg-secondary-hover transition-all duration-300 shadow-btn-secondary hover:shadow-btn-secondary-hover hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <MessageSquare className="w-3.5 h-3.5 fill-current" /> AGENDAR CON {nombreAgente}
               </button>
@@ -134,8 +134,8 @@ export default function Hero({ taller = {}, onOpenChat }) {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-5 w-full flex flex-col justify-center"
           >
-            <div className="w-full relative rounded-3xl p-0.5 bg-gradient-to-b from-[#2908F1]/30 to-transparent shadow-xl backdrop-blur-md">
-              <span className="absolute -top-3 left-6 px-2.5 py-0.5 rounded bg-[#2908F1] text-white font-mono font-bold text-[8px] uppercase tracking-widest z-20 shadow-md">
+            <div className="w-full relative rounded-3xl p-0.5 bg-gradient-to-b from-primary/30 to-transparent shadow-xl backdrop-blur-md">
+              <span className="absolute -top-3 left-6 px-2.5 py-0.5 rounded bg-primary text-white font-mono font-bold text-[8px] uppercase tracking-widest z-20 shadow-md">
                 TELEMETRÍA EN VIVO
               </span>
               <PitStopAnimation />

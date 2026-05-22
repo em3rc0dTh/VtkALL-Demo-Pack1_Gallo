@@ -599,6 +599,37 @@ Ejemplo: "Soy Juan Perez, DNI 12345678, celular 999888777, quiero un Cambio de A
     .replace(/Max/g, nombreAgente);
 };
 
+// LISTA DE MODELOS GEMINI DISPONIBLES CON CUOTA ACTIVA
+const MODELOS_FALLBACK = [
+  'gemini-2.5-flash',
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-2.5-flash-lite'
+];
+
+/**
+ * Realiza una llamada a chat.completions.create con reintentos automáticos
+ * usando una lista de modelos alternativos en caso de rate limits u otros errores.
+ */
+const llamarCompletionsConFallback = async (openaiClient, params) => {
+  let ultimoError = null;
+  for (const modelo of MODELOS_FALLBACK) {
+    try {
+      console.log(`🤖 [Gemini API] Intentando llamada con modelo: ${modelo}...`);
+      const respuesta = await openaiClient.chat.completions.create({
+        ...params,
+        model: modelo
+      });
+      console.log(`✅ [Gemini API] Éxito en llamada utilizando modelo: ${modelo}`);
+      return respuesta;
+    } catch (err) {
+      ultimoError = err;
+      console.warn(`⚠️ [Gemini API] Error al llamar con modelo ${modelo}: ${err.message || err}. Probando el siguiente...`);
+    }
+  }
+  throw ultimoError || new Error("Todos los modelos fallaron en llamarCompletionsConFallback");
+};
+
 // CORE AGENT PROCESSOR
 export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
   const taller = await Taller.findOne();
@@ -677,9 +708,8 @@ REGLAS IMPORTANTES:
       content: m.contenido
     }));
 
-    // 2. Primera llamada a Gemini
-    const respuesta = await geminiClient.chat.completions.create({
-      model: "gemini-2.5-flash",
+    // 2. Primera llamada a Gemini con fallback de modelos
+    const respuesta = await llamarCompletionsConFallback(geminiClient, {
       messages: [
         { role: "system", content: systemPrompt },
         ...historial,
@@ -721,10 +751,9 @@ REGLAS IMPORTANTES:
         });
       }
 
-      // Segunda llamada enviando los resultados
+      // Segunda llamada enviando los resultados con fallback de modelos
       try {
-        const respuestaFinal = await geminiClient.chat.completions.create({
-          model: "gemini-2.5-flash",
+        const respuestaFinal = await llamarCompletionsConFallback(geminiClient, {
           messages: [
             { role: "system", content: systemPrompt },
             ...historial,

@@ -59,23 +59,23 @@ export default function Galeria({ taller = {} }) {
       `}</style>
 
       {/* Luces de ambiente traseras */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#2908F1]/08 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#FFC800]/08 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/08 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-secondary/08 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full relative z-10">
 
         {/* Encabezado */}
         <div className="text-center max-w-2xl mx-auto mb-16 px-4">
-          <span className="text-[#FFC800] uppercase tracking-[0.2em] text-xs font-bold bg-[#FFC800]/10 px-4 py-2 rounded-full">
+          <span className="text-secondary uppercase tracking-[0.2em] text-xs font-bold bg-secondary/10 px-4 py-2 rounded-full">
             📸 Portafolio de Trabajos
           </span>
           <h2
-            className="text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-tight mt-6"
+            className="text-4xl md:text-5xl font-black text-navy tracking-tight leading-tight mt-6"
             style={{ fontFamily: "'Readex Pro', sans-serif" }}
           >
             Nuestras Instalaciones<br />y Proyectos
           </h2>
-          <div className="w-16 h-1.5 bg-[#FFC800] mx-auto mt-5 rounded-full" />
+          <div className="w-16 h-1.5 bg-secondary mx-auto mt-5 rounded-full" />
           <p className="text-slate-600 font-light text-sm mt-4 leading-relaxed">
             Explora nuestra infraestructura premium. Posa el cursor para detener el movimiento y examinar los detalles.
           </p>
@@ -112,10 +112,10 @@ export default function Galeria({ taller = {} }) {
                 </div>
                 
                 <div className="space-y-1.5 px-6 py-5 relative bg-white">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#FFC800]">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-secondary">
                     {item.desc}
                   </p>
-                  <h4 className="text-lg font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
+                  <h4 className="text-lg font-bold text-navy tracking-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
                     {item.label}
                   </h4>
                 </div>

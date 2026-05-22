@@ -58,7 +58,7 @@ export default function PitStopAnimation() {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   return (
-    <div className="relative w-full h-[280px] sm:h-[320px] rounded-3xl bg-[#F9FAFF] border border-[#2908F1]/10 overflow-hidden flex flex-col justify-between p-5 select-none shadow-lg shadow-gray-200/20">
+    <div className="relative w-full h-[280px] sm:h-[320px] rounded-3xl bg-[#F9FAFF] border border-primary/10 overflow-hidden flex flex-col justify-between p-5 select-none shadow-lg shadow-gray-200/20">
       
       {/* Luces de Pits de F1 en el techo de la caja */}
       <div className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-xl border border-gray-150">
@@ -66,10 +66,10 @@ export default function PitStopAnimation() {
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((i) => {
             let color = 'bg-gray-200';
-            if (fase === 'entrada' || fase === 'diagnostico') color = 'bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.7)] animate-pulse';
-            if (fase === 'reparacion') color = i <= 3 ? 'bg-[#2908F1] shadow-[0_0_10px_rgba(41,8,241,0.7)]' : 'bg-gray-200';
-            if (fase === 'listo') color = 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]';
-            if (fase === 'disparado') color = 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,1)] animate-ping';
+            if (fase === 'entrada' || fase === 'diagnostico') color = 'bg-red-600 shadow-pits-red animate-pulse';
+            if (fase === 'reparacion') color = i <= 3 ? 'bg-primary shadow-pits-primary' : 'bg-gray-200';
+            if (fase === 'listo') color = 'bg-emerald-500 shadow-pits-green-ready';
+            if (fase === 'disparado') color = 'bg-emerald-500 shadow-pits-green-launch animate-ping';
             return (
               <div 
                 key={i} 
@@ -86,7 +86,7 @@ export default function PitStopAnimation() {
         {/* Línea divisoria de pits (Pista de carreras) */}
         <div className="absolute bottom-6 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-gray-200 to-transparent flex justify-around">
           {[...Array(6)].map((_, idx) => (
-            <div key={idx} className="w-4 h-[3px] bg-[#FFC800]/60 transform -skew-x-12" />
+            <div key={idx} className="w-4 h-[3px] bg-secondary/60 transform -skew-x-12" />
           ))}
         </div>
 
@@ -132,7 +132,7 @@ export default function PitStopAnimation() {
                     repeat: Infinity, 
                     delay: Math.random() * 0.5 
                   }}
-                  className="absolute bottom-0 left-[50%] w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_6px_#0ebde1]"
+                  className="absolute bottom-0 left-[50%] w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-spark"
                 />
               ))}
             </div>
@@ -209,40 +209,40 @@ export default function PitStopAnimation() {
           </AnimatePresence>
 
           {/* Silueta de Coche Deportivo de Alta Gama */}
-          <svg viewBox="0 0 180 55" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+          <svg viewBox="0 0 180 55" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ filter: 'drop-shadow(var(--shadow-car-chassis))' }}>
             {/* Chasis principal */}
             <path 
               d="M10 42C10 42 15 36 28 32C41 28 50 18 70 14C90 10 120 12 135 20C150 28 175 35 178 39C181 43 175 46 170 47C165 48 15 48 10 47C5 46 5 43 10 42Z" 
-              fill={fase === 'diagnostico' ? '#54595F' : fase === 'reparacion' ? '#7A7A7A' : '#2908F1'} 
+              fill={fase === 'diagnostico' ? '#54595F' : fase === 'reparacion' ? '#7A7A7A' : 'var(--primary)'} 
               className="transition-colors duration-500"
             />
             {/* Cabina / Parabrisas */}
-            <path d="M68 18C75 14 110 14 125 21C128 22.5 125 26 120 27C110 29 80 29 70 27C65 26 64 20 68 18Z" fill="#0F172A" opacity="0.95" />
+            <path d="M68 18C75 14 110 14 125 21C128 22.5 125 26 120 27C110 29 80 29 70 27C65 26 64 20 68 18Z" fill='var(--navy)' opacity="0.95" />
             
             {/* Faros delanteros (Izquierda) */}
             <path 
               d="M8 43L14 44L12 46L6 44L8 43Z" 
-              fill={fase === 'diagnostico' ? '#ef4444' : '#6EC1E4'} 
+              fill={fase === 'diagnostico' ? '#ef4444' : 'var(--cyan)'} 
               className="transition-colors duration-300"
-              style={fase === 'listo' || fase === 'disparado' ? { filter: 'drop-shadow(0 0 8px #6EC1E4)' } : {}}
+              style={fase === 'listo' || fase === 'disparado' ? { filter: 'drop-shadow(var(--glow-headlight))' } : {}}
             />
             
             {/* Luz de Freno Trasera (Derecha) */}
             <path 
               d="M174 38L179 40L178 43L173 41L174 38Z" 
               fill={fase === 'diagnostico' ? '#f87171' : '#ef4444'} 
-              style={fase === 'diagnostico' || fase === 'entrada' ? { filter: 'drop-shadow(0 0 8px #ef4444)' } : {}}
+              style={fase === 'diagnostico' || fase === 'entrada' ? { filter: 'drop-shadow(var(--glow-brakelight))' } : {}}
             />
  
             {/* Neon inferior (Underglow) */}
             <path 
               d="M35 48H145" 
-              stroke={fase === 'diagnostico' ? '#ef4444' : fase === 'listo' || fase === 'disparado' ? '#FFC800' : '#6EC1E4'} 
+              stroke={fase === 'diagnostico' ? '#ef4444' : fase === 'listo' || fase === 'disparado' ? 'var(--secondary)' : 'var(--cyan)'} 
               strokeWidth="3.5" 
               strokeLinecap="round" 
               opacity="0.85"
               className="transition-colors duration-500"
-              style={{ filter: `drop-shadow(0 0 6px ${fase === 'diagnostico' ? '#ef4444' : fase === 'listo' || fase === 'disparado' ? '#FFC800' : '#6EC1E4'})` }}
+              style={{ filter: `drop-shadow(${fase === 'diagnostico' ? 'var(--glow-underglow-diagnostico)' : fase === 'listo' || fase === 'disparado' ? 'var(--glow-underglow-ready)' : 'var(--glow-underglow-normal)'})` }}
             />
           </svg>
 
@@ -257,14 +257,14 @@ export default function PitStopAnimation() {
               { rotate: 0 }
             }
             transition={{ duration: fase === 'listo' ? 0.4 : fase === 'disparado' ? 0.8 : 1.5, repeat: fase === 'reparacion' || fase === 'listo' ? Infinity : 0, ease: 'linear' }}
-            className="absolute left-[30px] bottom-[-2px] w-[30px] h-[30px] rounded-full bg-[#1e293b] border-4 border-gray-200 flex items-center justify-center shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+            className="absolute left-[30px] bottom-[-2px] w-[30px] h-[30px] rounded-full bg-[#1e293b] border-4 border-gray-200 flex items-center justify-center shadow-car-wheel"
           >
             {/* Rines */}
             <div className="w-full h-[2px] bg-gray-400 transform rotate-0" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-45" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-90" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-135" />
-            <div className="w-3.5 h-3.5 rounded-full bg-gray-800 absolute border-2 border-[#2908F1]" />
+            <div className="w-3.5 h-3.5 rounded-full bg-gray-800 absolute border-2 border-primary" />
           </motion.div>
 
           {/* Rueda Trasera */}
@@ -278,14 +278,14 @@ export default function PitStopAnimation() {
               { rotate: 0 }
             }
             transition={{ duration: fase === 'listo' ? 0.4 : fase === 'disparado' ? 0.8 : 1.5, repeat: fase === 'reparacion' || fase === 'listo' ? Infinity : 0, ease: 'linear' }}
-            className="absolute right-[32px] bottom-[-2px] w-[30px] h-[30px] rounded-full bg-[#1e293b] border-4 border-gray-200 flex items-center justify-center shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+            className="absolute right-[32px] bottom-[-2px] w-[30px] h-[30px] rounded-full bg-[#1e293b] border-4 border-gray-200 flex items-center justify-center shadow-car-wheel"
           >
             {/* Rines */}
             <div className="w-full h-[2px] bg-gray-400 transform rotate-0" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-45" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-90" />
             <div className="w-full h-[2px] bg-gray-400 absolute transform rotate-135" />
-            <div className="w-3.5 h-3.5 rounded-full bg-gray-800 absolute border-2 border-[#2908F1]" />
+            <div className="w-3.5 h-3.5 rounded-full bg-gray-800 absolute border-2 border-primary" />
           </motion.div>
         </motion.div>
 
@@ -299,9 +299,9 @@ export default function PitStopAnimation() {
                 animate={{ opacity: 1, scale: 1, y: -20, rotate: 360 }}
                 exit={{ opacity: 0, scale: 0 }}
                 transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-                className="absolute left-[38%] bottom-16 text-[#2908F1] z-20"
+                className="absolute left-[38%] bottom-16 text-primary z-20"
               >
-                <Wrench className="w-7 h-7 filter drop-shadow-[0_0_6px_rgba(41,8,241,0.5)]" />
+                <Wrench className="w-7 h-7" style={{ filter: 'drop-shadow(var(--glow-wrench))' }} />
               </motion.div>
               {/* Engranaje */}
               <motion.div 
@@ -309,9 +309,9 @@ export default function PitStopAnimation() {
                 animate={{ opacity: 1, scale: 1, y: -30, rotate: -360 }}
                 exit={{ opacity: 0, scale: 0 }}
                 transition={{ duration: 0.6, repeat: Infinity, repeatType: 'reverse', delay: 0.1 }}
-                className="absolute left-[50%] bottom-16 text-[#6EC1E4] z-20"
+                className="absolute left-[50%] bottom-16 text-cyan z-20"
               >
-                <Settings className="w-6 h-6 filter drop-shadow-[0_0_6px_rgba(110,193,228,0.5)]" />
+                <Settings className="w-6 h-6" style={{ filter: 'drop-shadow(var(--glow-gear))' }} />
               </motion.div>
               {/* Icono de Rayo */}
               <motion.div 
@@ -319,9 +319,9 @@ export default function PitStopAnimation() {
                 animate={{ opacity: 1, scale: [0.8, 1.2, 0.8], y: -15 }}
                 exit={{ opacity: 0, scale: 0 }}
                 transition={{ duration: 0.4, repeat: Infinity }}
-                className="absolute left-[45%] bottom-20 text-[#FFC800] z-20"
+                className="absolute left-[45%] bottom-20 text-secondary z-20"
               >
-                <Zap className="w-7 h-7 filter drop-shadow-[0_0_8px_rgba(255,200,0,0.5)]" />
+                <Zap className="w-7 h-7" style={{ filter: 'drop-shadow(var(--glow-zap))' }} />
               </motion.div>
             </>
           )}
@@ -331,9 +331,9 @@ export default function PitStopAnimation() {
       {/* Panel digital inferior */}
       <div className="mt-3 p-3 bg-gray-50 rounded-2xl border border-gray-150 flex justify-between items-center h-14">
         <div className="flex items-center gap-2">
-          {fase === 'entrada' && <Settings className="w-4 h-4 text-[#2908F1] animate-spin" />}
+          {fase === 'entrada' && <Settings className="w-4 h-4 text-primary animate-spin" />}
           {fase === 'diagnostico' && <AlertTriangle className="w-4 h-4 text-red-500 animate-bounce" />}
-          {fase === 'reparacion' && <Wrench className="w-4 h-4 text-[#2908F1] animate-pulse" />}
+          {fase === 'reparacion' && <Wrench className="w-4 h-4 text-primary animate-pulse" />}
           {fase === 'listo' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
           {fase === 'disparado' && <Zap className="w-4 h-4 text-emerald-500 animate-ping" />}
           
@@ -341,9 +341,9 @@ export default function PitStopAnimation() {
             <span className="text-[9px] font-bold text-[#54595F] uppercase tracking-widest leading-none">Estado de Pits</span>
             <span className={`text-xs font-mono font-bold leading-tight ${
               fase === 'diagnostico' ? 'text-red-500' :
-              fase === 'reparacion' ? 'text-[#2908F1]' :
+              fase === 'reparacion' ? 'text-primary' :
               fase === 'listo' || fase === 'disparado' ? 'text-emerald-500' :
-              'text-[#2908F1]'
+              'text-primary'
             }`}>
               {fase === 'entrada' && 'ENTRANDO A BOX...'}
               {fase === 'diagnostico' && 'DIAGNÓSTICO: FALLA DE MOTOR'}
@@ -359,7 +359,7 @@ export default function PitStopAnimation() {
         <div className="w-24 sm:w-32 bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200">
           <div 
             className={`h-full transition-all duration-300 ${
-              fase === 'reparacion' ? 'bg-[#2908F1]' : 
+              fase === 'reparacion' ? 'bg-primary' : 
               fase === 'listo' || fase === 'disparado' ? 'bg-emerald-500' : 
               'bg-gray-200'
             }`} 

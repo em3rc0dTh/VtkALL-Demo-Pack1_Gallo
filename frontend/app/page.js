@@ -54,13 +54,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAFBFF] text-[#0F172A] overflow-x-hidden">
+    <div className="relative min-h-screen bg-white text-navy overflow-x-hidden">
 
       {/* ── Ambient background orbs that follow the page ── */}
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden>
-        <div className="orb w-[500px] h-[500px] bg-[#2908F1]/8 top-[-120px] right-[-100px]" />
-        <div className="orb w-[380px] h-[380px] bg-[#6EC1E4]/10 bottom-[20%] left-[-80px]" style={{ animationDelay: '2s' }} />
-        <div className="orb w-[300px] h-[300px] bg-[#FFC800]/6 top-[55%] right-[5%]" style={{ animationDelay: '4s' }} />
+        <div className="orb w-[500px] h-[500px] bg-primary/8 top-[-120px] right-[-100px]" />
+        <div className="orb w-[380px] h-[380px] bg-cyan/10 bottom-[20%] left-[-80px]" style={{ animationDelay: '2s' }} />
+        <div className="orb w-[300px] h-[300px] bg-secondary/6 top-[55%] right-[5%]" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* ── Navigation ── */}
@@ -73,7 +73,7 @@ export default function Home() {
         {/* Wave separator */}
         <div className="relative h-0 z-20">
           <svg viewBox="0 0 1440 60" className="w-full -mt-1" preserveAspectRatio="none" style={{ display: 'block', height: 60 }}>
-            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#EFF1FE" />
+            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill='var(--lavender)' />
           </svg>
         </div>
 
@@ -84,7 +84,7 @@ export default function Home() {
         {/* Wave separator into Servicios */}
         <div className="relative z-20" style={{ marginTop: -2 }}>
           <svg viewBox="0 0 1440 60" className="w-full" preserveAspectRatio="none" style={{ display: 'block', height: 60 }}>
-            <path d="M0,0 C480,60 960,0 1440,40 L1440,0 Z" fill="#EFF1FE" />
+            <path d="M0,0 C480,60 960,0 1440,40 L1440,0 Z" fill='var(--lavender)' />
           </svg>
         </div>
 
@@ -100,12 +100,12 @@ export default function Home() {
         <SobreNosotros taller={taller} />
         <ComoFunciona taller={taller} />
         <Galeria taller={taller} />
-        <InsurancePartners />
+        {/* <InsurancePartners /> */}
 
         {/* Wave separator into Contacto */}
         <div className="relative z-20" style={{ marginTop: -2 }}>
           <svg viewBox="0 0 1440 60" className="w-full" preserveAspectRatio="none" style={{ display: 'block', height: 60 }}>
-            <path d="M0,20 C480,60 960,0 1440,30 L1440,60 L0,60 Z" fill="#EFF1FE" />
+            <path d="M0,20 C480,60 960,0 1440,30 L1440,60 L0,60 Z" fill='var(--lavender)' />
           </svg>
         </div>
 

@@ -23,30 +23,53 @@ router.get('/', async (req, res) => {
 // POST /api/servicios (Protegido)
 router.post('/', protegerRuta, async (req, res) => {
   try {
-    const { nombre, descripcion, precio_base, duracion_minutos, icono } = req.body;
-    
-    if (!nombre || !precio_base) {
-      return res.status(400).json({ error: 'Nombre y precio base son requeridos' });
-    }
-
     let taller = await Taller.findOne();
     if (!taller) {
       taller = new Taller({ servicios: [] });
     }
 
-    taller.servicios.push({
-      nombre,
-      descripcion,
-      precio_base,
-      duracion_minutos: duracion_minutos || 60,
-      icono: icono || '🔧',
-      activo: true
-    });
+    if (Array.isArray(req.body)) {
+      // Creación masiva
+      const creados = [];
+      for (const item of req.body) {
+        const { nombre, descripcion, precio_base, duracion_minutos, icono } = item;
+        if (!nombre || precio_base === undefined || precio_base === null || isNaN(parseFloat(precio_base))) {
+          return res.status(400).json({ error: 'Nombre y precio base numérico son requeridos para todos los servicios' });
+        }
+        taller.servicios.push({
+          nombre,
+          descripcion,
+          precio_base: parseFloat(precio_base),
+          duracion_minutos: parseInt(duracion_minutos) || 60,
+          icono: icono || '🔧',
+          activo: true
+        });
+        creados.push(taller.servicios[taller.servicios.length - 1]);
+      }
+      await taller.save();
+      res.status(201).json({ ok: true, servicios: creados });
+    } else {
+      // Creación individual
+      const { nombre, descripcion, precio_base, duracion_minutos, icono } = req.body;
+      
+      if (!nombre || precio_base === undefined || precio_base === null || isNaN(parseFloat(precio_base))) {
+        return res.status(400).json({ error: 'Nombre y precio base numérico son requeridos' });
+      }
 
-    await taller.save();
-    
-    const creado = taller.servicios[taller.servicios.length - 1];
-    res.status(201).json({ ok: true, servicio: creado });
+      taller.servicios.push({
+        nombre,
+        descripcion,
+        precio_base: parseFloat(precio_base),
+        duracion_minutos: parseInt(duracion_minutos) || 60,
+        icono: icono || '🔧',
+        activo: true
+      });
+
+      await taller.save();
+      
+      const creado = taller.servicios[taller.servicios.length - 1];
+      res.status(201).json({ ok: true, servicio: creado });
+    }
   } catch (error) {
     console.error('Error al crear servicio:', error);
     res.status(500).json({ error: 'Error al crear servicio' });

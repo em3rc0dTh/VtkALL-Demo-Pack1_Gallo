@@ -29,11 +29,11 @@ export default function ComoFunciona({ taller = {} }) {
   ];
 
   return (
-    <section id="como-funciona" className="py-32 bg-[#FAFBFF] relative overflow-hidden">
+    <section id="como-funciona" className="py-32 bg-white relative overflow-hidden">
 
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="orb w-[400px] h-[400px] bg-[#2908F1]/6 top-[-80px] right-[10%]" />
+        <div className="orb w-[400px] h-[400px] bg-primary/6 top-[-80px] right-[10%]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
@@ -42,12 +42,12 @@ export default function ComoFunciona({ taller = {} }) {
         <div className="text-center max-w-2xl mx-auto mb-24 reveal">
           <span className="section-label">⚡ Mecánica Inteligente</span>
           <h2
-            className="text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-tight"
+            className="text-4xl md:text-5xl font-black text-navy tracking-tight leading-tight"
             style={{ fontFamily: "'Readex Pro', sans-serif" }}
           >
             ¿Cómo Funciona el Sistema?
           </h2>
-          <div className="w-16 h-1.5 bg-[#FFC800] mx-auto mt-5 rounded-full" />
+          <div className="w-16 h-1.5 bg-secondary mx-auto mt-5 rounded-full" />
           <p className="text-[#54595F] font-light text-sm mt-5 leading-relaxed">
             Agenda tu servicio en menos de 2 minutos. Sin llamadas, sin esperas, disponible las 24 horas.
           </p>
@@ -57,7 +57,7 @@ export default function ComoFunciona({ taller = {} }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
 
           {/* Connector line */}
-          <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-[#2908F1]/20 to-transparent pointer-events-none" />
+          <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent pointer-events-none" />
 
           {pasos.map((paso, idx) => {
             const Icono = paso.icono;
@@ -68,16 +68,16 @@ export default function ComoFunciona({ taller = {} }) {
               >
                 {/* Icon circle */}
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 rounded-3xl bg-white border border-[#2908F1]/10 shadow-lg flex items-center justify-center group-hover:border-[#2908F1]/40 group-hover:shadow-[0_0_30px_rgba(41,8,241,0.12)] transition-all duration-400">
-                    <Icono className="w-8 h-8 text-[#2908F1] group-hover:scale-110 transition-transform duration-300" />
+                  <div className="w-20 h-20 rounded-3xl bg-white border border-primary/10 shadow-lg flex items-center justify-center group-hover:border-primary/40 group-hover:shadow-card-glow transition-all duration-400">
+                    <Icono className="w-8 h-8 text-primary group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#2908F1] text-white text-[10px] font-black flex items-center justify-center shadow-md">
+                  <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shadow-md">
                     {paso.num}
                   </span>
                 </div>
 
                 <h3
-                  className="text-lg font-bold text-[#0F172A] mb-3 group-hover:text-[#2908F1] transition-colors duration-300"
+                  className="text-lg font-bold text-navy mb-3 group-hover:text-primary transition-colors duration-300"
                   style={{ fontFamily: "'Readex Pro', sans-serif" }}
                 >
                   {paso.titulo}

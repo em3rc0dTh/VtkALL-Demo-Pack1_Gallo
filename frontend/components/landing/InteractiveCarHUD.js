@@ -4,31 +4,31 @@ import { motion } from 'framer-motion';
 
 export default function InteractiveCarHUD() {
   return (
-    <section id="diagnostico-interactivo" className="py-24 bg-[#070b13] relative border-b border-gray-900 overflow-hidden">
+    <section id="diagnostico-interactivo" className="py-24 bg-dark-bg relative border-b border-gray-900 overflow-hidden">
       
       {/* Luces de cuadrícula neon en el fondo */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--dark-card)_1px,transparent_1px),linear-gradient(to_bottom,var(--dark-card)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold tracking-widest text-orange-500 uppercase block mb-3">
+          <span className="text-xs font-bold tracking-widest text-scanner uppercase block mb-3">
             ESCANEO DIGITAL HOLOGRÁFICO
           </span>
-          <div className="w-12 h-1 bg-orange-500 mx-auto mt-4 rounded-full" />
+          <div className="w-12 h-1 bg-scanner mx-auto mt-4 rounded-full" />
         </div>
 
         {/* HUD Content Area (Centered Blueprint) */}
         <div className="flex flex-col justify-center items-center">
           
-          <div className="w-full max-w-3xl flex flex-col justify-center items-center bg-gray-950/45 border border-gray-900 rounded-3xl p-6 sm:p-12 relative overflow-hidden h-[260px] sm:h-[340px] shadow-2xl">
+          <div className="w-full max-w-3xl flex flex-col justify-center items-center bg-dark-panel/45 border border-gray-900 rounded-3xl p-6 sm:p-12 relative overflow-hidden h-[260px] sm:h-[340px] shadow-2xl">
             
             {/* Escáner Neon Line en barrido infinito */}
             <motion.div 
               animate={{ x: ['-5%', '105%', '-5%'] }}
               transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
-              className="absolute inset-y-0 w-1 bg-gradient-to-b from-orange-500/20 via-orange-500 to-orange-500/20 z-20 shadow-[0_0_15px_#f97316]"
+              className="absolute inset-y-0 w-1 bg-gradient-to-b from-scanner/20 via-scanner to-scanner/20 z-20 shadow-scanner-glow"
             />
 
             {/* SVG del Blueprint del Auto */}
@@ -80,11 +80,11 @@ export default function InteractiveCarHUD() {
                   cy="122" 
                   r="7" 
                   fill="rgba(249, 115, 22, 0.1)" 
-                  stroke="#f97316" 
+                  stroke="var(--scanner-color)" 
                   strokeWidth="1.5"
                 />
-                <circle cx="105" cy="122" r="2" fill="#f97316" />
-                <circle cx="105" cy="122" r="14" stroke="#f97316" strokeWidth="0.5" opacity="0.4" className="animate-ping" />
+                <circle cx="105" cy="122" r="2" fill="var(--scanner-color)" />
+                <circle cx="105" cy="122" r="14" stroke="var(--scanner-color)" strokeWidth="0.5" opacity="0.4" className="animate-ping" />
               </g>
 
               {/* HOTSPOT 3: Transmisión */}

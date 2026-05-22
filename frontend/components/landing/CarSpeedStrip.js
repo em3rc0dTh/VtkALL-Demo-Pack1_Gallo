@@ -5,16 +5,16 @@ import { motion } from 'framer-motion';
 export default function CarSpeedStrip() {
   // Tres carros que corren a distintas velocidades y retrasos
   const carros = [
-    { id: 1, color: '#2908F1', duration: 3.5, delay: 0, scale: 0.85, type: 'sport' },
-    { id: 2, color: '#6EC1E4', duration: 2.2, delay: 1.5, scale: 0.75, type: 'race' },
-    { id: 3, color: '#FFC800', duration: 4.5, delay: 0.5, scale: 0.8, type: 'sport' }
+    { id: 1, color: 'var(--primary)', shadowColor: 'var(--glow-car-primary)', duration: 3.5, delay: 0, scale: 0.85, type: 'sport' },
+    { id: 2, color: 'var(--cyan)', shadowColor: 'var(--glow-car-cyan)', duration: 2.2, delay: 1.5, scale: 0.75, type: 'race' },
+    { id: 3, color: 'var(--secondary)', shadowColor: 'var(--glow-car-secondary)', duration: 4.5, delay: 0.5, scale: 0.8, type: 'sport' }
   ];
 
   return (
-    <div className="relative w-full h-[60px] bg-[#EFF1FE] border-t border-b border-[#2908F1]/10 overflow-hidden flex items-center shadow-sm select-none">
+    <div className="relative w-full h-[60px] bg-lavender border-t border-b border-primary/10 overflow-hidden flex items-center shadow-sm select-none">
       
       {/* Marquee sutil de fondo para textura deportiva */}
-      <div className="absolute inset-0 flex items-center opacity-[0.06] text-[#0F172A] whitespace-nowrap pointer-events-none font-mono font-black text-4xl italic tracking-wider">
+      <div className="absolute inset-0 flex items-center opacity-[0.06] text-navy whitespace-nowrap pointer-events-none font-mono font-black text-4xl italic tracking-wider">
         <div className="animate-marquee flex gap-12">
           <span>TUNING & PERFORMANCE</span>
           <span>•</span>
@@ -55,7 +55,7 @@ export default function CarSpeedStrip() {
           className="absolute flex items-center z-10 pointer-events-none"
           style={{ 
             scale: car.scale,
-            filter: `drop-shadow(0 0 6px ${car.color}90)`
+            filter: `drop-shadow(0 0 6px ${car.shadowColor})`
           }}
         >
           {/* Luz trasera de estela */}
@@ -81,7 +81,7 @@ export default function CarSpeedStrip() {
       {/* Estilos locales para animación Marquee y pista */}
       <style jsx>{`
         .bg-dashed-track {
-          border-top: 2px dashed rgba(41, 8, 241, 0.2);
+          border-top: 2px dashed var(--color-track-border);
           width: 100%;
         }
         @keyframes marquee {

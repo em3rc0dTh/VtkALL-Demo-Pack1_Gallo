@@ -13,25 +13,25 @@ export default function SobreNosotros({ taller = {} }) {
     <section id="nosotros" className="py-32 bg-[#F4F5FF] relative overflow-hidden">
 
       {/* Ambient orb */}
-      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-[#6EC1E4]/8 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-cyan/8 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           {/* Left: Image */}
-          <div className="reveal-left relative h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-[#2908F1]/10">
+          <div className="reveal-left relative h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
             <img
               src="/images/sobre_nosotros.png"
               alt="Equipo del taller"
               className="w-full h-full object-cover"
             />
             {/* Overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent" />
 
             {/* Floating badge */}
             <div className="absolute bottom-6 left-6 right-6">
               <div className="glass-panel-dark rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#2908F1] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
                   <Award className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -41,7 +41,7 @@ export default function SobreNosotros({ taller = {} }) {
                   <p className="text-xs text-white/60 font-light">Trayectoria ininterrumpida</p>
                 </div>
                 <div className="ml-auto text-right">
-                  <p className="text-2xl font-black text-[#FFC800]">4.9</p>
+                  <p className="text-2xl font-black text-secondary">4.9</p>
                   <p className="text-[10px] text-white/50">★★★★★ rating</p>
                 </div>
               </div>
@@ -53,7 +53,7 @@ export default function SobreNosotros({ taller = {} }) {
             <span className="section-label">¿Quiénes Somos?</span>
 
             <h2
-              className="text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-tight mb-6"
+              className="text-4xl md:text-5xl font-black text-navy tracking-tight leading-tight mb-6"
               style={{ fontFamily: "'Readex Pro', sans-serif" }}
             >
               Compromiso con la{' '}
@@ -72,13 +72,13 @@ export default function SobreNosotros({ taller = {} }) {
                 return (
                   <div
                     key={item.titulo}
-                    className={`reveal delay-${idx + 1} flex gap-4 p-4 rounded-2xl bg-white border border-[#2908F1]/8 card-lift`}
+                    className={`reveal delay-${idx + 1} flex gap-4 p-4 rounded-2xl bg-white border border-primary/8 card-lift`}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[#2908F1]/8 flex items-center justify-center shrink-0">
-                      <Icono className="w-5 h-5 text-[#2908F1]" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                      <Icono className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-[#0F172A] mb-0.5">{item.titulo}</h4>
+                      <h4 className="text-sm font-bold text-navy mb-0.5">{item.titulo}</h4>
                       <p className="text-xs text-[#54595F] font-light leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
