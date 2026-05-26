@@ -10,7 +10,7 @@ export default function Contacto({ taller = {}, onOpenChat }) {
   return (
     <section 
       id="contacto" 
-      className="min-h-screen lg:h-screen bg-light-bg relative border-b border-gray-200/50 flex flex-col justify-between py-8 md:py-12 overflow-hidden scroll-mt-20 select-none"
+      className="bg-light-bg relative border-b border-gray-200/50 flex flex-col justify-between py-8 sm:py-10 lg:min-h-screen lg:py-12 overflow-hidden scroll-mt-20 select-none"
     >
       {/* Background ambient glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -23,17 +23,17 @@ export default function Contacto({ taller = {}, onOpenChat }) {
           <span className="text-xs font-bold tracking-widest text-primary uppercase block mb-1">
             CONTACTO & ATENCIÓN
           </span>
-          <h2 className="text-3xl md:text-5xl font-black text-navy tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-navy tracking-tight leading-tight">
             ¿Tienes Consultas? Escríbenos
           </h2>
         </div>
 
         {/* 2-Column Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center reveal delay-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-16 items-start lg:items-center reveal delay-2">
           
           {/* COLUMNA 1: Información & Horarios (Lado Izquierdo) */}
-          <div className="lg:col-span-6 flex flex-col justify-between gap-6 md:gap-8 h-full">
-            <div className="space-y-5">
+          <div className="lg:col-span-6 flex flex-col justify-between gap-4 lg:gap-8 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-5">
               
               {/* Dirección */}
               <div className="flex gap-4">
@@ -82,13 +82,13 @@ export default function Contacto({ taller = {}, onOpenChat }) {
             </div>
 
             {/* Redes Sociales e Horarios agrupados */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {/* Horarios Inline */}
-              <div className="bg-white/40 border border-slate-200/20 backdrop-blur-sm rounded-2xl p-5 max-w-xl">
-                <h4 className="text-xs font-bold text-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="bg-white/40 border border-slate-200/20 backdrop-blur-sm rounded-2xl p-4 max-w-xl">
+                <h4 className="text-xs font-bold text-navy uppercase tracking-wider mb-2 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" /> Horarios de Atención
                 </h4>
-                <div className="grid grid-cols-3 gap-4 text-xs text-[#54595F]">
+                <div className="grid grid-cols-3 gap-2 text-xs text-[#54595F]">
                   <div>
                     <span className="font-semibold text-navy block mb-0.5">Lunes a Viernes</span>
                     <span className="text-[11px]">8:00 AM - 6:00 PM</span>
@@ -136,7 +136,7 @@ export default function Contacto({ taller = {}, onOpenChat }) {
 
           {/* COLUMNA 2: Agenda tu Cita (Lado Derecho - Foco Principal) */}
           <div className="lg:col-span-6 flex flex-col justify-center w-full">
-            <div className="p-8 md:p-10 rounded-[32px] bg-white border border-gray-200/80 shadow-form-card relative overflow-hidden flex flex-col justify-between min-h-[360px] w-full">
+            <div className="p-5 sm:p-8 md:p-10 rounded-[32px] bg-white border border-gray-200/80 shadow-form-card relative overflow-hidden flex flex-col justify-between min-h-[240px] sm:min-h-[320px] lg:min-h-[360px] w-full">
               {/* Ambient glows */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
               

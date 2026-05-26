@@ -47,6 +47,23 @@ export default function DashboardPage() {
     if (taller && taller.nombre_taller) {
       document.title = `${taller.nombre_taller} - Panel de Control`;
     }
+    if (taller && taller.tema_global?.color) {
+      document.documentElement.style.setProperty('--primary', taller.tema_global.color);
+      const hoverColors = {
+        '#00aeef': '#008fcc',
+        '#ef4444': '#dc2626',
+        '#10b981': '#059669',
+        '#f97316': '#ea580c',
+        '#8b5cf6': '#7c3aed'
+      };
+      const hoverVal = hoverColors[taller.tema_global.color] || taller.tema_global.color;
+      document.documentElement.style.setProperty('--primary-hover', hoverVal);
+      document.documentElement.style.setProperty('--color-primary', taller.tema_global.color);
+      
+      try {
+        localStorage.setItem('tema-color', taller.tema_global.color);
+      } catch (e) {}
+    }
   }, [taller]);
 
   if (loading || !user) {

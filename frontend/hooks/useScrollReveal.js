@@ -7,7 +7,7 @@ import { useEffect } from 'react';
  * with class .reveal, .reveal-left, or .reveal-right and adds class .in
  * when the element enters the viewport.
  */
-export default function useScrollReveal() {
+export default function useScrollReveal(dependencies = []) {
   useEffect(() => {
     const selectors = '.reveal, .reveal-left, .reveal-right';
     const elements = document.querySelectorAll(selectors);
@@ -27,5 +27,5 @@ export default function useScrollReveal() {
     elements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, []);
+  }, dependencies);
 }

@@ -33,6 +33,9 @@ export default function TabConstructor() {
       document.documentElement.style.setProperty('--primary-hover', paleta.hover);
       // Para Forzar re-render de colores Tailwind que dependen de opacidad
       document.documentElement.style.setProperty('--color-primary', paleta.hex);
+      try {
+        localStorage.setItem('tema-color', paleta.hex);
+      } catch (e) {}
     }
   };
 
@@ -49,6 +52,12 @@ export default function TabConstructor() {
       id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
       conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Soluciones integrales para cada necesidad de tu vehículo.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
     },
+    {
+      id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
+    },
+    {
+      id: 5, tipo: 'ContactoBlock', titulo: 'Contacto y Horarios', activo: true, conf: {}
+    }
   ]);
 
   const [guardando, setGuardando] = useState(false);

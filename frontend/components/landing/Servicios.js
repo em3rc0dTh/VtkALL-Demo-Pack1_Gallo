@@ -4,9 +4,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Tag, X } from "lucide-react";
 
-export default function Servicios({ servicios = [], onOpenChat }) {
+export default function Servicios({ servicios = [], onOpenChat, taller = {}, conf = {} }) {
   const [isPaused, setIsPaused] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const nombreAgente = taller.config_agente?.nombre_agente || 'Max';
 
   const defaultServicios = [
     {
@@ -68,7 +69,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
   return (
     <section
       id="servicios"
-      className="pt-32 pb-10 bg-[#F4F5FF] relative border-b border-gray-200/50 overflow-hidden scroll-mt-20"
+      className="pt-16 sm:pt-24 lg:pt-20 pb-12 lg:pb-16 bg-[#F4F5FF] relative border-b border-gray-200/50 overflow-hidden scroll-mt-20"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         {/* Promociones / Beneficios en Marquesina */}
@@ -90,26 +91,26 @@ export default function Servicios({ servicios = [], onOpenChat }) {
         </div> */}
 
         {/* Header de la sección */}
-        <div className="text-center max-w-2xl mx-auto mb-3">
+        <div className="text-center max-w-2xl mx-auto mb-8 lg:mb-10">
           <motion.span
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-xs font-bold tracking-widest text-primary uppercase block mb-1"
+            className="text-[11px] font-bold tracking-widest text-primary uppercase block mb-2"
           >
-            NUESTRAS ESPECIALIDADES
+            {conf.subtitulo || "SOLUCIONES INTEGRALES PARA CADA NECESIDAD DE TU VEHÍCULO."}
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-black text-navy tracking-tight"
+            className="text-3xl md:text-4xl lg:text-5xl font-black text-navy tracking-tight"
             style={{ fontFamily: "'Readex Pro', sans-serif" }}
           >
-            Mantenimiento y Diagnóstico
+            {conf.tituloSeccion || "Nuestros Servicios"}
           </motion.h2>
-          <div className="w-12 h-1 bg-secondary mx-auto mt-3 rounded-full" />
+          <div className="w-14 h-1 bg-primary mx-auto mt-4 rounded-full" />
         </div>
 
         {/* Carrusel horizontal infinito de dos filas (serpentina) */}
@@ -166,13 +167,18 @@ export default function Servicios({ servicios = [], onOpenChat }) {
           .services-carousel-right.paused {
             animation-play-state: paused;
           }
+          /* Fade masks on carousel edges */
+          .carousel-fade-mask {
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+          }
         `}</style>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6">
-          <div className="space-y-1">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px] gap-6 lg:gap-8 lg:items-stretch">
+          <div className="space-y-2">
             {/* Fila superior - desplazamiento izquierda */}
             <div
-              className="overflow-hidden mb-1 py-1"
+              className="overflow-hidden carousel-fade-mask mb-2 py-2"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
             >
@@ -184,13 +190,13 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                     <div
                       key={`top-${s.nombre}-${idx}`}
                       onClick={(e) => handleCardClick(e, s)}
-                      className="shrink-0 w-[240px] md:w-[320px] p-4 rounded-[20px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
+                      className="shrink-0 w-[220px] sm:w-[260px] lg:w-[300px] xl:w-[320px] p-5 rounded-[20px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
                     >
                       {/* Estructura Contenido Superior */}
                       <div className="flex flex-col space-y-3 mb-3">
                         <div className="flex flex-row justify-between items-start gap-2 w-full">
                           <h3
-                            className="text-sm font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
+                            className="text-sm lg:text-[15px] font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
                             style={{ fontFamily: "'Readex Pro', sans-serif" }}
                           >
                             {s.nombre}
@@ -201,7 +207,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                             </span>
                           </div>
                         </div>
-                        <p className="text-[#54595F] text-[11px] leading-relaxed font-light line-clamp-2">
+                        <p className="text-[#54595F] text-[11px] lg:text-xs leading-relaxed font-light line-clamp-2">
                           {s.descripcion}
                         </p>
                       </div>
@@ -227,7 +233,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
 
             {/* Fila inferior - desplazamiento derecha */}
             <div
-              className="overflow-hidden py-1"
+              className="hidden sm:block overflow-hidden carousel-fade-mask py-2"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
             >
@@ -241,13 +247,13 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                     <div
                       key={`bottom-${s.nombre}-${idx}`}
                       onClick={(e) => handleCardClick(e, s)}
-                      className="shrink-0 w-[240px] md:w-[320px] p-4 rounded-[20px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
+                      className="shrink-0 w-[220px] sm:w-[260px] lg:w-[300px] xl:w-[320px] p-5 rounded-[20px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
                     >
                       {/* Estructura Contenido Superior */}
                       <div className="flex flex-col space-y-3 mb-3">
                         <div className="flex flex-row justify-between items-start gap-2 w-full">
                           <h3
-                            className="text-sm font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
+                            className="text-sm lg:text-[15px] font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
                             style={{ fontFamily: "'Readex Pro', sans-serif" }}
                           >
                             {s.nombre}
@@ -258,7 +264,7 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                             </span>
                           </div>
                         </div>
-                        <p className="text-[#54595F] text-[11px] leading-relaxed font-light line-clamp-2">
+                        <p className="text-[#54595F] text-[11px] lg:text-xs leading-relaxed font-light line-clamp-2">
                           {s.descripcion}
                         </p>
                       </div>
@@ -284,8 +290,8 @@ export default function Servicios({ servicios = [], onOpenChat }) {
           </div>
 
           {/* Cómo Funciona Integrado */}
-          <div className="w-full lg:self-start">
-            <div className="sticky top-16 mt-3 lg:mt-0 bg-white border border-slate-200/50 rounded-3xl p-6 shadow-sm">
+          <div className="w-full h-full">
+            <div className="lg:h-full bg-white border border-slate-200/50 rounded-3xl p-6 shadow-sm flex flex-col">
               <div className="text-center mb-6">
                 <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
                   AGENDA EN 2 MINUTOS
@@ -297,45 +303,51 @@ export default function Servicios({ servicios = [], onOpenChat }) {
                   ¿Cómo Reservar tu Box?
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                <div className="hidden md:block absolute top-6 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent pointer-events-none" />
 
-                <div className="flex flex-col items-center text-center relative z-10">
-                  <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center mb-3">
-                    1
-                  </span>
-                  <h4 className="text-xs font-bold text-navy mb-1">
-                    Elige Especialidad
-                  </h4>
-                  <p className="text-[11px] text-[#54595F] font-light max-w-[200px]">
-                    Haz clic en cualquier tarjeta de servicio arriba para ver
-                    detalles.
-                  </p>
+              {/* Desktop: vertical stacked rows that fill the card height */}
+              <div className="hidden lg:flex flex-col gap-3 flex-1">
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">1</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">Elige Especialidad</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      Haz clic en cualquier tarjeta de servicio arriba para ver detalles.
+                    </p>
+                  </div>
                 </div>
-
-                <div className="flex flex-col items-center text-center relative z-10">
-                  <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center mb-3">
-                    2
-                  </span>
-                  <h4 className="text-xs font-bold text-navy mb-1">
-                    Max Coordina tu Cita
-                  </h4>
-                  <p className="text-[11px] text-[#54595F] font-light max-w-[200px]">
-                    Atención al cliente en la web consulta la agenda y te asigna el
-                    mejor horario.
-                  </p>
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">2</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">{nombreAgente} Coordina tu Cita</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      Atención al cliente consulta la agenda y te asigna el mejor horario.
+                    </p>
+                  </div>
                 </div>
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">3</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">¡Listo! Box Reservado</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      La cita queda agendada al instante en el sistema del taller.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-                <div className="flex flex-col items-center text-center relative z-10">
-                  <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center mb-3">
-                    3
-                  </span>
-                  <h4 className="text-xs font-bold text-navy mb-1">
-                    ¡Listo! Box Reservado
-                  </h4>
-                  <p className="text-[11px] text-[#54595F] font-light max-w-[200px]">
-                    La cita queda agendada al instante en el sistema del taller.
-                  </p>
+              {/* Mobile: 3 compact columns side by side */}
+              <div className="flex lg:hidden flex-row gap-2 w-full">
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">Elige Servicio</h4>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">{nombreAgente} Coordina</h4>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">Box Reservado</h4>
                 </div>
               </div>
             </div>

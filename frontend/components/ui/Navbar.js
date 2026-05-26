@@ -31,7 +31,7 @@ export default function Navbar({ taller = {} }) {
     }`}>
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Brand Brand */}
-        <Link href="/" className="flex items-center group select-none">
+        <Link href="/#inicio" className="flex items-center group select-none">
           <div className="flex items-center justify-center w-32 h-12 md:w-40 md:h-16 p-2 rounded-2xl bg-transparent shadow-navbar ring-1 ring-primary/15 transition-all duration-300 group-hover:shadow-navbar-hover group-hover:ring-primary/25 flex-shrink-0">
             <img
               src="/images/turagua.jpg"
@@ -39,7 +39,7 @@ export default function Navbar({ taller = {} }) {
               className="w-full h-full object-contain"
             />
           </div>
-          <div className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap">
+          <div className="hidden md:block max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap">
             <span className="text-xl font-bold tracking-tight text-navy">
               {taller.nombre_taller ? (
                 <>

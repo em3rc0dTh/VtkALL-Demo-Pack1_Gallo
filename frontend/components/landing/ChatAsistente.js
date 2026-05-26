@@ -486,7 +486,7 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
                                 ultimoMensaje.contenido.toLowerCase().includes('mostrarte las citas o las horas disponibles'));
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 font-sans">
       {/* Botón Flotante */}
       {!isOpen && (
         <button
@@ -498,8 +498,8 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
           </span>
-          {/* Tooltip */}
-          <div className="absolute right-20 bg-navy border border-gray-800 text-white text-xs font-semibold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none shadow-xl">
+          {/* Tooltip (hidden on mobile, visible on desktop) */}
+          <div className="hidden sm:block absolute right-20 bg-navy border border-gray-800 text-white text-xs font-semibold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none shadow-xl">
             ¿Quieres agendar una cita? Prueba a {nombreAgente} aquí 💬
           </div>
         </button>
@@ -507,7 +507,7 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
 
       {/* Ventana de Chat */}
       {isOpen && (
-        <div className="w-[360px] h-[500px] rounded-3xl overflow-hidden border border-gray-200 bg-white shadow-2xl flex flex-col transition-all duration-300">
+        <div className="w-[calc(100vw-32px)] sm:w-[360px] h-[500px] max-h-[calc(100vh-60px)] rounded-3xl overflow-hidden border border-gray-200 bg-white shadow-2xl flex flex-col transition-all duration-300">
           
           {/* Header */}
           <div className="bg-light-panel p-4 border-b border-gray-200 flex items-center justify-between">
