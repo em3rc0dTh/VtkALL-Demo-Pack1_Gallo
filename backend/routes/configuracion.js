@@ -39,6 +39,15 @@ router.put('/', protegerRuta, async (req, res) => {
     if (datos.clientes_atendidos !== undefined) taller.clientes_atendidos = datos.clientes_atendidos;
     if (datos.autos_reparados !== undefined) taller.autos_reparados = datos.autos_reparados;
     if (datos.galeria !== undefined) taller.galeria = datos.galeria;
+    if (datos.brochure_url !== undefined) taller.brochure_url = datos.brochure_url;
+    if (datos.promociones !== undefined) {
+      if (Array.isArray(datos.promociones) && datos.promociones.length > 4) {
+        return res.status(400).json({ error: 'Solo se permiten un máximo de 4 promociones a la vez' });
+      }
+      taller.promociones = datos.promociones;
+    }
+    if (datos.tema_global !== undefined) taller.tema_global = datos.tema_global;
+    if (datos.constructor_bloques !== undefined) taller.constructor_bloques = datos.constructor_bloques;
 
     // Redes sociales (sub-documento)
     if (datos.redes_sociales) {
@@ -61,10 +70,21 @@ router.put('/', protegerRuta, async (req, res) => {
       }
     }
 
+    // Config Citas (sub-documento)
+    if (datos.config_citas) {
+      if (!taller.config_citas) taller.config_citas = {};
+      if (datos.config_citas.hora_inicio !== undefined) taller.config_citas.hora_inicio = datos.config_citas.hora_inicio;
+      if (datos.config_citas.hora_fin !== undefined) taller.config_citas.hora_fin = datos.config_citas.hora_fin;
+      if (datos.config_citas.dias_permitidos !== undefined) {
+        taller.config_citas.dias_permitidos = datos.config_citas.dias_permitidos;
+      }
+    }
+
     // Campos restringidos únicamente a rol 'soporte'
     if (req.usuario.rol === 'soporte') {
       if (datos.nombre_taller !== undefined) taller.nombre_taller = datos.nombre_taller;
       if (datos.webhook_url !== undefined) taller.webhook_url = datos.webhook_url;
+      if (datos.url_fondo !== undefined) taller.url_fondo = datos.url_fondo;
     }
 
     await taller.save();

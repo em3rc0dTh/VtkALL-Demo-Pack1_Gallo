@@ -6,8 +6,29 @@ import PitStopAnimation from './PitStopAnimation.js';
 
 export default function Hero({ taller = {}, onOpenChat }) {
   const nombreAgente = taller.config_agente?.nombre_agente || 'Max';
+  const urlFondo = taller.url_fondo || "/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4";
+  const isVideo = /\.(mp4|webm|ogg)($|\?)/i.test(urlFondo) || urlFondo.includes('/videos/') || urlFondo.startsWith('data:video/');
+  
+  const promosActivas = (taller.promociones || []).filter(p => p.activo);
+  const listadoPromos = promosActivas.length > 0 ? promosActivas : [
+    {
+      titulo: 'Cambio de Aceite + Diagnóstico Gratis',
+      descripcion: 'Agenda tu cambio de aceite con nosotros este mes y recibe un escaneo computarizado de sensores OBD-II completamente gratis.',
+      etiqueta: 'PROMO DEL MES',
+      mensaje_chat: 'Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis',
+      color_fondo: 'primary'
+    },
+    {
+      titulo: 'Especial Black Friday: 20% OFF',
+      descripcion: 'Consigue un acabado impecable de fábrica con un 20% de descuento en trabajos completos de planchado y pintura automotriz al horno.',
+      etiqueta: 'EDICIÓN LIMITADA',
+      mensaje_chat: 'Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura',
+      color_fondo: 'navy'
+    }
+  ];
+
   return (
-    <section id="inicio" className="relative min-h-[600px] max-h-[965px] h-screen w-full overflow-hidden bg-gradient-to-br from-[#EAF0FF] via-[#EEF3FF] to-[#F4F5FF]">
+    <section id="inicio" className="relative min-h-[550px] lg:h-screen w-full overflow-hidden bg-gradient-to-br from-[#EAF0FF] via-[#EEF3FF] to-[#F4F5FF] py-20 lg:py-0 flex items-center">
       
       {/* Background Video (with CSS hue filter to turn the orange car into electric blue) */}
       {/* <video
@@ -21,20 +42,34 @@ export default function Hero({ taller = {}, onOpenChat }) {
       /> */}
 
       {/* Electric blue car — right-side decorative video loop (replaces the static image) */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute right-0 bottom-0 w-full h-full object-cover object-right-bottom pointer-events-none z-[1]"
-        style={{
-          filter: 'brightness(1.05) saturate(1.15)',
-          maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
-          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
-          opacity: 0.48,
-        }}
-        src="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
-      />
+      {isVideo ? (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute right-0 bottom-0 w-full h-full object-cover object-right-bottom pointer-events-none z-[1]"
+          style={{
+            filter: 'brightness(1.05) saturate(1.15)',
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+            opacity: 0.48,
+          }}
+          src={urlFondo}
+        />
+      ) : (
+        <img
+          className="absolute right-0 bottom-0 w-full h-full object-cover object-right-bottom pointer-events-none z-[1]"
+          style={{
+            filter: 'brightness(1.05) saturate(1.15)',
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 18%, transparent 88%), linear-gradient(to top, rgba(0,0,0,1) 16%, transparent 86%)',
+            opacity: 0.48,
+          }}
+          src={urlFondo}
+          alt="Fondo de pantalla"
+        />
+      )}
 
       {/* Subtle Top & Bottom Gradient Overlays for Readability */}
       <div className="absolute top-0 left-0 right-0 h-[260px] bg-gradient-to-b from-white/90 via-lavender/55 to-transparent pointer-events-none z-[2]" />
@@ -102,7 +137,7 @@ export default function Hero({ taller = {}, onOpenChat }) {
               transition={{ duration: 0.7, delay: 0.3 }}
               className="text-sm md:text-base text-[#54595F] max-w-lg mb-8 leading-relaxed font-light"
             >
-              El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-navy font-semibold">{nombreAgente}</span>, nuestro agente inteligente de reservas.
+              El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por <span className="text-navy font-semibold">{nombreAgente}</span>, nuestro equipo de reservas.
             </motion.p>
 
             {/* Action Buttons */}
@@ -125,22 +160,76 @@ export default function Hero({ taller = {}, onOpenChat }) {
                 <MessageSquare className="w-3.5 h-3.5 fill-current" /> AGENDAR CON {nombreAgente}
               </button>
             </motion.div>
+             
           </div>
 
           {/* Right Side: Integrated Live Simulator HUD */}
-          {/* <motion.div 
+          <motion.div 
             initial={{ opacity: 0, scale: 0.96, x: 20 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-5 w-full flex flex-col justify-center"
           >
-            <div className="w-full relative rounded-3xl p-0.5 bg-gradient-to-b from-primary/30 to-transparent shadow-xl backdrop-blur-md">
-              <span className="absolute -top-3 left-6 px-2.5 py-0.5 rounded bg-primary text-white font-mono font-bold text-[8px] uppercase tracking-widest z-20 shadow-md">
+            {/* <div className="w-full relative rounded-3xl p-0.5 bg-gradient-to-b from-primary/30 to-transparent shadow-xl backdrop-blur-md"> */}
+              {/* <span className="absolute -top-3 left-6 px-2.5 py-0.5 rounded bg-primary text-white font-mono font-bold text-[8px] uppercase tracking-widest z-20 shadow-md">
                 TELEMETRÍA EN VIVO
               </span>
-              <PitStopAnimation />
+              <PitStopAnimation /> */}
+              {/* Sección de Ofertas Especiales */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+                      {listadoPromos.map((promo, index) => {
+                        const isPrimary = promo.color_fondo === 'primary';
+                        return (
+                          <motion.div
+                            key={promo._id || index}
+                            initial={{ opacity: 0, y: 15 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className={`p-6 rounded-[24px] relative overflow-hidden shadow-md group ${
+                              isPrimary
+                                ? 'bg-gradient-to-br from-primary to-[#4F46E5] text-white'
+                                : 'bg-gradient-to-br from-navy to-[#1E293B] text-white border border-primary/20'
+                            }`}
+                          >
+                            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-28 h-28 rounded-full bg-white/5 blur-xl pointer-events-none" />
+                            <div className="flex flex-col h-full justify-between gap-4 relative z-10">
+                              <div>
+                                <span className={`inline-block px-2.5 py-0.5 rounded font-mono font-black text-[9px] uppercase tracking-widest mb-2.5 shadow-sm ${
+                                  isPrimary ? 'bg-secondary text-white' : 'bg-primary text-white'
+                                }`}>
+                                  {promo.etiqueta}
+                                </span>
+                                <h3
+                                  className="text-xl font-black text-white tracking-tight leading-tight mt-1.5"
+                                  style={{ fontFamily: "'Readex Pro', sans-serif" }}
+                                >
+                                  {promo.titulo}
+                                </h3>
+                                <p className="text-white/80 text-xs font-light mt-1.5 leading-relaxed">
+                                  {promo.descripcion}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  onOpenChat(
+                                    promo.mensaje_chat || `Hola, me interesa la promoción: ${promo.titulo}`
+                                  )
+                                }
+                                className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 cursor-pointer text-center uppercase ${
+                                  isPrimary
+                                    ? 'text-white bg-secondary hover:bg-white hover:text-primary'
+                                    : 'text-white bg-primary hover:bg-white hover:text-navy'
+                                }`}
+                              >
+                                {isPrimary ? 'AGENDAR PROMOCIÓN' : 'OBTENER DESCUENTO'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
             </div>
-          </motion.div> */}
+          </motion.div>
 
         </div>
       </div>

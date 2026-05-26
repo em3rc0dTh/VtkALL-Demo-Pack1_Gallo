@@ -1,16 +1,48 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Wrench } from 'lucide-react';
+import { MessageSquare, X, Send, Wrench, Calendar, Clock, User, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import BookingFlow from './BookingFlow';
 
-export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTriggerOpenMessage }) {
+export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTriggerOpenMessage, openChat, setOpenChat }) {
   const nombreAgente = taller.config_agente?.nombre_agente || 'Max';
   const [isOpen, setIsOpen] = useState(false);
   const [telefono, setTelefono] = useState('web_init');
   const [mensajes, setMensajes] = useState([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [escribiendo, setEscribiendo] = useState(false);
+
+  // Client info loaded from DB
+  const [clienteData, setClienteData] = useState({
+    nombre: '',
+    dni: '',
+    telefono: '',
+    vehiculo_marca: '',
+    vehiculo_modelo: '',
+    vehiculo_anio: ''
+  });
+
+  // Modal calendar states
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [selectedDateStr, setSelectedDateStr] = useState('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotsDisponibles, setSlotsDisponibles] = useState([]);
+  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
+
+  // Booking Form states
+  const [formNombre, setFormNombre] = useState('');
+  const [formDni, setFormDni] = useState('');
+  const [formTelefono, setFormTelefono] = useState('');
+  const [formServicio, setFormServicio] = useState('');
+  const [formMarca, setFormMarca] = useState('');
+  const [formModelo, setFormModelo] = useState('');
+  const [formAnio, setFormAnio] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState('');
 
   // Inicializar identificador único de sesión web al montar
   useEffect(() => {
@@ -23,42 +55,76 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
       setTelefono(saved);
     }
   }, []);
-  
+
+  // Cargar servicios disponibles al montar
+  useEffect(() => {
+    const cargarServicios = async () => {
+      try {
+        const data = await api.getServicios();
+        if (Array.isArray(data)) {
+          setServiciosDisponibles(data);
+        }
+      } catch (err) {
+        console.error('Error al cargar servicios:', err);
+      }
+    };
+    cargarServicios();
+  }, []);
+
   const chatEndRef = useRef(null);
 
-  // Cargar mensajes desde localStorage
-  const cargarMensajes = () => {
+  // Cargar mensajes desde backend (MongoDB)
+  const cargarMensajes = async () => {
     if (typeof window !== 'undefined' && telefono !== 'web_init') {
       try {
-        const guardados = localStorage.getItem(`mecanica_chat_${telefono}`);
-        if (guardados) {
-          setMensajes(JSON.parse(guardados));
+        const res = await api.getHistorialPublico(telefono);
+        if (res && res.ok) {
+          setMensajes(res.mensajes || []);
+          if (res.cliente) {
+            const firstVehiculo = res.cliente.vehiculos && res.cliente.vehiculos[0] ? res.cliente.vehiculos[0] : {};
+            setClienteData({
+              nombre: res.cliente.nombre || '',
+              dni: res.cliente.dni || '',
+              telefono: res.cliente.numero_telefono || '',
+              vehiculo_marca: firstVehiculo.marca || '',
+              vehiculo_modelo: firstVehiculo.modelo || '',
+              vehiculo_anio: firstVehiculo.anio || ''
+            });
+          }
         } else {
           setMensajes([]);
         }
       } catch (error) {
-        console.error('Error al cargar mensajes desde localStorage:', error);
+        console.error('Error al cargar mensajes desde backend:', error);
         setMensajes([]);
       }
     }
   };
-
-  // Guardar mensajes en localStorage cuando cambian
-  useEffect(() => {
-    if (typeof window !== 'undefined' && mensajes.length > 0 && telefono !== 'web_init') {
-      try {
-        localStorage.setItem(`mecanica_chat_${telefono}`, JSON.stringify(mensajes));
-      } catch (error) {
-        console.error('Error al guardar mensajes en localStorage:', error);
-      }
-    }
-  }, [mensajes, telefono]);
 
   useEffect(() => {
     if (telefono !== 'web_init') {
       cargarMensajes();
     }
   }, [telefono]);
+
+  // Pre-rellenar formulario cuando se abre el calendario
+  useEffect(() => {
+    if (isCalendarOpen) {
+      setFormNombre(clienteData.nombre || '');
+      setFormDni(clienteData.dni || '');
+      
+      const isWebSession = telefono.startsWith('web_');
+      setFormTelefono(isWebSession ? '' : telefono);
+      
+      setFormMarca(clienteData.vehiculo_marca || '');
+      setFormModelo(clienteData.vehiculo_modelo || '');
+      setFormAnio(clienteData.vehiculo_anio || '');
+      
+      setSelectedDateStr('');
+      setSelectedTimeSlot('');
+      setBookingError('');
+    }
+  }, [isCalendarOpen, clienteData, telefono]);
 
   useEffect(() => {
     if (triggerOpenMessage) {
@@ -69,6 +135,13 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
       }, 300);
     }
   }, [triggerOpenMessage]);
+
+  useEffect(() => {
+    if (openChat) {
+      setIsOpen(true);
+      if (setOpenChat) setOpenChat(false);
+    }
+  }, [openChat]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,10 +167,13 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
     try {
       const res = await api.enviarMensajeSimulado(telefono, texto);
       if (res && res.ok && res.respuesta) {
+        const containsTrigger = res.respuesta.includes('[ABRIR_CALENDARIO]');
+        const cleanRespuesta = res.respuesta.replace('[ABRIR_CALENDARIO]', '').trim();
+        
         const nuevoMsgAsistente = {
           _id: `asistente-${Date.now()}`,
           remitente: 'asistente',
-          contenido: res.respuesta,
+          contenido: cleanRespuesta,
           recibido_en: new Date().toISOString()
         };
 
@@ -107,24 +183,15 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
           
           if (typeof window !== 'undefined') {
             localStorage.setItem('mecanica_web_session', nuevoTelefono);
-            
-            // Obtener el historial viejo (que ya incluye el último mensaje del cliente)
-            const historialViejoStr = localStorage.getItem(`mecanica_chat_${telefono}`) || '[]';
-            let historialViejoParsed = [];
-            try {
-              historialViejoParsed = JSON.parse(historialViejoStr);
-            } catch (e) {
-              historialViejoParsed = [];
-            }
-            
-            const historialNuevo = [...historialViejoParsed, nuevoMsgAsistente];
-            localStorage.setItem(`mecanica_chat_${nuevoTelefono}`, JSON.stringify(historialNuevo));
-            localStorage.removeItem(`mecanica_chat_${telefono}`);
           }
           
-          setTelefono(nuevoTelefono);
+          setTelefono(nuevoTelefono); // Esto disparará cargarMensajes automáticamente
         } else {
           setMensajes(prev => [...prev, nuevoMsgAsistente]);
+        }
+
+        if (containsTrigger) {
+          setIsCalendarOpen(true);
         }
       } else {
         throw new Error('Respuesta inválida de la simulación');
@@ -142,9 +209,120 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
     }
   };
 
+  const handleQuickReply = (replyText) => {
+    enviarMensaje(replyText);
+  };
+
+  // Calendar Helpers
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonth(prev => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+  };
+
+  const generateCalendarDays = () => {
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+    const startOffset = (firstDayIndex + 6) % 7;
+    
+    const days = [];
+    for (let i = 0; i < startOffset; i++) {
+      days.push({ day: null, dateStr: '' });
+    }
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      const monthStr = String(currentMonth + 1).padStart(2, '0');
+      const dayStr = String(d).padStart(2, '0');
+      const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
+      days.push({ day: d, dateStr });
+    }
+    
+    return days;
+  };
+
+  const handleSelectDay = async (dateStr) => {
+    setSelectedDateStr(dateStr);
+    setSelectedTimeSlot('');
+    setLoadingSlots(true);
+    try {
+      const res = await api.getDisponibilidadPublica(dateStr);
+      if (res && res.ok) {
+        setSlotsDisponibles(res.horarios_disponibles || []);
+      } else {
+        setSlotsDisponibles([]);
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+      setSlotsDisponibles([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedDateStr || !selectedTimeSlot) {
+      setBookingError('Por favor selecciona una fecha y una hora.');
+      return;
+    }
+    
+    setBookingLoading(true);
+    setBookingError('');
+    
+    try {
+      const fechaHoraCita = `${selectedDateStr}T${selectedTimeSlot}:00`;
+      
+      const payload = {
+        numero_telefono: formTelefono,
+        nombre_cliente: formNombre,
+        dni: formDni,
+        servicio: formServicio,
+        vehiculo_marca: formMarca,
+        vehiculo_modelo: formModelo,
+        vehiculo_anio: formAnio ? parseInt(formAnio) : undefined,
+        fecha_cita: fechaHoraCita,
+        _session_telefono: telefono
+      };
+
+      const res = await api.agendarCitaPublica(payload);
+      if (res && res.ok) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mecanica_web_session', formTelefono);
+        }
+        
+        setTelefono(formTelefono);
+        setIsCalendarOpen(false);
+        
+        if (formTelefono === telefono) {
+          cargarMensajes();
+        }
+      } else {
+        throw new Error(res.error || 'No se pudo reservar la cita.');
+      }
+    } catch (err) {
+      console.error('Error al agendar cita pública:', err);
+      setBookingError(err.message || 'Error del servidor al agendar la cita.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   const formatMarkdown = (text) => {
     if (!text) return '';
-    const lines = text.split('\n');
+    let cleanText = text.replace('[ABRIR_CALENDARIO]', '').trim();
+    const lines = cleanText.split('\n');
     return lines.map((line, idx) => {
       let isBullet = false;
       let cleanLine = line;
@@ -158,20 +336,71 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
       }
 
       const parts = [];
-      const boldRegex = /\*\*(.*?)\*\*/g;
+      const regex = /(\*\*(.*?)\*\*|\[(.*?)\]\((.*?)\))/g;
       let lastIndex = 0;
       let match;
 
-      while ((match = boldRegex.exec(cleanLine)) !== null) {
+      while ((match = regex.exec(cleanLine)) !== null) {
         if (match.index > lastIndex) {
           parts.push(cleanLine.substring(lastIndex, match.index));
         }
-        parts.push(
-          <strong key={match.index} className="font-semibold text-primary">
-            {match[1]}
-          </strong>
-        );
-        lastIndex = boldRegex.lastIndex;
+        if (match[2] !== undefined) {
+          parts.push(
+            <strong key={match.index} className="font-semibold text-primary">
+              {match[2]}
+            </strong>
+          );
+        } else if (match[3] !== undefined && match[4] !== undefined) {
+          const url = match[4];
+          const text = match[3];
+          
+          const hashIndex = url.indexOf('#');
+          if (hashIndex !== -1 && (url.startsWith('/') || url.startsWith('#') || (typeof window !== 'undefined' && !url.startsWith('http')))) {
+            const targetId = url.substring(hashIndex + 1);
+            parts.push(
+              <a
+                key={match.index}
+                href={url}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const element = document.getElementById(targetId);
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-primary hover:text-primary-hover font-bold underline transition-colors cursor-pointer"
+              >
+                {text}
+              </a>
+            );
+          } else {
+            const isInternal = url.startsWith('/') || (typeof window !== 'undefined' && (url.startsWith('http://localhost') || url.includes(window.location.host)));
+            if (isInternal) {
+              parts.push(
+                <a
+                  key={match.index}
+                  href={url}
+                  className="text-primary hover:text-primary-hover font-bold underline transition-colors"
+                >
+                  {text}
+                </a>
+              );
+            } else {
+              parts.push(
+                <a
+                  key={match.index}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary-hover font-bold underline transition-colors"
+                >
+                  {text}
+                </a>
+              );
+            }
+          }
+        }
+        lastIndex = regex.lastIndex;
       }
 
       if (lastIndex < cleanLine.length) {
@@ -201,6 +430,60 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
       enviarMensaje();
     }
   };
+
+  const obtenerServicioElegido = () => {
+    if (!Array.isArray(mensajes) || !Array.isArray(serviciosDisponibles)) return '';
+    // Escanear los mensajes de más nuevo a más antiguo
+    for (let i = mensajes.length - 1; i >= 0; i--) {
+      const m = mensajes[i];
+      if (m.remitente === 'cliente') {
+        const contentLow = m.contenido.toLowerCase();
+        // Intentar hacer match exacto de nombre de servicio
+        for (const s of serviciosDisponibles) {
+          if (contentLow.includes(s.nombre.toLowerCase())) {
+            return s.nombre;
+          }
+        }
+        // Buscar palabras clave comunes de servicios
+        if (contentLow.includes('aceite') || contentLow.includes('mantenimiento preventivo')) {
+          const match = serviciosDisponibles.find(s => s.nombre.toLowerCase().includes('aceite') || s.nombre.toLowerCase().includes('preventiva'));
+          if (match) return match.nombre;
+        }
+        if (contentLow.includes('freno')) {
+          const match = serviciosDisponibles.find(s => s.nombre.toLowerCase().includes('freno'));
+          if (match) return match.nombre;
+        }
+        if (contentLow.includes('planchado') || contentLow.includes('pintura')) {
+          const match = serviciosDisponibles.find(s => s.nombre.toLowerCase().includes('planchado') || s.nombre.toLowerCase().includes('pintura'));
+          if (match) return match.nombre;
+        }
+        if (contentLow.includes('detailing') || contentLow.includes('cerámico') || contentLow.includes('ceramico') || contentLow.includes('tratamiento')) {
+          const match = serviciosDisponibles.find(s => s.nombre.toLowerCase().includes('detailing') || s.nombre.toLowerCase().includes('cerámico') || s.nombre.toLowerCase().includes('ceramico'));
+          if (match) return match.nombre;
+        }
+      }
+    }
+    return '';
+  };
+
+  const handleBookingSuccess = (realTelefono) => {
+    if (realTelefono) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mecanica_web_session', realTelefono);
+      }
+      setTelefono(realTelefono);
+    }
+    // Cargar los mensajes para que aparezcan la solicitud y la confirmación en el chat
+    setTimeout(() => {
+      cargarMensajes();
+    }, 500);
+  };
+
+  const ultimoMensaje = mensajes[mensajes.length - 1];
+  const esPreguntaCalendario = ultimoMensaje &&
+                               ultimoMensaje.remitente === 'asistente' &&
+                               (ultimoMensaje.contenido.toLowerCase().includes('abrirte un calendario') ||
+                                ultimoMensaje.contenido.toLowerCase().includes('mostrarte las citas o las horas disponibles'));
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
@@ -253,22 +536,12 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             </div>
             
             <div className="flex items-center gap-1.5">
-              <a
-                href={`https://wa.me/${(taller.telefono || '+51 933075200').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${nombreAgente}, quiero agendar una cita`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-500 hover:bg-slate-100 transition-colors"
-                title="Chatear en WhatsApp"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.852.002-2.63-1.013-5.102-2.861-6.95C16.628 1.956 14.15 1.901 12.008 1.9c-5.435 0-9.863 4.418-9.867 9.852-.001 1.77.475 3.5 1.378 5.008L2.5 21.082l3.856-1.026-.29-.172zm12.385-6.39c-.33-.165-1.951-.963-2.251-1.073-.3-.109-.518-.165-.738.165-.219.329-.85.85-1.041 1.072-.19.224-.38.247-.71.082-.33-.165-1.393-.513-2.656-1.64-1.044-.93-1.748-2.08-1.953-2.43-.205-.349-.022-.538.143-.703.148-.148.33-.385.495-.578.165-.192.219-.329.329-.548.11-.219.055-.411-.027-.575-.083-.165-.738-1.782-1.011-2.44-.265-.64-.53-.55-.738-.56-.19-.01-.41-.01-.629-.01-.219 0-.575.083-.876.411-.3.33-1.149 1.123-1.149 2.74s1.177 3.178 1.341 3.398c.165.22 2.316 3.535 5.61 4.96.783.339 1.395.541 1.874.693.786.25 1.5.215 2.066.13.63-.095 1.95-.798 2.224-1.57.275-.772.275-1.432.192-1.571-.082-.14-.3-.22-.63-.385z"/>
-                </svg>
-              </a>
               <button 
                 onClick={() => setIsOpen(false)}
                 className="p-1 rounded-lg text-[#7A7A7A] hover:text-navy hover:bg-slate-100 transition-colors"
+                title="Minimizar chat"
               >
-                <X className="w-5 h-5" />
+                <Minimize2 className="w-4.5 h-4.5" />
               </button>
             </div>
           </div>
@@ -283,17 +556,6 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
                 <p className="text-xs text-[#7A7A7A] px-6 mb-4">
                   ¡Hola! Envía un mensaje para iniciar tu reserva o resolver dudas. {nombreAgente} responderá al instante.
                 </p>
-                <a
-                  href={`https://wa.me/${(taller.telefono || '+51 933075200').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${nombreAgente}, quiero agendar una cita`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold text-white bg-whatsapp-light hover:bg-whatsapp-light-hover transition-all duration-300 shadow-whatsapp"
-                >
-                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.852.002-2.63-1.013-5.102-2.861-6.95C16.628 1.956 14.15 1.901 12.008 1.9c-5.435 0-9.863 4.418-9.867 9.852-.001 1.77.475 3.5 1.378 5.008L2.5 21.082l3.856-1.026-.29-.172zm12.385-6.39c-.33-.165-1.951-.963-2.251-1.073-.3-.109-.518-.165-.738.165-.219.329-.85.85-1.041 1.072-.19.224-.38.247-.71.082-.33-.165-1.393-.513-2.656-1.64-1.044-.93-1.748-2.08-1.953-2.43-.205-.349-.022-.538.143-.703.148-.148.33-.385.495-.578.165-.192.219-.329.329-.548.11-.219.055-.411-.027-.575-.083-.165-.738-1.782-1.011-2.44-.265-.64-.53-.55-.738-.56-.19-.01-.41-.01-.629-.01-.219 0-.575.083-.876.411-.3.33-1.149 1.123-1.149 2.74s1.177 3.178 1.341 3.398c.165.22 2.316 3.535 5.61 4.96.783.339 1.395.541 1.874.693.786.25 1.5.215 2.066.13.63-.095 1.95-.798 2.224-1.57.275-.772.275-1.432.192-1.571-.082-.14-.3-.22-.63-.385z"/>
-                  </svg>
-                  Escribir por WhatsApp
-                </a>
               </div>
             )}
             
@@ -326,6 +588,26 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
                 </div>
               </div>
             )}
+            
+            {esPreguntaCalendario && (
+              <div className="flex gap-2 justify-start pl-2 py-1">
+                <button
+                  type="button"
+                  onClick={() => handleQuickReply('Sí, abrir calendario')}
+                  className="px-3.5 py-2 bg-blue-50 hover:bg-primary hover:text-white border border-primary/40 text-primary text-xs font-bold rounded-full transition-all active:scale-95 cursor-pointer shadow-sm"
+                >
+                  Sí, abrir calendario 📅
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickReply('No, prefiero escribir')}
+                  className="px-3.5 py-2 bg-slate-50 hover:bg-slate-200 border border-slate-350 text-slate-700 text-xs font-bold rounded-full transition-all active:scale-95 cursor-pointer shadow-sm"
+                >
+                  No, prefiero escribir ✍️
+                </button>
+              </div>
+            )}
+            
             <div ref={chatEndRef} />
           </div>
 
@@ -347,6 +629,21 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             </button>
           </div>
 
+        </div>
+      )}
+
+      {/* Modal de Calendario */}
+      {isCalendarOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <BookingFlow
+            taller={taller}
+            onClose={() => setIsCalendarOpen(false)}
+            initialNombre={clienteData.nombre || ''}
+            initialDni={clienteData.dni || ''}
+            initialTelefono={telefono.startsWith('web_') ? '' : telefono}
+            initialServicio={obtenerServicioElegido()}
+            onSuccess={handleBookingSuccess}
+          />
         </div>
       )}
     </div>

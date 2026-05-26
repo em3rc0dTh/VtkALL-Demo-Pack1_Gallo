@@ -20,7 +20,6 @@ export default function Navbar({ taller = {} }) {
     { name: 'Inicio', href: '#inicio' },
     { name: 'Servicios', href: '#servicios' },
     { name: 'Nosotros', href: '#nosotros' },
-    { name: 'Cómo Funciona', href: '#como-funciona' },
     { name: 'Contacto', href: '#contacto' },
   ];
 
@@ -32,34 +31,36 @@ export default function Navbar({ taller = {} }) {
     }`}>
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Brand Brand */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex items-center justify-center w-32 h-12 p-2 rounded-2xl bg-transparent shadow-navbar ring-1 ring-primary/15 transition-all duration-300 group-hover:shadow-navbar-hover group-hover:ring-primary/25">
+        <Link href="/" className="flex items-center group select-none">
+          <div className="flex items-center justify-center w-32 h-12 md:w-40 md:h-16 p-2 rounded-2xl bg-transparent shadow-navbar ring-1 ring-primary/15 transition-all duration-300 group-hover:shadow-navbar-hover group-hover:ring-primary/25 flex-shrink-0">
             <img
               src="/images/turagua.jpg"
               alt="Turagua"
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="text-xl font-bold tracking-tight text-navy">
-            {taller.nombre_taller ? (
-              <>
-                {taller.nombre_taller.includes(' ') ? (
-                  <>
-                    {taller.nombre_taller.substring(0, taller.nombre_taller.indexOf(' '))}
-                    <span className="text-primary">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
-                  </>
-                ) : (
-                  <>
-                    {taller.nombre_taller}
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                Mecánica<span className="text-primary">Pro</span>
-              </>
-            )}
-          </span>
+          <div className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap">
+            <span className="text-xl font-bold tracking-tight text-navy">
+              {taller.nombre_taller ? (
+                <>
+                  {taller.nombre_taller.includes(' ') ? (
+                    <>
+                      {taller.nombre_taller.substring(0, taller.nombre_taller.indexOf(' '))}
+                      <span className="text-primary">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
+                    </>
+                  ) : (
+                    <>
+                      {taller.nombre_taller}
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  Turagua<span className="text-primary"> Racing</span>
+                </>
+              )}
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Menu */}
@@ -68,21 +69,11 @@ export default function Navbar({ taller = {} }) {
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-[#54595F] hover:text-primary transition-colors duration-200"
+              className="text-base font-semibold text-[#54595F] hover:text-primary transition-colors duration-200"
             >
               {item.name}
             </a>
           ))}
-        </div>
-
-        {/* Actions Button */}
-        <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/admin/login"
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider text-[#54595F] bg-white border border-gray-200 hover:text-primary hover:border-primary/40 hover:bg-gray-50 transition-all duration-200"
-          >
-            <Shield className="w-3.5 h-3.5" /> ACCESO TALLER
-          </Link>
         </div>
 
         {/* Mobile menu button */}
@@ -110,14 +101,6 @@ export default function Navbar({ taller = {} }) {
                 {item.name}
               </a>
             ))}
-            <div className="h-px bg-gray-100 my-1"></div>
-            <Link
-              href="/admin/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-blue-800 transition-all duration-200"
-            >
-              <Shield className="w-4 h-4" /> ACCESO TALLER
-            </Link>
           </div>
         </div>
       )}

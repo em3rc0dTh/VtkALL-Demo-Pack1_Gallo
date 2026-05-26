@@ -87,12 +87,35 @@ export const api = {
       }
     });
   },
+  getHistorialPublico: (telefono) => request(`/webhook/historial/${telefono}`),
+  getDisponibilidadPublica: (fecha) => request(`/webhook/disponibilidad?fecha=${fecha}`),
+  agendarCitaPublica: (data) => request('/webhook/agendar', { method: 'POST', body: data }),
 
-  // Servicios
+  // Servicios y Productos
   getServicios: () => request('/servicios'),
   crearServicio: (data) => request('/servicios', { method: 'POST', body: data }),
   actualizarServicio: (id, data) => request(`/servicios/${id}`, { method: 'PUT', body: data }),
   eliminarServicio: (id) => request(`/servicios/${id}`, { method: 'DELETE' }),
+
+  getProductos: () => request('/productos'),
+  crearProducto: (data) => request('/productos', { method: 'POST', body: data }),
+  actualizarProducto: (id, data) => request(`/productos/${id}`, { method: 'PUT', body: data }),
+  eliminarProducto: (id) => request(`/productos/${id}`, { method: 'DELETE' }),
+
+  // Teams y Trabajadores
+  getTeams: () => request('/teams'),
+  crearTeam: (data) => request('/teams', { method: 'POST', body: data }),
+  actualizarTeam: (id, data) => request(`/teams/${id}`, { method: 'PUT', body: data }),
+  eliminarTeam: (id) => request(`/teams/${id}`, { method: 'DELETE' }),
+
+  getTrabajadores: () => request('/trabajadores'),
+  crearTrabajador: (data) => request('/trabajadores', { method: 'POST', body: data }),
+  actualizarTrabajador: (id, data) => request(`/trabajadores/${id}`, { method: 'PUT', body: data }),
+  eliminarTrabajador: (id) => request(`/trabajadores/${id}`, { method: 'DELETE' }),
+
+  // Disponibilidad
+  getDisponibilidad: (entidadId) => request(`/disponibilidad/${entidadId}`),
+  guardarDisponibilidad: (data) => request('/disponibilidad', { method: 'POST', body: data }),
 
   // Configuración del taller
   getConfiguracion: () => request('/configuracion'),

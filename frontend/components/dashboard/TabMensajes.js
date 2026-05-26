@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
 import { Search, Send, RefreshCw, MessageSquare, ShieldCheck, User } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function TabMensajes() {
   const [conversaciones, setConversaciones] = useState([]);
@@ -122,7 +123,14 @@ export default function TabMensajes() {
       cargarConversaciones(false);
     } catch (err) {
       console.error('Error al enviar respuesta:', err);
-      alert('Error al enviar respuesta manual.');
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al enviar respuesta manual.',
+        icon: 'error',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     } finally {
       setEnviando(false);
     }

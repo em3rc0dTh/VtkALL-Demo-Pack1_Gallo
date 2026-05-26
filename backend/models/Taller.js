@@ -36,7 +36,47 @@ const TallerSchema = new Schema({
     mensaje_bienvenida:  { type: String, default: '¡Hola! 👋 Soy Max, el asistente de {nombre_taller}. ¿En qué te puedo ayudar hoy?' },
     avatar_url:          { type: String, default: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=200' },
   },
-  webhook_url: { type: String, default: 'http://localhost:4000/api/webhook/whatsapp' }
+  config_citas: {
+    hora_inicio:     { type: String, default: '11:00' },
+    hora_fin:        { type: String, default: '13:00' },
+    dias_permitidos: { type: [Number], default: [1, 2, 3, 4, 5, 6] } // 1=Lunes, 6=Sábado
+  },
+  webhook_url: { type: String, default: 'http://localhost:4000/api/webhook/whatsapp' },
+  url_fondo:   { type: String, default: '/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4' },
+  brochure_url: { type: String, default: '' },
+  promociones: {
+    type: [{
+      titulo:       { type: String, required: true },
+      descripcion:  { type: String, required: true },
+      etiqueta:     { type: String, default: 'PROMO' },
+      mensaje_chat: { type: String },
+      color_fondo:  { type: String, default: 'primary' },
+      activo:       { type: Boolean, default: true }
+    }],
+    default: [
+      {
+        titulo: 'Cambio de Aceite + Diagnóstico Gratis',
+        descripcion: 'Agenda tu cambio de aceite con nosotros este mes y recibe un escaneo computarizado de sensores OBD-II completamente gratis.',
+        etiqueta: 'PROMO DEL MES',
+        mensaje_chat: 'Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis',
+        color_fondo: 'primary',
+        activo: true
+      },
+      {
+        titulo: 'Especial Black Friday: 20% OFF',
+        descripcion: 'Consigue un acabado impecable de fábrica con un 20% de descuento en trabajos completos de planchado y pintura automotriz al horno.',
+        etiqueta: 'EDICIÓN LIMITADA',
+        mensaje_chat: 'Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura',
+        color_fondo: 'navy',
+        activo: true
+      }
+    ]
+  },
+  tema_global: {
+    color:  { type: String, default: '#00aeef' },
+    nombre: { type: String, default: 'Azul Eléctrico (Default)' }
+  },
+  constructor_bloques: { type: [Schema.Types.Mixed], default: [] }
 }, { timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' } });
 
 export default mongoose.models.Taller || mongoose.model('Taller', TallerSchema);

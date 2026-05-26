@@ -99,6 +99,20 @@ const tools = [
       description: "Devuelve la lista completa de servicios del taller con descripción, duración y precio. Usar cuando el cliente pregunta qué servicios ofrecen o cuánto cuesta un servicio específico.",
       parameters: { type: "object", properties: {}, required: [] }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "confirmar_cita",
+      description: "Confirma la asistencia del cliente a una cita pendiente de confirmación. Usar cuando el cliente confirme explícitamente (ej: 'Sí, confirmo', 'Allí estaré') a raíz de un recordatorio o pregunta.",
+      parameters: {
+        type: "object",
+        properties: {
+          id_cita: { type: "string", description: "ID de MongoDB de la cita a confirmar" }
+        },
+        required: ["id_cita"]
+      }
+    }
   }
 ];
 
@@ -222,7 +236,7 @@ export const ejecutarTool = async (nombre, args) => {
             patente: ''
           },
           fecha_cita: fechaCitaDate,
-          estado: 'confirmada', // Confirmada por defecto
+          estado: 'pendiente', // Pendiente de validación de admin por defecto
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
           precio_estimado: 0
         });
@@ -269,6 +283,18 @@ export const ejecutarTool = async (nombre, args) => {
         if (!taller) return [];
         return taller.servicios.filter(s => s.activo);
       }
+
+      case 'confirmar_cita': {
+        const { id_cita } = args;
+        const cita = await Cita.findById(id_cita);
+        if (!cita) {
+          return { error: 'No se encontró la cita especificada' };
+        }
+        cita.estado = 'confirmada';
+        cita.estado_confirmacion = 'confirmada_cliente';
+        await cita.save();
+        return { ok: true, mensaje: 'Cita confirmada por el cliente con éxito', id_cita };
+      }
       
       default:
         return { error: 'Herramienta no implementada' };
@@ -298,14 +324,48 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
   }
 
   // 2. OBTENER SERVICIOS
-  if (msg.includes('servicio') || msg.includes('precio') || msg.includes('cuesta') || msg.includes('cuanto') || msg.includes('cuánto') || msg.includes('hacen')) {
+  const esSolicitudReserva = msg.includes('agendar') || msg.includes('reservar') || msg.includes('cita') || msg.includes('turno') || msg.includes('solicito') || msg.includes('interesa') || msg.includes('me interesa');
+  if (!esSolicitudReserva && (msg.includes('servicio') || msg.includes('precio') || msg.includes('cuesta') || msg.includes('cuanto') || msg.includes('cuánto') || msg.includes('hacen'))) {
     const servicios = await ejecutarTool('obtener_servicios');
     if (!servicios.length) return `Por el momento no tenemos servicios cargados en el sistema.`;
-    let res = `🔧 Nuestros Servicios Disponibles:\n\n`;
+    
+    // Buscar si el mensaje pregunta por un servicio específico
+    let servicioEspecifico = null;
+    for (const s of servicios) {
+      if (msg.includes(s.nombre.toLowerCase())) {
+        servicioEspecifico = s;
+        break;
+      }
+    }
+    
+    if (servicioEspecifico) {
+      let subserviciosMsg = '';
+      if (servicioEspecifico.productos && servicioEspecifico.productos.length > 0) {
+        const prodsList = servicioEspecifico.productos.map(p => `• **${p.nombre}**`).join('\n');
+        subserviciosMsg = `Para esto, contamos con las siguientes opciones en nuestro catálogo:\n${prodsList}\n\n`;
+      }
+      
+      // Preguntas diagnósticas interactivas según el servicio
+      let preguntaDiag = '¿Qué inconveniente presenta tu auto actualmente?';
+      const nameLow = servicioEspecifico.nombre.toLowerCase();
+      if (nameLow.includes('aceite') || nameLow.includes('preventiv') || nameLow.includes('mantenimiento')) {
+        preguntaDiag = '¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último mantenimiento?';
+      } else if (nameLow.includes('freno')) {
+        preguntaDiag = '¿Sientes algún ruido, vibración o chillido al frenar?';
+      } else if (nameLow.includes('planchado') || nameLow.includes('pintura')) {
+        preguntaDiag = '¿Tu auto necesita una reparación de pintura completa o es un toque más localizado por un golpe leve?';
+      } else if (nameLow.includes('detail') || nameLow.includes('cerámic')) {
+        preguntaDiag = '¿Buscas una corrección de pintura con brillo de exhibición o un lavado de salón completo?';
+      }
+
+      return `🔧 ¡Sí! Ofrecemos el servicio de **${servicioEspecifico.nombre}** ${servicioEspecifico.icono || '🔧'}. Es ideal para mantener tu vehículo en perfectas condiciones.\n\n${subserviciosMsg}${preguntaDiag}\n\n📌 Si lo deseas, puedes ver los precios detallados haciendo clic sobre su tarjeta en la sección de [Nuestras Especialidades](#servicios). ¡Luego vuelve aquí al chat para continuar!`;
+    }
+    
+    let res = `🔧 En **${taller.nombre_taller || 'nuestro taller'}** ofrecemos una gran variedad de especialidades para tu vehículo. Te destaco las principales:\n\n`;
     servicios.forEach(s => {
-      res += `${s.icono} ${s.nombre} - Precio base: S/. ${s.precio_base}\n${s.descripcion || ''} (Duración: ${s.duracion_minutos} min)\n\n`;
+      res += `${s.icono || '🔧'} **${s.nombre}**\n`;
     });
-    res += `¿Te gustaría reservar para alguno de estos? Dime qué día prefieres.`;
+    res += `\n📌 Te invito a deslizarte por la sección de [Nuestras Especialidades](#servicios) en la pantalla y **hacer clic en cualquiera de ellas** para ver el detalle completo de opciones, duraciones y precios base. ¡Una vez que los revises, regresa aquí al chat para ayudarte a agendar tu cita! 🚗`;
     return res;
   }
 
@@ -505,19 +565,35 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
   const preguntoDiagnosticoGeneral = textoAsistenteAcumulado.includes('qué tipo de falla o mantenimiento');
 
   const preguntoDiagnostico = preguntoDiagnosticoAceite || preguntoDiagnosticoFrenos || preguntoDiagnosticoAlineacion || preguntoDiagnosticoGeneral;
-  const ofrecioAgendar = textoAsistenteAcumulado.includes('desea agendar una cita') || textoAsistenteAcumulado.includes('deseas agendar una cita');
+  const ofrecioAgendar = textoAsistenteAcumulado.includes('desea reservar una cita') || textoAsistenteAcumulado.includes('deseas reservar una cita') || textoAsistenteAcumulado.includes('desea agendar una cita') || textoAsistenteAcumulado.includes('deseas agendar una cita');
 
   const acabaDeResponderDiagnostico = preguntoDiagnostico && !ofrecioAgendar && !tieneTodos;
 
   if (acabaDeResponderDiagnostico) {
-    return `Entendido. ¿Deseas agendar una cita para realizar el servicio en el taller?`;
+    return `Entendido. ¿Deseas reservar una cita para realizar el servicio en el taller?`;
   }
 
   // 4c. FLUJO DE OBTENCIÓN DE DATOS Y CONFIRMACIÓN
-  const ofrecimosAgendar = ultimoMensajeAsistente.includes('desea agendar una cita') || ultimoMensajeAsistente.includes('deseas agendar una cita');
+  const ofrecimosAgendar = ultimoMensajeAsistente.includes('desea reservar una cita') || ultimoMensajeAsistente.includes('desea agendar una cita') || ultimoMensajeAsistente.includes('deseas agendar una cita');
   const aceptoAgendar = ofrecimosAgendar && (msg.includes('si') || msg.includes('sí') || msg.includes('deseo') || msg.includes('quiero') || msg.includes('dale') || msg.includes('ok') || msg.includes('aceptar'));
 
-  const flujoReservaActivo = aceptoAgendar || quiereTurno || (fechaStr && horaStr) || tieneTodos;
+  const ofrecimosCalendario = ultimoMensajeAsistente.includes('abrirte un calendario') || ultimoMensajeAsistente.includes('mostrarte las citas o las horas disponibles');
+  const aceptoCalendario = ofrecimosCalendario && (msg.includes('si') || msg.includes('sí') || msg.includes('deseo') || msg.includes('quiero') || msg.includes('dale') || msg.includes('ok') || msg.includes('aceptar') || msg.includes('abrir') || msg.includes('permito'));
+  const rechazoCalendario = ofrecimosCalendario && (msg.includes('no') || msg.includes('nunca') || msg.includes('prefiero escribir') || msg.includes('formato') || msg.includes('escribiendo'));
+
+  if (aceptoAgendar) {
+    return `¿Me permites abrirte un calendario para mostrarte las citas o las horas disponibles que tenga?`;
+  }
+
+  if (aceptoCalendario) {
+    return `¡Excelente! Te abro el calendario para que elijas tu turno: [ABRIR_CALENDARIO]`;
+  }
+
+  if (rechazoCalendario) {
+    return `De acuerdo. Por favor, introduce la fecha en el siguiente formato: AAAA-MM-DD (ej: 2026-05-25) y la hora deseada (ej: 11:00).`;
+  }
+
+  const flujoReservaActivo = quiereTurno || (fechaStr && horaStr) || tieneTodos || ultimoMensajeAsistente.includes('introduce la fecha en el siguiente formato') || ultimoMensajeAsistente.includes('datos faltantes');
 
   if (flujoReservaActivo) {
     if (!nombreCliente) {
@@ -557,7 +633,7 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
         return `¡Upps! No pude agendar la cita. ${res.error}. ¿Elegimos otro horario? Puedes consultar los horarios libres.`;
       }
 
-      return `¡Genial ${nombreCliente}! Confirmé tu cita de ${servicioElegido} para el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (DNI: ${dni}, Teléfono: ${realPhone}). El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te esperamos! 🚗🔧`;
+      return `¡Genial ${nombreCliente}! He registrado tu solicitud de cita para ${servicioElegido} el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (DNI: ${dni}, Teléfono: ${realPhone}). Queda pendiente de confirmación por el administrador del taller. El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te avisaremos pronto! 🚗🔧`;
     }
 
     // Si falta información, guiar de forma conversacional
@@ -632,6 +708,33 @@ const llamarCompletionsConFallback = async (openaiClient, params) => {
 
 // CORE AGENT PROCESSOR
 export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
+  const msgClean = mensaje_usuario.toLowerCase().trim();
+  const esConfirmacion = ['sí', 'si', 'confirmar', 'confirmo', 'correcto', 'ok', 'dale', 'afirmativo'].includes(msgClean) || msgClean === 'si' || msgClean === 'sí' || msgClean.startsWith('si ') || msgClean.startsWith('sí ') || msgClean.includes('confirmar') || msgClean.includes('confirmada') || msgClean.includes('confirmado');
+  const esCancelacion = ['no', 'cancelar', 'cancelo', 'rechazar', 'no iré', 'no ire', 'negativo'].includes(msgClean) || msgClean === 'no' || msgClean.startsWith('no ') || msgClean.includes('cancelar') || msgClean.includes('cancela') || msgClean.includes('cancelo');
+
+  if (esConfirmacion || esCancelacion) {
+    // Buscar si hay una cita activa que tenga recordatorio enviado y confirmación pendiente
+    const citaRecordatorio = await Cita.findOne({
+      numero_telefono: numero_telefono.trim(),
+      recordatorio_enviado: true,
+      estado_confirmacion: 'pendiente',
+      estado: 'confirmada'
+    }).sort({ fecha_cita: 1 });
+
+    if (citaRecordatorio) {
+      if (esConfirmacion) {
+        citaRecordatorio.estado_confirmacion = 'confirmada_cliente';
+        await citaRecordatorio.save();
+        return `¡Muchas gracias! He revalidado tu cita para ${citaRecordatorio.servicio} el día ${formatearFechaHoraEsp(citaRecordatorio.fecha_cita)}. ¡Te esperamos en el taller! 🚗🔧`;
+      } else {
+        citaRecordatorio.estado = 'cancelada';
+        citaRecordatorio.estado_confirmacion = 'cancelada_cliente';
+        await citaRecordatorio.save();
+        return `Entendido. He cancelado tu cita para ${citaRecordatorio.servicio} el día ${formatearFechaHoraEsp(citaRecordatorio.fecha_cita)} y liberado el horario para otros clientes. Si deseas agendar en otro momento, no dudes en escribirme. 🔧`;
+      }
+    }
+  }
+
   const taller = await Taller.findOne();
   const nombreTaller = taller?.nombre_taller || 'MecánicaPro';
   const nombreAgente = taller?.config_agente?.nombre_agente || 'Max';
@@ -656,20 +759,31 @@ export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
     return await agenteSimulado(mensaje_usuario, numero_telefono);
   }
 
-  const systemPrompt = `Eres ${nombreAgente}, el asistente virtual de ${nombreTaller}. Eres amable, eficiente y conoces el mundo automotriz.
+  const systemPrompt = `Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
 
 TU ROL ES:
-- Responder preguntas sobre el taller, servicios, horarios y ubicación.
-- Ayudar a los clientes a agendar, consultar y cancelar citas.
+ - Responder preguntas sobre el taller, servicios, horarios y ubicación.
+- Ayudar a los clientes a agendar, consultar, confirmar y cancelar citas.
 - Ser cálido, conciso y profesional.
 - Usar español latinoamericano (Perú). Evita hablar con modismos o acentos argentinos (no uses voseo como "decime", "querés", "preferís", "escribime"). Usa formas como "dime", "quieres", "prefieres", "escríbeme".
 - Usar la moneda oficial de Perú, que es el Sol (S/.).
 - Usar emojis moderadamente 🔧.
+- REGLA DE EVITAR CHATS LARGOS Y FOMENTAR LA INTERACCIÓN: Para mantener la conversación fluida y evitar mensajes ineficientemente largos en el chat, NUNCA listes todos los servicios, descripciones y precios a la vez.
+  - Si te preguntan de forma general por el catálogo, precios o qué servicios ofrecen, menciona como máximo 3 especialidades y pídele al usuario dirigirse a la sección en pantalla usando el enlace Markdown: [Nuestras Especialidades](#servicios). Explícale que al hacer clic en cualquiera de las tarjetas de especialidad, se abrirá un modal interactivo con el detalle completo de sub-servicios y precios.
+  - Si te preguntan por un servicio específico (ej. planchado y pintura, detailing, cambio de aceite, etc.) de manera general (es decir, sin indicar intención de agendar), responde de manera muy natural y conversacional: describe brevemente el servicio con empatía, menciona los productos/sub-servicios específicos que incluye (ej. para planchado y pintura, menciona Planchado Básico y Planchado Especial) y plantéale de inmediato una pregunta de diagnóstico interactiva y empática. Invítalo también a hacer clic en su tarjeta dentro de [Nuestras Especialidades](#servicios) para ver todos los precios y opciones.
+  - SIEMPRE que indiques dirigirse a la sección en pantalla para consultas generales, recuérdale explícitamente al cliente: "Una vez que revises la información en la pantalla, recuerda volver a este chat para continuar con tu reserva o hacerme más preguntas."
+  - REGLA DE RESERVAS DIRECTAS (SIN REDUNDANCIAS): Si el cliente ya viene con la intención directa de agendar o ya seleccionó un servicio/producto específico (por ejemplo, si su mensaje dice "Hola, me interesa agendar una cita para..." o menciona un paquete de reserva como "Afinamiento Menor"), él ya conoce la información de precios y detalles. NUNCA le digas que puede ver los detalles en la sección de especialidades ni le envíes el link '#servicios'. Simplemente valida su elección con entusiasmo (ej: "¡Qué excelente elección! Es fantástico que te preocupes por el mantenimiento preventivo de tu auto..."), hazle directamente la pregunta diagnóstica de seguimiento si aplica (ej: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último afinamiento?"), e inicia directamente el flujo para recopilar sus datos o guiarlo a abrir el calendario para concretar la reserva.
 
 DIÁLOGO DE DIAGNÓSTICO Y CONVERSACIÓN:
 - Entabla una conversación corta e interactiva cuando el cliente mencione un problema o mantenimiento.
 - Por ejemplo, si te dicen "necesito cambio de aceite" o "revisar frenos", haz una pregunta corta de seguimiento útil antes de agendar, como: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último cambio de aceite?" o "¿Sientes algún ruido o vibración al frenar?".
-- Si el cliente no sabe qué responder o decides concluir las preguntas de diagnóstico, ofrece directamente agendar la cita diciendo algo como: "¿Deseas agendar una cita para revisarlo en el taller?".
+- Si el cliente no sabe qué responder o decides concluir las preguntas de diagnóstico, debes preguntarle: "¿Deseas reservar una cita para realizar el servicio en el taller?".
+
+FLUJO DE CALENDARIO INTERACTIVO (REGLA CRÍTICA):
+- Cuando ofrezcas agendar/reservar una cita y el cliente te responda de manera afirmativa ("sí", "dale", "me gustaría", "quiero", etc.), debes preguntarle exactamente:
+  "¿Me permites abrirte un calendario para mostrarte las citas o las horas disponibles que tenga?"
+- Si el cliente responde afirmativamente a esta pregunta ("sí", "por favor", "dale", etc.), debes responder con un mensaje amigable que termine incluyendo EXACTAMENTE la etiqueta "[ABRIR_CALENDARIO]" al final del texto. Por ejemplo: "¡Excelente! Te abro el calendario para que elijas tu turno: [ABRIR_CALENDARIO]" o "Perfecto, aquí tienes el calendario para elegir: [ABRIR_CALENDARIO]".
+- Si el cliente responde que no o prefiere no usar el calendario ("no", "prefiero escribir", "no abras nada", etc.), debes decirle amablemente: "De acuerdo. Por favor, introduce la fecha en el siguiente formato: AAAA-MM-DD (ej: 2026-05-25) y la hora deseada (ej: 11:00)." y continuar con la recopilación manual de datos por chat.
 
 DATOS PARA AGENDAR UNA CITA:
 - Para confirmar y agendar la cita, necesitas obligatoriamente los siguientes datos mínimos:
@@ -687,11 +801,13 @@ DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 
 REGLAS IMPORTANTES:
 - Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).
-- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y el DNI).
+- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y DNI).
+- Al agendar la cita con 'agendar_cita', aclara al cliente que su cita queda registrada como **pendiente de confirmación** y que el administrador la validará pronto.
 - Nunca inventes precios, fechas ni datos que no tengas.
 - Si el cliente pregunta algo que no puedes resolver, ofrece: "¿Quieres que te contacte alguien de nuestro equipo directamente?"
 - Si el cliente está enojado: reconoce el inconveniente, sé empático y ofrece una solución concreta.
 - Si el cliente cancela, usa la tool 'cancelar_cita' con el id correspondiente.
+- Si el cliente confirma su asistencia (a raíz de un recordatorio o pregunta), usa la tool 'confirmar_cita' con el id correspondiente.
 - Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.`;
 
   try {
@@ -790,6 +906,15 @@ REGLAS IMPORTANTES:
           const resObj = JSON.parse(toolCancelar.content);
           if (resObj.ok) {
             return `¡Listo! Tu cita ha sido cancelada con éxito. 🔧`;
+          }
+        }
+
+        // Buscar si se ejecutó confirmar_cita
+        const toolConfirmar = resultadosTools.find(r => r.name === 'confirmar_cita');
+        if (toolConfirmar) {
+          const resObj = JSON.parse(toolConfirmar.content);
+          if (resObj.ok) {
+            return `¡Excelente! He confirmado tu asistencia para la cita. ¡Te esperamos! 🚗🔧`;
           }
         }
 

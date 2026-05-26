@@ -10,7 +10,7 @@ export default function SobreNosotros({ taller = {} }) {
   ];
 
   return (
-    <section id="nosotros" className="py-32 bg-[#F4F5FF] relative overflow-hidden">
+    <section id="nosotros" className="py-16 md:py-28 bg-[#F4F5FF] relative overflow-hidden">
 
       {/* Ambient orb */}
       <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-cyan/8 rounded-full blur-[100px] pointer-events-none" />
@@ -19,7 +19,7 @@ export default function SobreNosotros({ taller = {} }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           {/* Left: Image */}
-          <div className="reveal-left relative h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
+          <div className="reveal-left relative h-[320px] sm:h-[420px] lg:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
             <img
               src="/images/sobre_nosotros.png"
               alt="Equipo del taller"

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
-import { Search, User, Car, Plus, Trash2, Calendar, Clipboard } from 'lucide-react';
+import { Search, User, Car, Plus, Trash2, Calendar, Clipboard, Filter, Wrench, Check, MessageCircle } from 'lucide-react';
 import EstadoBadge from '../ui/EstadoBadge.js';
+import Swal from 'sweetalert2';
 
 export default function TabClientes() {
   const [clientes, setClientes] = useState([]);
@@ -12,6 +13,11 @@ export default function TabClientes() {
   const [pagina, setPagina] = useState(1);
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Filtros UI
+  const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [filtroDni, setFiltroDni] = useState('todos');
+  const [filtroOrden, setFiltroOrden] = useState('recientes');
   
   // Detalle Modal
   const [clienteDetalle, setClienteDetalle] = useState(null);
@@ -54,6 +60,19 @@ export default function TabClientes() {
       setLoading(false);
     }
   };
+
+  // Filtrado local básico para el Mockup
+  const clientesFiltrados = clientes.filter(c => {
+    if (filtroTipo === 'con_vehiculo' && (!c.vehiculos || c.vehiculos.length === 0)) return false;
+    if (filtroTipo === 'sin_vehiculo' && (c.vehiculos && c.vehiculos.length > 0)) return false;
+    if (filtroDni === 'con_dni' && !c.dni) return false;
+    if (filtroDni === 'sin_dni' && c.dni) return false;
+    return true;
+  }).sort((a, b) => {
+    if (filtroOrden === 'citas') return (b.total_citas || 0) - (a.total_citas || 0);
+    if (filtroOrden === 'alfabetico') return (a.nombre || '').localeCompare(b.nombre || '');
+    return 0; // 'recientes' (default by API)
+  });
 
   const handleVerDetalle = async (id) => {
     try {
@@ -127,35 +146,87 @@ export default function TabClientes() {
   };
 
   const handleEliminarCliente = async (id) => {
-    if (!confirm('¿Seguro que quieres eliminar este cliente? Se borrarán también todas sus citas asociadas.')) return;
+    const result = await Swal.fire({
+      title: '¿Eliminar cliente?',
+      text: '¿Seguro que quieres eliminar este cliente? Se borrarán también todas sus citas asociadas.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#374151',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#111827',
+      color: '#fff'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.eliminarCliente(id);
       setModalDetalleOpen(false);
       cargarClientes();
     } catch (err) {
-      alert('Solo los administradores pueden borrar clientes.');
+      Swal.fire({
+        title: 'Error',
+        text: 'Solo los administradores pueden borrar clientes.',
+        icon: 'error',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     }
   };
 
   return (
     <div className="space-y-6">
       
-      {/* Buscador */}
-      <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
-        <div className="relative w-full max-w-sm">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-            <Search className="w-4 h-4" />
+      {/* Buscador y Filtros */}
+      <div className="flex flex-col gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
+        <div className="flex justify-between items-center">
+          <div className="relative w-full max-w-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, teléfono o patente..."
+              value={busqueda}
+              onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
+              className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-950 border border-gray-850 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Buscar por nombre, teléfono o patente..."
-            value={busqueda}
-            onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
-            className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-950 border border-gray-850 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
-          />
+          <div className="text-xs text-gray-500 font-medium">
+            Total: {clientesFiltrados.length} listados de {total}
+          </div>
         </div>
-        <div className="text-xs text-gray-500 font-medium">
-          Total: {total} clientes
+        
+        {/* Filtros */}
+        <div className="flex gap-3 overflow-x-auto pb-1 custom-scrollbar">
+          <select 
+            value={filtroTipo} 
+            onChange={e => setFiltroTipo(e.target.value)} 
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="todos">Todos (Leads y Clientes)</option>
+            <option value="con_vehiculo">Solo Clientes (Con Vehículo)</option>
+            <option value="sin_vehiculo">Solo Leads (Sin Vehículo)</option>
+          </select>
+          <select 
+            value={filtroDni} 
+            onChange={e => setFiltroDni(e.target.value)} 
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="todos">Cualquier Estado DNI</option>
+            <option value="con_dni">Con DNI Registrado</option>
+            <option value="sin_dni">Sin DNI</option>
+          </select>
+          <select 
+            value={filtroOrden} 
+            onChange={e => setFiltroOrden(e.target.value)} 
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="recientes">Más Recientes (Defecto)</option>
+            <option value="citas">Mayor Cantidad de Citas</option>
+            <option value="alfabetico">Orden Alfabético</option>
+          </select>
         </div>
       </div>
 
@@ -177,7 +248,7 @@ export default function TabClientes() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-850/60 text-gray-300 font-light">
-                {clientes.map((c) => (
+                {clientesFiltrados.map((c) => (
                   <tr key={c._id} className="hover:bg-gray-900/10 cursor-pointer" onClick={() => handleVerDetalle(c._id)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -314,32 +385,108 @@ export default function TabClientes() {
               </div>
             </div>
 
-            {/* Historial de Citas */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4">Historial de Citas</h4>
-              {citasHistorial.length === 0 ? (
-                <p className="text-xs text-gray-500">Aún no posee citas finalizadas o agendados.</p>
-              ) : (
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  {citasHistorial.map(c => {
-                    const f = new Date(c.fecha_cita);
-                    return (
-                      <div key={c._id} className="p-3 rounded-xl bg-gray-950 border border-gray-850 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-3">
-                          <Clipboard className="w-4 h-4 text-primary" />
-                          <div>
-                            <span className="font-semibold text-white">{c.servicio}</span>
-                            <span className="block text-[10px] text-gray-500">
-                              {f.toLocaleDateString('es-ES')} - {String(f.getHours()).padStart(2, '0')}:{String(f.getMinutes()).padStart(2, '0')}hs
-                            </span>
-                          </div>
-                        </div>
-                        <EstadoBadge estado={c.estado} />
+            {/* Historial Clínico y Notificaciones */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Timeline Historial Médico del Vehículo */}
+              <div className="lg:col-span-2">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-primary" /> Historial Clínico (Reparaciones)
+                </h4>
+                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-800 before:to-transparent">
+                  
+                  {/* Item 1 */}
+                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm">
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="font-bold text-white text-xs">Alineamiento y Balanceo</h4>
+                        <span className="text-[9px] font-bold text-blue-400">Hace 2 meses</span>
                       </div>
-                    );
-                  })}
+                      <p className="text-[10px] text-gray-400 mb-3">Toyota Yaris (ABC-123) • <span className="font-mono text-gray-500">45,000 km</span></p>
+                      
+                      <div className="space-y-2 border-t border-gray-800 pt-3">
+                        <p className="text-[10px] text-gray-300 font-semibold uppercase">Piezas Cambiadas:</p>
+                        <ul className="text-[10px] text-gray-500 list-disc pl-4">
+                          <li>Juego de Pastillas Delanteras Bosh</li>
+                          <li>Líquido de frenos DOT 4</li>
+                        </ul>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-gray-700">
+                           <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover opacity-70" alt="Antes" />
+                        </div>
+                        <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative">
+                           <img src="https://images.unsplash.com/photo-1503376713356-2e8ab745131a?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover" alt="Después" />
+                           <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1">OK</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Item 2 */}
+                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-gray-800 text-gray-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                      <Clipboard className="w-4 h-4" />
+                    </div>
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm opacity-60">
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="font-bold text-white text-xs">Mantenimiento Preventivo</h4>
+                        <span className="text-[9px] font-bold text-gray-500">Hace 1 año</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400">Toyota Yaris (ABC-123) • <span className="font-mono text-gray-500">35,000 km</span></p>
+                      <p className="text-[10px] text-gray-500 mt-2">Revisión de niveles, cambio de aceite y filtro de aire.</p>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 flex items-start gap-3">
+                  <Calendar className="w-5 h-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <h5 className="text-xs font-bold text-yellow-500">Próximo Mantenimiento Recomendado</h5>
+                    <p className="text-[10px] text-gray-400 mt-1">El vehículo alcanzará los 55,000 km aprox. en <b>Noviembre 2026</b>. Se sugiere programar Cambio de Faja de Distribución.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Registro de Notificaciones WhatsApp */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-green-500" /> Historial de Notificaciones
+                </h4>
+                
+                <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[400px] overflow-y-auto">
+                  <div className="relative pl-4 border-l border-green-500/30">
+                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                    <span className="text-[9px] font-bold text-green-500">Hoy, 09:30 AM</span>
+                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Mensaje Entregado (Confirmación Cita)</p>
+                    <p className="text-[9px] text-gray-500 mt-0.5 italic">"Hola, tu cita para Alineamiento está confirmada..."</p>
+                  </div>
+                  
+                  <div className="relative pl-4 border-l border-green-500/30">
+                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500"></span>
+                    <span className="text-[9px] font-bold text-green-500">Ayer, 16:45 PM</span>
+                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Respuesta del Cliente</p>
+                    <p className="text-[9px] text-gray-500 mt-0.5 italic">"Sí, confirmo la asistencia. Gracias."</p>
+                  </div>
+
+                  <div className="relative pl-4 border-l border-red-500/30">
+                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+                    <span className="text-[9px] font-bold text-red-500">Hace 2 meses</span>
+                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Fallo al enviar (Presupuesto Final)</p>
+                    <p className="text-[9px] text-gray-500 mt-0.5 italic">Error: El número de WhatsApp no existe o no tiene conexión.</p>
+                  </div>
+
+                  <div className="relative pl-4 border-l border-gray-800">
+                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-700"></span>
+                    <span className="text-[9px] font-bold text-gray-500">Hace 1 año</span>
+                    <p className="text-[10px] text-gray-400 mt-1 font-semibold">Mensaje Entregado (Recordatorio)</p>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             {/* Botones de acción inferior */}

@@ -4,17 +4,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth.js';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner.js';
-import TabCitas from '../../../components/dashboard/TabCitas.js';
+import TabEvaluaciones from '../../../components/dashboard/TabEvaluaciones.js';
+import TabEjecuciones from '../../../components/dashboard/TabEjecuciones.js';
 import TabClientes from '../../../components/dashboard/TabClientes.js';
-import TabMensajes from '../../../components/dashboard/TabMensajes.js';
+import TabTeam from '../../../components/dashboard/TabTeam.js';
 import TabServicios from '../../../components/dashboard/TabServicios.js';
+import TabConstructor from '../../../components/dashboard/TabConstructor.js';
+import TabMensajes from '../../../components/dashboard/TabMensajes.js';
 import TabConfiguracion from '../../../components/dashboard/TabConfiguracion.js';
-import { Wrench, Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield } from 'lucide-react';
+import { Wrench, Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, LayoutTemplate, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../lib/api.js';
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('citas');
+  const [activeTab, setActiveTab] = useState('evaluaciones');
   const { user, loading, logout } = useAuth();
   const [taller, setTaller] = useState({});
   const router = useRouter();
@@ -55,11 +58,14 @@ export default function DashboardPage() {
   }
 
   const navItems = [
-    { id: 'citas', label: 'Citas', icon: Calendar },
-    { id: 'clientes', label: 'Clientes y Fichas', icon: Users },
-    { id: 'mensajes', label: 'Chats WhatsApp', icon: MessageSquare },
-    { id: 'servicios', label: 'Servicios Taller', icon: Briefcase },
-    { id: 'configuracion', label: 'Configuración', icon: Settings },
+    { id: 'evaluaciones', label: '1. Evaluaciones', icon: Calendar },
+    { id: 'ejecuciones', label: '2. Ejecuciones', icon: Activity },
+    { id: 'clientes', label: 'Leads y Clientes', icon: Users },
+    { id: 'team', label: 'Staff y Equipos', icon: Shield },
+    { id: 'constructor', label: 'Constructor Landing', icon: LayoutTemplate },
+    { id: 'servicios', label: 'Catálogo de Servicios', icon: Briefcase },
+    { id: 'mensajes', label: 'Chats Logs', icon: MessageSquare },
+    { id: 'configuracion', label: 'Ajustes Generales', icon: Settings },
   ];
 
   return (
@@ -160,8 +166,11 @@ export default function DashboardPage() {
 
         {/* Contenedor dinámico */}
         <div className="flex-1 p-8 overflow-y-auto relative z-10">
-          {activeTab === 'citas' && <TabCitas />}
+          {activeTab === 'evaluaciones' && <TabEvaluaciones />}
+          {activeTab === 'ejecuciones' && <TabEjecuciones />}
           {activeTab === 'clientes' && <TabClientes />}
+          {activeTab === 'team' && <TabTeam />}
+          {activeTab === 'constructor' && <TabConstructor />}
           {activeTab === 'mensajes' && <TabMensajes />}
           {activeTab === 'servicios' && <TabServicios />}
           {activeTab === 'configuracion' && <TabConfiguracion user={user} onSaveSuccess={(newData) => setTaller(newData)} />}

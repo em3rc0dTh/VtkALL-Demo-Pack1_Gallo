@@ -1,130 +1,134 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { api } from '../../lib/api.js';
-import LoadingSpinner from '../ui/LoadingSpinner.js';
-import { Plus, Edit3, Trash2, ShieldAlert } from 'lucide-react';
+import { Plus, Edit3, Trash2, Box, Users, ChevronDown, ChevronRight, PackagePlus } from 'lucide-react';
+import Swal from 'sweetalert2';
+
+import { api } from '../../lib/api';
 
 export default function TabServicios() {
   const [servicios, setServicios] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Modal states
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editModo, setEditModo] = useState(false);
-  const [activeId, setActiveId] = useState('');
-  
-  // Form states
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [precio, setPrecio] = useState('');
-  const [duracion, setDuracion] = useState('');
-  const [icono, setIcono] = useState('🔧');
-  
-  // JSON Import states
-  const [jsonModo, setJsonModo] = useState(false);
-  const [jsonInput, setJsonInput] = useState('');
-  
-  const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     cargarServicios();
   }, []);
 
   const cargarServicios = async () => {
-    setLoading(true);
     try {
-      const res = await api.getServicios();
-      if (res) {
-        setServicios(res);
-      }
-    } catch (err) {
-      console.error('Error cargando servicios:', err);
+      const data = await api.getServicios();
+      setServicios(data.map(s => ({ ...s, expandido: true })));
+    } catch (error) {
+      console.error('Error cargando servicios:', error);
     } finally {
-      setLoading(false);
+      setCargando(false);
+    }
+  };
+  const toggleExpand = (id) => {
+    setServicios(servicios.map(s => s._id === id ? { ...s, expandido: !s.expandido } : s));
+  };
+
+  const handleEliminarServicio = async (id) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar categoría?',
+      text: 'Se desactivará el servicio.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#374151',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#111827',
+      color: '#fff'
+    });
+    if (result.isConfirmed) {
+      try {
+        await api.eliminarServicio(id);
+        Swal.fire({ title: 'Eliminado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarServicios();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
     }
   };
 
-  const handleOpenCrear = () => {
-    setEditModo(false);
-    setActiveId('');
-    setNombre('');
-    setDescripcion('');
-    setPrecio('');
-    setDuracion('60');
-    setIcono('🔧');
-    setJsonModo(false);
-    setJsonInput('');
-    setError('');
-    setModalOpen(true);
-  };
-
-  const handleOpenEditar = (s) => {
-    setEditModo(true);
-    setActiveId(s._id);
-    setNombre(s.nombre || '');
-    setDescripcion(s.descripcion || '');
-    setPrecio(s.precio_base || '');
-    setDuracion(s.duracion_minutos || '60');
-    setIcono(s.icono || '🔧');
-    setError('');
-    setModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setGuardando(true);
-
-    try {
-      let payload;
-
-      if (!editModo && jsonModo) {
-        try {
-          payload = JSON.parse(jsonInput);
-        } catch (parseErr) {
-          throw new Error('El JSON introducido no es válido. Verifica la sintaxis.');
+  const handleCrearServicio = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Nueva Categoría de Servicio',
+      html: `
+        <input id="swal-input1" class="swal2-input" placeholder="Nombre (Ej: Planchado)">
+        <input id="swal-input2" class="swal2-input" placeholder="Icono (Ej: 🚗)">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      background: '#111827',
+      color: '#fff',
+      preConfirm: () => {
+        return {
+          nombre: document.getElementById('swal-input1').value,
+          icono: document.getElementById('swal-input2').value || '🔧'
         }
-
-        const items = Array.isArray(payload) ? payload : [payload];
-        for (const item of items) {
-          if (!item.nombre || item.precio_base === undefined || item.precio_base === null || isNaN(parseFloat(item.precio_base))) {
-            throw new Error('Todos los servicios deben incluir "nombre" y un "precio_base" numérico.');
-          }
-        }
-      } else {
-        payload = {
-          nombre,
-          descripcion,
-          precio_base: parseFloat(precio),
-          duracion_minutos: parseInt(duracion) || 60,
-          icono
-        };
       }
+    });
 
-      if (editModo) {
-        await api.actualizarServicio(activeId, payload);
-      } else {
-        await api.crearServicio(payload);
+    if (formValues && formValues.nombre) {
+      try {
+        await api.crearServicio(formValues);
+        Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarServicios();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
       }
-
-      setModalOpen(false);
-      cargarServicios();
-    } catch (err) {
-      setError(err.message || 'Error al procesar la operación');
-    } finally {
-      setGuardando(false);
     }
   };
 
-  const handleDesactivar = async (id) => {
-    if (!confirm('¿Seguro que quieres desactivar este servicio? No se mostrará más en la landing page ni en Max.')) return;
-    try {
-      await api.eliminarServicio(id);
-      cargarServicios();
-    } catch (err) {
-      alert('Solo los administradores pueden realizar esta acción.');
+  const handleCrearProducto = async (servicioId) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Nuevo Producto / Variante',
+      html: `
+        <input id="swal-p1" class="swal2-input" placeholder="Nombre (Ej: Planchado Básico)">
+        <input id="swal-p2" type="number" class="swal2-input" placeholder="Precio (Ej: 150)">
+        <input id="swal-p3" type="number" class="swal2-input" placeholder="Duración en minutos (Ej: 120)">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      background: '#111827',
+      color: '#fff',
+      preConfirm: () => {
+        return {
+          nombre: document.getElementById('swal-p1').value,
+          precio: document.getElementById('swal-p2').value,
+          duracion_minutos: document.getElementById('swal-p3').value,
+          servicio_padre: servicioId
+        }
+      }
+    });
+
+    if (formValues && formValues.nombre && formValues.precio) {
+      try {
+        await api.crearProducto(formValues);
+        Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarServicios();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  };
+
+  const handleEliminarProducto = async (id) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar producto?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      background: '#111827',
+      color: '#fff'
+    });
+    if (result.isConfirmed) {
+      try {
+        await api.eliminarProducto(id);
+        cargarServicios();
+      } catch (e) {}
     }
   };
 
@@ -134,219 +138,99 @@ export default function TabServicios() {
       {/* Barra superior */}
       <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Catálogo de Servicios</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+            <Box className="w-4 h-4 text-primary" /> Catálogo de Servicios y Productos
+          </h3>
+          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Servicios) y sus variantes/paquetes específicos (Productos).</p>
         </div>
-        <button
-          onClick={handleOpenCrear}
-          className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-btn-primary hover:shadow-btn-primary-hover cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /> AGREGAR SERVICIO
-        </button>
+        <div className="flex gap-3">
+          <button onClick={handleCrearServicio} className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">
+            <Plus className="w-4 h-4" /> NUEVA CATEGORÍA
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {servicios.map((s) => (
+      <div className="grid grid-cols-1 gap-6">
+        {servicios.map((s) => (
+          <div key={s._id} className="rounded-2xl bg-gray-950/40 border border-gray-850 overflow-hidden transition-all duration-300 hover:border-gray-700">
+            
+            {/* Header del Servicio (Categoría) */}
             <div 
-              key={s._id}
-              className="p-6 rounded-2xl bg-gray-950/20 border border-gray-850 flex flex-col justify-between group hover:border-gray-700 transition-all duration-300"
+              onClick={() => toggleExpand(s._id)}
+              className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-900/30 transition-colors"
             >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-3xl p-2 bg-gray-900 border border-gray-850 rounded-xl block">{s.icono || '🔧'}</span>
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => handleOpenEditar(s)}
-                      className="p-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-850 hover:border-primary/35 text-gray-400 hover:text-primary cursor-pointer"
-                      title="Editar"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={() => handleDesactivar(s._id)}
-                      className="p-1.5 rounded-lg bg-gray-900 hover:bg-red-500/10 border border-gray-850 hover:border-red-500/30 text-gray-500 hover:text-red-500 cursor-pointer"
-                      title="Desactivar"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <h4 className="text-sm font-bold text-white mb-2">{s.nombre}</h4>
-                <p className="text-xs text-gray-500 font-light leading-relaxed mb-6">{s.descripcion || 'Sin descripción.'}</p>
-              </div>
-
-              <div className="flex justify-between items-center text-[10px] text-gray-400 pt-4 border-t border-gray-850/60">
-                <span>Duración: <b>{s.duracion_minutos} min</b></span>
-                <span className="text-primary font-bold text-xs">S/. {s.precio_base}</span>
-              </div>
-            </div>
-          ))}
-
-          {servicios.length === 0 && (
-            <div className="col-span-3 text-center py-12 text-sm text-gray-500">
-              No hay servicios registrados. Agrega el primero haciendo clic arriba.
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* MODAL CREAR / EDITAR */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
-            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-4">
-              <h3 className="text-lg font-bold text-white">{editModo ? 'Editar Servicio' : 'Nuevo Servicio'}</h3>
-              <button 
-                onClick={() => setModalOpen(false)} 
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Pestañas para el modo de entrada */}
-            {!editModo && (
-              <div className="flex border-b border-gray-800/80 mb-6 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setJsonModo(false)}
-                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-                    !jsonModo 
-                      ? 'border-primary text-primary' 
-                      : 'border-transparent text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  Formulario
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setJsonModo(true)}
-                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-                    jsonModo 
-                      ? 'border-primary text-primary' 
-                      : 'border-transparent text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  Importar JSON
-                </button>
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl mb-4 font-semibold">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              
-              {!editModo && jsonModo ? (
+              <div className="flex items-center gap-4">
+                <span className="text-2xl w-12 h-12 flex items-center justify-center bg-gray-900 border border-gray-800 rounded-xl">
+                  {s.icono}
+                </span>
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Entrada JSON *</label>
-                    <span className="text-[9px] text-gray-500 font-mono">Arreglo o único objeto</span>
-                  </div>
-                  <textarea
-                    required
-                    placeholder={`[\n  {\n    "nombre": "Servicio de Frenos",\n    "descripcion": "Cambio de pastillas y purgado",\n    "precio_base": 180,\n    "duracion_minutos": 60,\n    "icono": "🔧"\n  }\n]`}
-                    rows="10"
-                    value={jsonInput}
-                    onChange={(e) => setJsonInput(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs font-mono outline-none focus:ring-1 focus:ring-primary leading-relaxed"
-                  />
-                  <p className="text-[9px] text-gray-550 mt-2 leading-normal">
-                    Nota: Asegúrate de incluir <b>nombre</b> y <b>precio_base</b> (numérico). Los campos <b>descripcion</b>, <b>duracion_minutos</b> (por defecto 60) e <b>icono</b> (por defecto 🔧) son opcionales.
-                  </p>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    {s.nombre}
+                    <span className="text-[9px] px-2 py-0.5 rounded-md bg-gray-800 text-gray-400 border border-gray-700 font-mono">
+                      {s.productos.length} productos
+                    </span>
+                  </h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{s.descripcion}</p>
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-4 gap-3">
-                    <div className="col-span-3">
-                      <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">Nombre del Servicio *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="ej: Service de Frenos"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">Icono/Emoji</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="🔧"
-                        value={icono}
-                        onChange={(e) => setIcono(e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs text-center outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">Descripción corta</label>
-                    <textarea
-                      placeholder="Explica en qué consiste el servicio..."
-                      rows="3"
-                      value={descripcion}
-                      onChange={(e) => setDescripcion(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Precio Base (S/.) *</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="120"
-                        value={precio}
-                        onChange={(e) => setPrecio(e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Duración (minutos) *</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="60"
-                        value={duracion}
-                        onChange={(e) => setDuracion(e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <div className="pt-4 border-t border-gray-850 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover cursor-pointer"
-                >
-                  {guardando ? 'Guardando...' : 'Guardar'}
-                </button>
               </div>
 
-            </form>
+                <div className="flex items-center gap-6">
+                  {s.team_asignado && (
+                    <div className="flex items-center gap-2 text-[10px] text-gray-400 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
+                      <Users className="w-3.5 h-3.5 text-blue-400" />
+                      Implementa: <span className="font-bold text-white">{s.team_asignado.nombre}</span>
+                    </div>
+                  )}
+                
+                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                  <button className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors cursor-pointer" title="Editar Categoría">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleEliminarServicio(s._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-gray-800 transition-colors cursor-pointer" title="Eliminar Categoría">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-6 bg-gray-800 mx-1 self-center"></div>
+                  <button className="p-1.5 text-gray-500">
+                    {s.expandido ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de Productos (Variantes) */}
+            {s.expandido && (
+              <div className="border-t border-gray-850 bg-gray-900/10 p-4">
+                <div className="flex justify-between items-center mb-3 px-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Productos / Paquetes Disponibles</span>
+                  <button onClick={() => handleCrearProducto(s._id)} className="flex items-center gap-1.5 text-[10px] text-primary hover:text-white font-bold transition-colors cursor-pointer">
+                    <PackagePlus className="w-3.5 h-3.5" /> AÑADIR PRODUCTO A ESTA CATEGORÍA
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  {s.productos && s.productos.map(p => (
+                    <div key={p._id} className="flex items-center justify-between p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-primary/50"></div>
+                        <span className="text-xs font-bold text-white">{p.nombre}</span>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <span className="text-[10px] text-gray-500">Duración Est: <b className="text-gray-300">{p.duracion_minutos} min</b></span>
+                        <span className="text-xs font-black text-green-400">S/. {p.precio.toFixed(2)}</span>
+                        <div className="flex gap-1 border-l border-gray-800 pl-4">
+                           <button className="text-gray-500 hover:text-primary transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                           <button onClick={() => handleEliminarProducto(p._id)} className="text-gray-500 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
     </div>
   );

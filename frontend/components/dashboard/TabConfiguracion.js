@@ -30,8 +30,16 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [instruccionesBase, setInstruccionesBase] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
+  // Configuración de citas
+  const [horaInicioCitas, setHoraInicioCitas] = useState('11:00');
+  const [horaFinCitas, setHoraFinCitas] = useState('13:00');
+  const [diasPermitidosCitas, setDiasPermitidosCitas] = useState([1, 2, 3, 4, 5, 6]);
+
   // Galería links (comma separated or editable lines)
   const [galeriaInput, setGaleriaInput] = useState('');
+  const [urlFondo, setUrlFondo] = useState('');
+  const [brochureUrl, setBrochureUrl] = useState('');
+  const [promociones, setPromociones] = useState([]);
 
   useEffect(() => {
     cargarConfig();
@@ -52,6 +60,8 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
         setAnosExperiencia(res.anos_experiencia || 10);
         setClientesAtendidos(res.clientes_atendidos || 500);
         setAutosReparados(res.autos_reparados || 2000);
+        setUrlFondo(res.url_fondo || '');
+        setBrochureUrl(res.brochure_url || '');
         
         if (res.config_agente) {
           setNombreAgente(res.config_agente.nombre_agente || '');
@@ -60,8 +70,24 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           setAvatarUrl(res.config_agente.avatar_url || '');
         }
 
+        if (res.config_citas) {
+          setHoraInicioCitas(res.config_citas.hora_inicio || '11:00');
+          setHoraFinCitas(res.config_citas.hora_fin || '13:00');
+          setDiasPermitidosCitas(res.config_citas.dias_permitidos || [1, 2, 3, 4, 5, 6]);
+        } else {
+          setHoraInicioCitas('11:00');
+          setHoraFinCitas('13:00');
+          setDiasPermitidosCitas([1, 2, 3, 4, 5, 6]);
+        }
+
         if (res.galeria) {
           setGaleriaInput(res.galeria.join('\n'));
+        }
+
+        if (res.promociones) {
+          setPromociones(res.promociones);
+        } else {
+          setPromociones([]);
         }
       }
     } catch (error) {
@@ -91,13 +117,21 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
         anos_experiencia: parseInt(anosExperiencia),
         clientes_atendidos: parseInt(clientesAtendidos),
         autos_reparados: parseInt(autosReparados),
+        url_fondo: urlFondo,
+        brochure_url: brochureUrl,
         config_agente: {
           nombre_agente: nombreAgente,
           mensaje_bienvenida: mensajeBienvenida,
           instrucciones_base: instruccionesBase,
           avatar_url: avatarUrl
         },
-        galeria: galeriaUrls
+        config_citas: {
+          hora_inicio: horaInicioCitas,
+          hora_fin: horaFinCitas,
+          dias_permitidos: diasPermitidosCitas
+        },
+        galeria: galeriaUrls,
+        promociones: promociones
       };
 
       const response = await api.actualizarConfiguracion(payload);
@@ -157,7 +191,16 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               subTab === 'agente' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" /> Agente Inteligente {nombreAgente}
+            <Sparkles className="w-3.5 h-3.5" /> {nombreAgente}
+          </button>
+          <button
+            onClick={() => setSubTab('promociones')}
+            type="button"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              subTab === 'promociones' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5" /> Promociones
           </button>
           <button
             onClick={() => setSubTab('api')}
@@ -221,6 +264,21 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     />
                   </div>
                 </div>
+
+                {user.rol === 'soporte' && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                      URL Video/Imagen de Fondo (solo soporte)
+                    </label>
+                    <input
+                      type="text"
+                      value={urlFondo}
+                      onChange={(e) => setUrlFondo(e.target.value)}
+                      placeholder="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Sobre Nosotros</label>
@@ -295,6 +353,77 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       onChange={(e) => setAutosReparados(e.target.value)}
                       className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Brochure Digital (URL PDF / Drive)</label>
+                  <input
+                    type="text"
+                    value={brochureUrl}
+                    onChange={(e) => setBrochureUrl(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Bloque de Configuración de Citas */}
+              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+                <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Horarios y Días de Citas</span>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Hora Inicio</label>
+                    <input
+                      type="time"
+                      value={horaInicioCitas}
+                      onChange={(e) => setHoraInicioCitas(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Hora Fin</label>
+                    <input
+                      type="time"
+                      value={horaFinCitas}
+                      onChange={(e) => setHoraFinCitas(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-2">Días Permitidos</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { val: 1, label: 'Lunes' },
+                      { val: 2, label: 'Martes' },
+                      { val: 3, label: 'Miércoles' },
+                      { val: 4, label: 'Jueves' },
+                      { val: 5, label: 'Viernes' },
+                      { val: 6, label: 'Sábado' },
+                      { val: 0, label: 'Domingo' }
+                    ].map((d) => {
+                      const checked = diasPermitidosCitas.includes(d.val);
+                      return (
+                        <label key={d.val} className="flex items-center gap-2 text-xs text-navy cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setDiasPermitidosCitas([...diasPermitidosCitas, d.val].sort());
+                              } else {
+                                setDiasPermitidosCitas(diasPermitidosCitas.filter(v => v !== d.val));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+                          />
+                          <span>{d.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -440,10 +569,173 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   rows="8"
                   value={instruccionesBase}
                   onChange={(e) => setInstruccionesBase(e.target.value)}
-                  placeholder="Sos Max, el asistente virtual del taller MecánicaPro..."
+                  placeholder="Eres Max, especialista de atención al cliente de MecánicaPro..."
                   className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
                 />
               </div>
+            </div>
+          )}
+
+          {/* TAB: PROMOCIONES */}
+          {subTab === 'promociones' && (
+            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 shadow-sm">
+              <div className="flex justify-between items-center border-b border-gray-150 pb-4">
+                <div>
+                  <span className="block text-xs font-bold text-primary uppercase tracking-wider">Ofertas y Promociones</span>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Configura las ofertas que aparecen en la sección derecha de la cabecera (Hero).</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={promociones.length >= 4}
+                  onClick={() => {
+                    setPromociones([
+                      ...promociones,
+                      {
+                        titulo: 'Nueva Promoción',
+                        descripcion: 'Descripción de la promoción...',
+                        etiqueta: 'PROMO',
+                        mensaje_chat: 'Hola, me interesa la promoción...',
+                        color_fondo: 'primary',
+                        activo: true
+                      }
+                    ]);
+                  }}
+                  className={`px-4 py-2 rounded-xl border transition-all text-xs font-semibold select-none ${
+                    promociones.length >= 4
+                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                      : 'border-primary text-primary hover:bg-primary hover:text-white cursor-pointer'
+                  }`}
+                >
+                  {promociones.length >= 4 ? 'Límite alcanzado (Máx 4)' : '+ Agregar Promoción'}
+                </button>
+              </div>
+
+              {promociones.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-xs italic">
+                  No hay promociones configuradas. Se mostrarán las dos por defecto en el Hero.
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {promociones.map((promo, index) => (
+                    <div key={index} className="p-5 rounded-2xl bg-[#F9FAFB] border border-gray-200 relative space-y-4">
+                      
+                      {/* Cabecera de la promo: título de sección y botón eliminar */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-[11px] font-bold text-navy uppercase tracking-wide">Promoción #{index + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPromociones(promociones.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-500 hover:text-red-755 text-xs font-semibold cursor-pointer"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+
+                      {/* Inputs en grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Título de la Oferta</label>
+                          <input
+                            type="text"
+                            required
+                            value={promo.titulo}
+                            onChange={(e) => {
+                              const updated = [...promociones];
+                              updated[index].titulo = e.target.value;
+                              setPromociones(updated);
+                            }}
+                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Etiqueta (Badge)</label>
+                          <input
+                            type="text"
+                            value={promo.etiqueta}
+                            placeholder="PROMO DEL MES"
+                            onChange={(e) => {
+                              const updated = [...promociones];
+                              updated[index].etiqueta = e.target.value;
+                              setPromociones(updated);
+                            }}
+                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Descripción corta</label>
+                          <textarea
+                            rows="2"
+                            required
+                            value={promo.descripcion}
+                            onChange={(e) => {
+                              const updated = [...promociones];
+                              updated[index].descripcion = e.target.value;
+                              setPromociones(updated);
+                            }}
+                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Mensaje Predeterminado del Chat</label>
+                          <input
+                            type="text"
+                            value={promo.mensaje_chat || ''}
+                            placeholder="Hola, me interesa la promoción..."
+                            onChange={(e) => {
+                              const updated = [...promociones];
+                              updated[index].mensaje_chat = e.target.value;
+                              setPromociones(updated);
+                            }}
+                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Color Temático</label>
+                            <select
+                              value={promo.color_fondo || 'primary'}
+                              onChange={(e) => {
+                                const updated = [...promociones];
+                                updated[index].color_fondo = e.target.value;
+                                setPromociones(updated);
+                              }}
+                              className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                            >
+                              <option value="primary">Azul (Primary)</option>
+                              <option value="navy">Gris Oscuro (Navy)</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-5">
+                            <input
+                              id={`promo-activa-${index}`}
+                              type="checkbox"
+                              checked={promo.activo !== false}
+                              onChange={(e) => {
+                                const updated = [...promociones];
+                                updated[index].activo = e.target.checked;
+                                setPromociones(updated);
+                              }}
+                              className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                            />
+                            <label htmlFor={`promo-activa-${index}`} className="text-xs font-semibold text-navy cursor-pointer select-none">
+                              Mostrar en la web
+                            </label>
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

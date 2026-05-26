@@ -27,6 +27,8 @@ router.get('/', protegerRuta, async (req, res) => {
     const total = await Cita.countDocuments(query);
     const citas = await Cita.find(query)
       .populate('cliente', 'nombre dni numero_telefono email')
+      .populate('experto_asignado', 'nombre rol')
+      .populate('producto_id', 'nombre precio')
       .sort({ fecha_cita: 1 })
       .skip(skip)
       .limit(parseInt(limite));
@@ -55,11 +57,14 @@ router.post('/', protegerRuta, async (req, res) => {
       vehiculo,
       descripcion_trabajo,
       precio_estimado,
-      notas_mecanico
+      notas_mecanico,
+      tipo_cita,
+      producto_id,
+      experto_asignado
     } = req.body;
 
-    if (!numero_telefono || !servicio || !fecha_cita) {
-      return res.status(400).json({ error: 'Teléfono, servicio y fecha son requeridos' });
+    if (!numero_telefono || !fecha_cita) {
+      return res.status(400).json({ error: 'Teléfono y fecha son requeridos' });
     }
 
     const fechaCitaDate = new Date(fecha_cita);
@@ -102,7 +107,10 @@ router.post('/', protegerRuta, async (req, res) => {
       estado: 'confirmada', // Confirmadas por defecto desde el dashboard
       notas_mecanico,
       precio_estimado: precio_estimado || 0,
-      origen: 'dashboard'
+      origen: 'dashboard',
+      tipo_cita: tipo_cita || 'Evaluación Presencial',
+      producto_id: producto_id || null,
+      experto_asignado: experto_asignado || null
     });
 
     await nuevaCita.save();
@@ -117,7 +125,7 @@ router.post('/', protegerRuta, async (req, res) => {
 router.put('/:id', protegerRuta, async (req, res) => {
   try {
     const { id } = req.params;
-    const { estado, notas_mecanico, precio_final, fecha_cita, descripcion_trabajo } = req.body;
+    const { estado, notas_mecanico, precio_final, fecha_cita, descripcion_trabajo, tipo_cita, experto_asignado } = req.body;
 
     const cita = await Cita.findById(id);
     if (!cita) {
@@ -129,6 +137,8 @@ router.put('/:id', protegerRuta, async (req, res) => {
     if (precio_final !== undefined) cita.precio_final = precio_final;
     if (fecha_cita) cita.fecha_cita = new Date(fecha_cita);
     if (descripcion_trabajo !== undefined) cita.descripcion_trabajo = descripcion_trabajo;
+    if (tipo_cita) cita.tipo_cita = tipo_cita;
+    if (experto_asignado) cita.experto_asignado = experto_asignado;
 
     if (estado === 'completada' && precio_final) {
       cita.precio_final = precio_final;

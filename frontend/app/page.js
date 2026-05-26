@@ -4,26 +4,40 @@ import { useState, useEffect } from 'react';
 import useScrollReveal from '../hooks/useScrollReveal.js';
 import Navbar from '../components/ui/Navbar.js';
 import Hero from '../components/landing/Hero.js';
-import StatsBar from '../components/landing/StatsBar.js';
 import Servicios from '../components/landing/Servicios.js';
 import SobreNosotros from '../components/landing/SobreNosotros.js';
-import ComoFunciona from '../components/landing/ComoFunciona.js';
 import Galeria from '../components/landing/Galeria.js';
 import Contacto from '../components/landing/Contacto.js';
-import Footer from '../components/landing/Footer.js';
 import ChatAsistente from '../components/landing/ChatAsistente.js';
-import CarSpeedStrip from '../components/landing/CarSpeedStrip.js';
-import CarBrands from '../components/landing/CarBrands.js';
-import InsurancePartners from '../components/landing/InsurancePartners.js';
 import { api } from '../lib/api.js';
 
 export default function Home() {
   const [taller, setTaller] = useState({});
   const [servicios, setServicios] = useState([]);
   const [triggerOpenMessage, setTriggerOpenMessage] = useState('');
+  const [openChat, setOpenChat] = useState(false);
 
   // ─── Activate scroll reveal for all .reveal elements ───
   useScrollReveal();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const chatMsg = params.get('chat_msg');
+      const openChatParam = params.get('open_chat');
+      
+      if (chatMsg) {
+        setTriggerOpenMessage(chatMsg);
+      } else if (openChatParam === 'true') {
+        setOpenChat(true);
+      }
+      
+      if (chatMsg || openChatParam) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function cargarDatos() {
@@ -70,25 +84,14 @@ export default function Home() {
       <main className="relative z-10">
         <Hero taller={taller} onOpenChat={() => handleOpenChat(`Hola ${taller.config_agente?.nombre_agente || 'Max'}, quiero agendar una cita`)} />
 
-        {/* Wave separator */}
-        <div className="relative h-0 z-20">
-          <svg viewBox="0 0 1440 60" className="w-full -mt-1" preserveAspectRatio="none" style={{ display: 'block', height: 60 }}>
-            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill='var(--lavender)' />
-          </svg>
-        </div>
-
-        <StatsBar taller={taller} />
-        <CarSpeedStrip />
-        <CarBrands />
-
-        {/* Wave separator into Servicios */}
-        <div className="relative z-20" style={{ marginTop: -2 }}>
-          <svg viewBox="0 0 1440 60" className="w-full" preserveAspectRatio="none" style={{ display: 'block', height: 60 }}>
+        {/* Compact transition separator into Servicios */}
+        <div className="relative z-20" style={{ marginTop: -20 }}>
+          <svg viewBox="0 0 1440 60" className="w-full" preserveAspectRatio="none" style={{ display: 'block', height: 40 }}>
             <path d="M0,0 C480,60 960,0 1440,40 L1440,0 Z" fill='var(--lavender)' />
           </svg>
         </div>
 
-        <Servicios servicios={servicios} onOpenChat={handleOpenChat} />
+        <Servicios servicios={servicios} onOpenChat={handleOpenChat} taller={taller} />
 
         {/* Wave separator into SobreNosotros */}
         <div className="relative z-20" style={{ marginTop: -2 }}>
@@ -98,8 +101,8 @@ export default function Home() {
         </div>
 
         <SobreNosotros taller={taller} />
-        <ComoFunciona taller={taller} />
-        <Galeria taller={taller} />
+{/*         
+        <Galeria taller={taller} /> */}
         {/* <InsurancePartners /> */}
 
         {/* Wave separator into Contacto */}
@@ -110,13 +113,14 @@ export default function Home() {
         </div>
 
         <Contacto taller={taller} onOpenChat={handleOpenChat} />
-        <Footer taller={taller} />
       </main>
 
       <ChatAsistente
         taller={taller}
         triggerOpenMessage={triggerOpenMessage}
         setTriggerOpenMessage={setTriggerOpenMessage}
+        openChat={openChat}
+        setOpenChat={setOpenChat}
       />
     </div>
   );
