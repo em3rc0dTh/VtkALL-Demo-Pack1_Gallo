@@ -146,7 +146,7 @@ export default function Home() {
                       <path d="M0,40 C360,0 1080,60 1440,20 L1440,60 L0,60 Z" fill="#F4F5FF" />
                     </svg>
                   </div>
-                  <SobreNosotros taller={taller} />
+                  <SobreNosotros taller={taller} conf={bloque.conf} />
                 </>
               );
               break;
@@ -159,7 +159,7 @@ export default function Home() {
                       <path d="M0,20 C480,60 960,0 1440,30 L1440,60 L0,60 Z" fill='var(--lavender)' />
                     </svg>
                   </div>
-                  <Contacto taller={taller} onOpenChat={handleOpenChat} />
+                  <Contacto taller={taller} onOpenChat={handleOpenChat} conf={bloque.conf} />
                 </>
               );
               break;

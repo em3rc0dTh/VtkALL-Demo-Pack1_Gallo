@@ -98,7 +98,7 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
             viewport={{ once: true }}
             className="text-[11px] font-bold tracking-widest text-primary uppercase block mb-2"
           >
-            {conf.subtitulo || "SOLUCIONES INTEGRALES PARA CADA NECESIDAD DE TU VEHÍCULO."}
+            {conf.subtitulo || "SOLUCIONES PARA CADA NECESIDAD DE TU VEHÍCULO."}
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
@@ -174,8 +174,72 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
           }
         `}</style>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px] gap-6 lg:gap-8 lg:items-stretch">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)] gap-6 lg:gap-8 lg:items-stretch">
+          {/* Cómo Funciona Integrado */}
+          <div className="w-full h-full">
+            <div className="lg:h-full bg-white border border-slate-200/50 rounded-3xl p-6 shadow-sm flex flex-col">
+              <div className="text-center mb-6">
+                <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
+                  AGENDA EN 2 MINUTOS
+                </span>
+                <h3
+                  className="text-lg font-bold text-navy tracking-tight"
+                  style={{ fontFamily: "'Readex Pro', sans-serif" }}
+                >
+                  ¿Cómo Reservar tu Box?
+                </h3>
+              </div>
+
+              {/* Desktop: vertical stacked rows that fill the card height */}
+              <div className="hidden lg:flex flex-col gap-3 flex-1">
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">1</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">Elige Especialidad</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      Haz clic en cualquier tarjeta de servicio arriba para ver detalles.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">2</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">{nombreAgente} Coordina tu Cita</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      Atención al cliente consulta la agenda y te asigna el mejor horario.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
+                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">3</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">¡Listo! Box Reservado</h4>
+                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
+                      La cita queda agendada al instante en el sistema del taller.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile: 3 compact columns side by side */}
+              <div className="flex lg:hidden flex-row gap-2 w-full">
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">Elige Servicio</h4>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">{nombreAgente} Coordina</h4>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
+                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">Box Reservado</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between h-full space-y-2 lg:space-y-0">
             {/* Fila superior - desplazamiento izquierda */}
             <div
               className="overflow-hidden carousel-fade-mask mb-2 py-2"
@@ -285,70 +349,6 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
                     </div>
                   );
                 })}
-              </div>
-            </div>
-          </div>
-
-          {/* Cómo Funciona Integrado */}
-          <div className="w-full h-full">
-            <div className="lg:h-full bg-white border border-slate-200/50 rounded-3xl p-6 shadow-sm flex flex-col">
-              <div className="text-center mb-6">
-                <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
-                  AGENDA EN 2 MINUTOS
-                </span>
-                <h3
-                  className="text-lg font-bold text-navy tracking-tight"
-                  style={{ fontFamily: "'Readex Pro', sans-serif" }}
-                >
-                  ¿Cómo Reservar tu Box?
-                </h3>
-              </div>
-
-              {/* Desktop: vertical stacked rows that fill the card height */}
-              <div className="hidden lg:flex flex-col gap-3 flex-1">
-                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
-                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">1</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">Elige Especialidad</h4>
-                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      Haz clic en cualquier tarjeta de servicio arriba para ver detalles.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
-                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">2</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">{nombreAgente} Coordina tu Cita</h4>
-                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      Atención al cliente consulta la agenda y te asigna el mejor horario.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
-                  <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">3</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">¡Listo! Box Reservado</h4>
-                    <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      La cita queda agendada al instante en el sistema del taller.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile: 3 compact columns side by side */}
-              <div className="flex lg:hidden flex-row gap-2 w-full">
-                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
-                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">1</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">Elige Servicio</h4>
-                </div>
-                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
-                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">2</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">{nombreAgente} Coordina</h4>
-                </div>
-                <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
-                  <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">3</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">Box Reservado</h4>
-                </div>
               </div>
             </div>
           </div>

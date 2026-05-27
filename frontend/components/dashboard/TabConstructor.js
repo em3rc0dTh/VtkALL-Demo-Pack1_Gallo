@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, XCircle, Users } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, Clock, Tag, XCircle, Users, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { api } from '../../lib/api.js';
 
@@ -31,7 +31,6 @@ export default function TabConstructor() {
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--primary', paleta.hex);
       document.documentElement.style.setProperty('--primary-hover', paleta.hover);
-      // Para Forzar re-render de colores Tailwind que dependen de opacidad
       document.documentElement.style.setProperty('--color-primary', paleta.hex);
       try {
         localStorage.setItem('tema-color', paleta.hex);
@@ -50,7 +49,7 @@ export default function TabConstructor() {
     },
     { 
       id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
-      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Soluciones integrales para cada necesidad de tu vehículo.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
+      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Soluciones para cada necesidad de tu vehículo.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
     },
     {
       id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
@@ -63,6 +62,18 @@ export default function TabConstructor() {
   const [guardando, setGuardando] = useState(false);
   const [bloqueEditando, setBloqueEditando] = useState(null);
 
+  // ─── Canvas drag state ───────────────────────────────────────────────────────
+  const [tallerPromos, setTallerPromos] = useState([]);
+  const [isDraggingPromoBlock, setIsDraggingPromoBlock] = useState(false);
+  const [promoBlockDragOffset, setPromoBlockDragOffset] = useState({ x: 0, y: 0 });
+  const promoCanvasRef = useRef(null);
+
+  const defaultPromosForCanvas = [
+    { titulo: 'Cambio de Aceite + Diagnóstico Gratis', etiqueta: 'PROMO DEL MES', color_fondo: 'primary' },
+    { titulo: 'Edición Limitada: 20% OFF', etiqueta: 'EDICIÓN LIMITADA', color_fondo: 'navy' },
+  ];
+  // ────────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -70,7 +81,6 @@ export default function TabConstructor() {
         if (config) {
           if (config.tema_global) {
             setTemaGlobal(config.tema_global);
-            // Apply color variables to document
             document.documentElement.style.setProperty('--primary', config.tema_global.color);
             const hoverColors = {
               '#00aeef': '#008fcc',
@@ -85,6 +95,9 @@ export default function TabConstructor() {
           }
           if (config.constructor_bloques && config.constructor_bloques.length > 0) {
             setBloques(config.constructor_bloques);
+          }
+          if (config.promociones && config.promociones.length > 0) {
+            setTallerPromos(config.promociones.filter(p => p.activo !== false));
           }
         }
       } catch (err) {
@@ -166,11 +179,54 @@ export default function TabConstructor() {
   const handleConfigChange = (bloqueId, campo, valor) => {
     setBloques(bloques.map(b => {
       if (b.id === bloqueId) {
-        return { ...b, conf: { ...b.conf, [campo]: valor } };
+        return { ...b, conf: { ...(b.conf || {}), [campo]: valor } };
       }
       return b;
     }));
   };
+
+
+  const handleCanvasMouseMove = (e, bloqueId) => {
+    if (!isDraggingPromoBlock) return;
+    const canvas = promoCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const rawX = ((e.clientX - rect.left - promoBlockDragOffset.x) / rect.width) * 100;
+    const rawY = ((e.clientY - rect.top - promoBlockDragOffset.y) / rect.height) * 100;
+    const x = Math.max(0, Math.min(68, rawX));
+    const y = Math.max(0, Math.min(75, rawY));
+    setBloques(prev => prev.map(b => {
+      if (b.id !== bloqueId) return b;
+      return { ...b, conf: { ...b.conf, promos_posicion: { x, y, anclado: true } } };
+    }));
+  };
+
+  const handleBlockMouseDown = (e, bloque) => {
+    e.stopPropagation();
+    setIsDraggingPromoBlock(true);
+    const canvas = promoCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const pos = bloque.conf.promos_posicion;
+    const isAnclado = pos?.anclado;
+    const blockX = isAnclado ? pos.x : 55;
+    const blockY = isAnclado ? pos.y : 15;
+    const blockPixelX = (blockX / 100) * rect.width;
+    const blockPixelY = (blockY / 100) * rect.height;
+    setPromoBlockDragOffset({
+      x: e.clientX - rect.left - blockPixelX,
+      y: e.clientY - rect.top - blockPixelY
+    });
+  };
+
+  const handleCanvasMouseUp = () => setIsDraggingPromoBlock(false);
+
+  const resetPromosPosicion = (bloqueId) => {
+    setBloques(prev => prev.map(b =>
+      b.id !== bloqueId ? b : { ...b, conf: { ...b.conf, promos_posicion: null } }
+    ));
+  };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // Catálogo de Bloques disponibles para agregar
   const agregarBloqueNuevo = (tipo) => {
@@ -200,11 +256,11 @@ export default function TabConstructor() {
         break;
       case 'SobreNosotrosBlock':
         nuevoBloque.titulo = 'Sobre Nosotros';
-        nuevoBloque.conf = {};
+        nuevoBloque.conf = { tituloSeccion: 'SOBRE NOSOTROS', anosExperiencia: '12', tituloPrincipal: 'Compromiso con la', tituloGradiente: 'Calidad de Tu Auto', sobreNosotros: '' };
         break;
       case 'ContactoBlock':
         nuevoBloque.titulo = 'Contacto y Horarios';
-        nuevoBloque.conf = {};
+        nuevoBloque.conf = { subtituloSeccion: 'CONTACTO & ATENCIÓN', tituloSeccion: '¿Tienes Consultas? Escríbenos', telefono: '', email: '', direccion: '' };
         break;
     }
 
@@ -218,7 +274,7 @@ export default function TabConstructor() {
   // Componentes de Previsualización simulada (Adaptables)
   const PreviewBlocks = {
     HeroBlock: ({ conf }) => (
-      <div className={`w-full ${previewMode === 'desktop' ? 'h-72' : 'h-48'} bg-gray-900 rounded-xl flex flex-col ${conf.alineacion === 'Centro' ? 'items-center text-center' : conf.alineacion === 'Izquierda' ? 'items-start text-left pl-10' : 'items-end text-right pr-10'} justify-center border border-gray-800 mb-4 transition-all duration-500 ease-out relative overflow-hidden group hover:border-gray-600`}>
+      <div className={`w-full ${previewMode === 'desktop' ? 'h-72' : 'h-48'} bg-gray-900 rounded-xl flex flex-col ${conf.alineacion === 'Centro' ? 'items-center text-center' : conf.alineacion === 'Izquierda' ? 'items-start text-left pl-10' : conf.alineacion === 'Derecha' ? 'items-end text-right pr-10' : 'items-start text-left pl-10'} justify-center border border-gray-800 mb-4 transition-all duration-500 ease-out relative overflow-hidden group hover:border-gray-600`}>
         {conf.tipoFondo === 'Video' && <div className="absolute inset-0 bg-blue-900 transition-all duration-300" style={{ opacity: conf.overlayOpacidad / 100 }}></div>}
         {conf.tipoFondo === 'Color' && <div className="absolute inset-0 bg-gray-800 transition-all duration-300"></div>}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-0"></div>
@@ -243,26 +299,237 @@ export default function TabConstructor() {
         </div>
       </div>
     ),
-    ServicesBlock: ({ conf }) => (
-      <div className="w-full h-auto bg-gray-900/20 rounded-xl flex flex-col px-4 py-6 mb-4 transition-all duration-500">
-        <div className="text-center mb-6">
-          <span className={`${previewMode === 'desktop' ? 'text-xl' : 'text-xs'} font-black text-white block tracking-tight`}>{conf.tituloSeccion}</span>
-          <span className={`${previewMode === 'desktop' ? 'text-[10px]' : 'text-[7px]'} text-gray-500 block mt-1`}>{conf.subtitulo}</span>
-        </div>
-        <div className={`grid ${previewMode === 'desktop' ? 'grid-cols-4' : 'grid-cols-2'} gap-4`}>
-          {[1,2,3,4].slice(0, conf.layout.includes('4') ? 4 : (previewMode === 'desktop' ? 3 : 2)).map(i => (
-            <div key={i} className={`${previewMode === 'desktop' ? 'h-32' : 'h-24'} ${conf.estiloTarjeta === 'Glassmorphism' ? 'bg-white/5 backdrop-blur-md border border-white/10' : 'bg-gray-800'} rounded-xl flex flex-col p-3 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_15px_var(--primary)] group cursor-pointer`}>
-              <div className={`${previewMode === 'desktop' ? 'w-8 h-8' : 'w-6 h-6'} bg-[var(--primary)]/20 rounded-lg mb-3 flex items-center justify-center group-hover:bg-[var(--primary)]/40 transition-colors`}>
-                <Zap className={`${previewMode === 'desktop' ? 'w-4 h-4' : 'w-3 h-3'} text-[var(--primary)]`} />
+    ServicesBlock: ({ conf }) => {
+      const nombreAgente = 'Max';
+      const listado = [
+        { nombre: "Mecánica Preventiva y Correctiva", descripcion: "Soporte multimarca premium, afinamiento y scanner.", duracion_minutos: 90, precio_base: 120, icono: "🔧" },
+        { nombre: "Planchado y Pintura Automotriz", descripcion: "Acabado profesional en cabina de pintura al horno.", duracion_minutos: 180, precio_base: 350, icono: "🎨" },
+        { nombre: "Detailing y Tratamiento Cerámico", descripcion: "Recubrimiento cerámico para máxima protección.", duracion_minutos: 120, precio_base: 280, icono: "✨" },
+      ];
+      const getPrecioBase = (s) => s.precio_base || 0;
+      const getDuracionMinutos = (s) => s.duracion_minutos || 0;
+      const [isPaused, setIsPaused] = useState(false);
+
+      return (
+        <div className="w-full h-auto bg-gray-900/20 rounded-xl flex flex-col px-4 py-6 mb-4 transition-all duration-500">
+          <div className="text-center mb-6">
+            <span className={`${previewMode === 'desktop' ? 'text-xl' : 'text-xs'} font-black text-white block tracking-tight`}>{conf.tituloSeccion || "Nuestros Servicios"}</span>
+            <span className={`${previewMode === 'desktop' ? 'text-[10px]' : 'text-[7px]'} text-gray-500 block mt-1`}>{conf.subtitulo || "Soluciones para tu auto"}</span>
+          </div>
+
+          <style jsx global>{`
+            @keyframes scrollServicesLeft {
+              0% { transform: translate3d(0, 0, 0); }
+              100% { transform: translate3d(-50%, 0, 0); }
+            }
+            @keyframes scrollServicesRight {
+              0% { transform: translate3d(-50%, 0, 0); }
+              100% { transform: translate3d(0, 0, 0); }
+            }
+            @keyframes engineVibrate {
+              0% { transform: translate(0, 0) rotate(0deg); }
+              20% { transform: translate(-1px, 1px) rotate(-1deg); }
+              40% { transform: translate(1px, -1px) rotate(1.5deg); }
+              60% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+              80% { transform: translate(1.5px, 1px) rotate(1deg); }
+              100% { transform: translate(0, 0) rotate(0deg); }
+            }
+            .services-carousel-left-preview {
+              display: flex;
+              gap: 12px;
+              width: max-content;
+              animation: scrollServicesLeft 45s linear infinite;
+            }
+            .services-carousel-right-preview {
+              display: flex;
+              gap: 12px;
+              width: max-content;
+              animation: scrollServicesRight 45s linear infinite;
+            }
+            .services-carousel-left-preview.paused,
+            .services-carousel-right-preview.paused {
+              animation-play-state: paused;
+            }
+            .carousel-fade-mask-preview {
+              -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+              mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+            }
+          `}</style>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)] gap-4 lg:gap-6 lg:items-stretch">
+            {/* Cómo Funciona Integrado */}
+            <div className="w-full h-full">
+              <div className="lg:h-full bg-white border border-slate-200/50 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                <div className="text-center mb-3">
+                  <span className="text-[8px] font-bold text-primary tracking-widest uppercase">
+                    AGENDA EN 2 MINUTOS
+                  </span>
+                  <h3
+                    className="text-[10px] lg:text-xs font-bold text-navy tracking-tight"
+                    style={{ fontFamily: "'Readex Pro', sans-serif" }}
+                  >
+                    ¿Cómo Reservar?
+                  </h3>
+                </div>
+
+                {/* Desktop: vertical stacked rows */}
+                <div className="hidden lg:flex flex-col gap-2 flex-1">
+                  <div className="flex flex-row items-center gap-2 bg-white/50 border border-slate-200/40 rounded-xl p-2 flex-1">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center shrink-0">1</span>
+                    <div>
+                      <h4 className="text-[8px] font-bold text-navy mb-0.5">Elige</h4>
+                      <p className="text-[8px] text-[#54595F] leading-none">
+                        Ver detalles de servicios.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 bg-white/50 border border-slate-200/40 rounded-xl p-2 flex-1">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center shrink-0">2</span>
+                    <div>
+                      <h4 className="text-[8px] font-bold text-navy mb-0.5">{nombreAgente} Coordina</h4>
+                      <p className="text-[8px] text-[#54595F] leading-none">
+                        Asigna tu horario.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 bg-white/50 border border-slate-200/40 rounded-xl p-2 flex-1">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center shrink-0">3</span>
+                    <div>
+                      <h4 className="text-[8px] font-bold text-navy mb-0.5">Reservado</h4>
+                      <p className="text-[8px] text-[#54595F] leading-none">
+                        Confirmación al instante.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile: 3 columns */}
+                <div className="flex lg:hidden flex-row gap-1 w-full">
+                  <div className="flex flex-col items-center text-center gap-1 bg-white/50 border border-slate-200/40 rounded-xl p-1.5 flex-1">
+                    <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-black flex items-center justify-center shrink-0">1</span>
+                    <h4 className="text-[7px] font-bold text-navy leading-none">Elige</h4>
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-1 bg-white/50 border border-slate-200/40 rounded-xl p-1.5 flex-1">
+                    <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-black flex items-center justify-center shrink-0">2</span>
+                    <h4 className="text-[7px] font-bold text-navy leading-none">Agente</h4>
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-1 bg-white/50 border border-slate-200/40 rounded-xl p-1.5 flex-1">
+                    <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-black flex items-center justify-center shrink-0">3</span>
+                    <h4 className="text-[7px] font-bold text-navy leading-none">Listo</h4>
+                  </div>
+                </div>
               </div>
-              <div className="w-full h-1.5 bg-gray-700/50 rounded mb-1.5"></div>
-              <div className="w-2/3 h-1.5 bg-gray-700/50 rounded"></div>
-              {conf.mostrarPrecios && <div className={`mt-auto ${previewMode === 'desktop' ? 'text-[10px]' : 'text-[8px]'} text-green-400 font-bold group-hover:text-green-300 transition-colors`}>$0.00</div>}
             </div>
-          ))}
+
+            <div className="flex flex-col justify-between h-full space-y-2 lg:space-y-0 overflow-hidden">
+              {/* Fila superior - desplazamiento izquierda */}
+              <div
+                className="overflow-hidden carousel-fade-mask-preview mb-2 py-1"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+              >
+                <div className={`services-carousel-left-preview ${isPaused ? "paused" : ""}`}>
+                  {[...listado, ...listado, ...listado].map((s, idx) => {
+                    const precioBase = getPrecioBase(s);
+                    const duracion = getDuracionMinutos(s);
+                    return (
+                      <div
+                        key={`top-${s.nombre}-${idx}`}
+                        className="shrink-0 w-[140px] sm:w-[170px] lg:w-[190px] p-3.5 rounded-[16px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
+                      >
+                        <div className="flex flex-col space-y-1.5 mb-1.5">
+                          <div className="flex flex-row justify-between items-start gap-1 w-full">
+                            <h3
+                              className="text-[9px] lg:text-[11px] font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
+                              style={{ fontFamily: "'Readex Pro', sans-serif" }}
+                            >
+                              {s.nombre}
+                            </h3>
+                            <div className="w-5 h-5 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
+                              <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
+                                {s.icono || "🔧"}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[#54595F] text-[8px] lg:text-[9px] leading-relaxed font-light line-clamp-2">
+                            {s.descripcion}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[8px] text-[#54595F] border-t border-gray-100 pt-1.5">
+                            <span className="flex items-center gap-0.5 font-medium">
+                              <Clock className="w-2.5 h-2.5 text-primary" />
+                              {duracion} min
+                            </span>
+                            <span className="flex items-center gap-0.5 font-bold text-navy">
+                              <Tag className="w-2 h-2 text-primary" /> desde S/. {precioBase}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fila inferior - desplazamiento derecha */}
+              <div
+                className="hidden sm:block overflow-hidden carousel-fade-mask-preview py-1"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+              >
+                <div
+                  className={`services-carousel-right-preview ${isPaused ? "paused" : ""}`}
+                >
+                  {[...listado, ...listado, ...listado].map((s, idx) => {
+                    const precioBase = getPrecioBase(s);
+                    const duracion = getDuracionMinutos(s);
+                    return (
+                      <div
+                        key={`bottom-${s.nombre}-${idx}`}
+                        className="shrink-0 w-[140px] sm:w-[170px] lg:w-[190px] p-3.5 rounded-[16px] bg-white border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer select-none"
+                      >
+                        <div className="flex flex-col space-y-1.5 mb-1.5">
+                          <div className="flex flex-row justify-between items-start gap-1 w-full">
+                            <h3
+                              className="text-[9px] lg:text-[11px] font-bold text-navy group-hover:text-primary transition-colors duration-200 leading-snug"
+                              style={{ fontFamily: "'Readex Pro', sans-serif" }}
+                            >
+                              {s.nombre}
+                            </h3>
+                            <div className="w-5 h-5 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
+                              <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
+                                {s.icono || "🔧"}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[#54595F] text-[8px] lg:text-[9px] leading-relaxed font-light line-clamp-2">
+                            {s.descripcion}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[8px] text-[#54595F] border-t border-gray-100 pt-1.5">
+                            <span className="flex items-center gap-0.5 font-medium">
+                              <Clock className="w-2.5 h-2.5 text-primary" />
+                              {duracion} min
+                            </span>
+                            <span className="flex items-center gap-0.5 font-bold text-navy">
+                              <Tag className="w-2 h-2 text-primary" /> desde S/. {precioBase}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    ),
+      );
+    },
     TestimonialsBlock: ({ conf }) => (
       <div className={`w-full ${conf.fondoSeccion === 'Acentuado' ? 'bg-gradient-to-br from-gray-900 to-[var(--primary)]/10' : 'bg-transparent'} rounded-xl flex flex-col py-6 px-4 mb-4 transition-all duration-500 relative overflow-hidden`}>
         {conf.fondoSeccion === 'Acentuado' && <div className="absolute -top-10 -right-10 w-48 h-48 bg-[var(--primary)]/20 rounded-full blur-3xl"></div>}
@@ -291,7 +558,6 @@ export default function TabConstructor() {
     ),
     CTABlock: ({ conf }) => (
       <div className={`w-full ${previewMode === 'desktop' ? 'h-40' : 'h-24'} ${conf.colorFondo === 'Degradado Primario' ? 'bg-gradient-to-r from-[var(--secondary)] via-[var(--primary)] to-indigo-600' : 'bg-gray-900 border border-gray-800'} ${conf.esquinas === 'Redondeadas (xl)' ? 'rounded-3xl' : conf.esquinas === 'Píldora' ? 'rounded-full' : 'rounded-lg'} flex flex-col items-center justify-center mb-4 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_10px_30px_var(--primary)]`}>
-        {conf.colorFondo === 'Degradado Primario' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>}
         <span className={`${previewMode === 'desktop' ? 'text-2xl' : 'text-xs'} font-black text-white relative z-10 shadow-black/50 drop-shadow-md`}>{conf.mensaje}</span>
         <span className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[7px]'} text-blue-200 mt-2 relative z-10 max-w-[80%] text-center`}>{conf.subtitulo}</span>
         <div className={`mt-5 px-6 py-2.5 bg-white text-[var(--primary)] ${previewMode === 'desktop' ? 'text-[11px]' : 'text-[8px]'} font-black tracking-widest rounded-full relative z-10 shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer ${conf.animarBoton ? 'animate-pulse' : ''}`}>{conf.textoBoton}</div>
@@ -312,7 +578,7 @@ export default function TabConstructor() {
   return (
     <div className="space-y-6">
       
-      {/* HEADER DE LA SECCIÓN (W/ TEMA GLOBAL) */}
+      {/* HEADER DE LA SECCIÓN */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-900/40 p-4 rounded-2xl border border-gray-800/60 backdrop-blur-xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/5 to-transparent pointer-events-none"></div>
         <div className="relative z-10">
@@ -344,12 +610,14 @@ export default function TabConstructor() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         
-        {/* COLUMNA IZQUIERDA: EL CONSTRUCTOR DRAG & DROP */}
+        {/* COLUMNA IZQUIERDA: EL CONSTRUCTOR */}
         <div className="xl:col-span-6 space-y-4">
           
-          {bloques.map((bloque, index) => (
-            <div 
-              key={bloque.id} 
+          {bloques.map((bloqueItem, index) => {
+            const bloque = { ...bloqueItem, conf: bloqueItem.conf || {} };
+            return (
+              <div 
+                key={bloque.id} 
               className="transition-all duration-500 ease-in-out transform origin-top"
               style={{ animationFillMode: 'both', animation: `slideIn 0.4s ease-out ${index * 0.1}s forwards` }}
             >
@@ -409,32 +677,242 @@ export default function TabConstructor() {
                 </div>
               </div>
 
-              {/* PANEL DE EDICIÓN PRO (EXPANDIBLE CON CSS GRID TRANSITION) */}
+              {/* PANEL DE EDICIÓN PRO (EXPANDIBLE) */}
               <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-in-out ${bloqueEditando === bloque.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-6 bg-gray-900 border border-gray-800 border-t-0 rounded-b-2xl shadow-2xl relative z-0">
                     
                     {/* CONTENIDO DEL FORMULARIO DEPENDIENDO DEL TIPO */}
+
+                    {/* ── HERO BLOCK ──────────────────────────────────────────────────── */}
                     {bloque.tipo === 'HeroBlock' && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1 col-span-2">
-                            <label className="text-[10px] font-bold text-gray-400">Título Principal (H1)</label>
-                            <input type="text" value={bloque.conf.tituloPrincipal} onChange={e => handleConfigChange(bloque.id, 'tituloPrincipal', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
-                          </div>
-                          <div className="space-y-1 col-span-2">
-                            <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo (H2)</label>
-                            <input type="text" value={bloque.conf.subtitulo} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Texto del Botón</label>
-                            <input type="text" value={bloque.conf.textoBoton} onChange={e => handleConfigChange(bloque.id, 'textoBoton', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Opacidad del Overlay Oscuro</label>
-                            <input type="range" min="0" max="100" value={bloque.conf.overlayOpacidad} onChange={e => handleConfigChange(bloque.id, 'overlayOpacidad', e.target.value)} className="w-full h-1.5 bg-gray-800 mt-3 rounded-lg appearance-none cursor-pointer" />
+                      <div className="space-y-8">
+
+                        {/* 1. Contenido de Texto */}
+                        <div className="space-y-4">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                            <Type className="w-3 h-3 text-[var(--primary)]" /> Contenido de Texto
+                          </span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1 col-span-2">
+                              <label className="text-[10px] font-bold text-gray-400">Título Principal (H1)</label>
+                              <input type="text" value={bloque.conf.tituloPrincipal || ''} onChange={e => handleConfigChange(bloque.id, 'tituloPrincipal', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                              <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                              <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400">Texto del Botón</label>
+                              <input type="text" value={bloque.conf.textoBoton || ''} onChange={e => handleConfigChange(bloque.id, 'textoBoton', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400">Overlay ({bloque.conf.overlayOpacidad || 60}%)</label>
+                              <input type="range" min="0" max="100" value={bloque.conf.overlayOpacidad || 60} onChange={e => handleConfigChange(bloque.id, 'overlayOpacidad', e.target.value)} className="w-full h-1.5 bg-gray-800 mt-3 rounded-lg appearance-none cursor-pointer" style={{ accentColor: 'var(--primary)' }} />
+                            </div>
                           </div>
                         </div>
+
+                        {/* 2. Alineación del Texto */}
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                            <AlignCenter className="w-3 h-3 text-[var(--primary)]" /> Alineación del Texto
+                          </span>
+                          <div className="grid grid-cols-4 gap-2">
+                            {[
+                              { value: 'Izquierda', Icon: AlignLeft, label: 'Izquierda' },
+                              { value: 'Centro', Icon: AlignCenter, label: 'Centro' },
+                              { value: 'Derecha', Icon: AlignRight, label: 'Derecha' },
+                              { value: 'Justificado', Icon: AlignJustify, label: 'Justificado' },
+                            ].map(({ value, Icon, label }) => (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => handleConfigChange(bloque.id, 'alineacion', value)}
+                                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
+                                  (bloque.conf.alineacion || 'Centro') === value
+                                    ? 'bg-[var(--primary)]/15 border-[var(--primary)] text-[var(--primary)] shadow-[0_0_12px_var(--primary)]'
+                                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 3. Canvas de Posicionamiento del Bloque de Cards */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                              <Move className="w-3 h-3 text-[var(--primary)]" /> Posicionar Bloque de Cards
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => resetPromosPosicion(bloque.id)}
+                              className="text-[9px] font-bold text-gray-600 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
+                            >
+                              <XCircle className="w-3 h-3" /> Reset posición
+                            </button>
+                          </div>
+
+                          {/* Toggle de layout del bloque */}
+                          <div className="flex gap-2">
+                            {[
+                              { value: 'filas', label: 'En Filas', desc: 'Una sobre otra' },
+                              { value: 'columnas', label: 'En Columnas', desc: 'Lado a lado' },
+                            ].map(({ value, label, desc }) => (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => handleConfigChange(bloque.id, 'promos_layout', value)}
+                                className={`flex-1 py-3 px-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                  (bloque.conf.promos_layout || 'filas') === value
+                                    ? 'bg-[var(--primary)]/15 border-[var(--primary)] text-[var(--primary)] shadow-[0_0_10px_var(--primary)]'
+                                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+                                }`}
+                              >
+                                <div className="text-[9px] font-black uppercase tracking-widest">{label}</div>
+                                <div className="text-[8px] text-current opacity-60 mt-0.5">{desc}</div>
+                              </button>
+                            ))}
+                          </div>
+
+                          <p className="text-[9px] text-gray-600 leading-relaxed bg-gray-950/40 border border-gray-800/60 rounded-lg px-3 py-2">
+                            Las dos cards viajan juntas como un bloque. Arrástralo donde quieras en el Hero. En mobile siempre se apilan. 🟢 = posición anclada.
+                          </p>
+
+                          {/* Canvas interactivo */}
+                          <div
+                            ref={promoCanvasRef}
+                            className="relative w-full rounded-2xl overflow-hidden border border-gray-800 select-none"
+                            style={{
+                              height: '300px',
+                              cursor: isDraggingPromoBlock ? 'grabbing' : 'default',
+                              background: 'linear-gradient(135deg, #06070f 0%, #0d1520 50%, #080d1a 100%)',
+                            }}
+                            onMouseMove={(e) => handleCanvasMouseMove(e, bloque.id)}
+                            onMouseUp={handleCanvasMouseUp}
+                            onMouseLeave={handleCanvasMouseUp}
+                          >
+                            {/* Fondo decorativo */}
+                            <div className="absolute inset-0 pointer-events-none">
+                              <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 60%, rgba(0,174,239,0.12) 0%, transparent 55%)' }} />
+                              <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 75% 30%, rgba(99,102,241,0.08) 0%, transparent 50%)' }} />
+                              <div className="absolute bottom-0 left-0 right-0 h-2/5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55), transparent)' }} />
+                            </div>
+
+                            {/* Grid de referencia */}
+                            <div
+                              className="absolute inset-0 pointer-events-none opacity-[0.04]"
+                              style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '25% 33.33%' }}
+                            />
+
+                            {/* Simulación del texto del Hero */}
+                            <div
+                              className={`absolute top-6 pointer-events-none flex flex-col gap-1 ${
+                                (bloque.conf.alineacion || 'Centro') === 'Centro'
+                                  ? 'left-1/2 -translate-x-1/2 items-center text-center'
+                                  : (bloque.conf.alineacion || 'Centro') === 'Derecha'
+                                    ? 'right-4 items-end text-right'
+                                    : 'left-5 items-start text-left'
+                              }`}
+                              style={{ maxWidth: '50%' }}
+                            >
+                              <div className="text-white/15 text-[7px] font-black uppercase tracking-[0.3em] mb-0.5">PREVIEW HERO</div>
+                              <div className="h-2.5 bg-white/25 rounded" style={{ width: '95%' }} />
+                              <div className="h-[18px] bg-white/45 rounded" style={{ width: '100%' }} />
+                              <div className="h-[18px] bg-white/35 rounded" style={{ width: '85%' }} />
+                              <div className="h-2 bg-white/15 rounded mt-1" style={{ width: '70%' }} />
+                              <div className="flex gap-2 mt-2">
+                                <div className="h-5 w-14 bg-white/10 rounded-full border border-white/15" />
+                                <div className="h-5 w-16 rounded-full" style={{ background: 'var(--primary)', opacity: 0.55 }} />
+                              </div>
+                            </div>
+
+                            {/* ── Bloque arrastrable único con las dos cards ── */}
+                            {(() => {
+                              const pos = bloque.conf.promos_posicion;
+                              const isAnclado = pos?.anclado;
+                              const blockX = isAnclado ? pos.x : 55;
+                              const blockY = isAnclado ? pos.y : 15;
+                              const isColumnas = (bloque.conf.promos_layout || 'filas') === 'columnas';
+                              const promos = (tallerPromos.length > 0 ? tallerPromos : defaultPromosForCanvas).slice(0, 2);
+                              return (
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    left: `${blockX}%`,
+                                    top: `${blockY}%`,
+                                    zIndex: 20,
+                                    cursor: isDraggingPromoBlock ? 'grabbing' : 'grab',
+                                    userSelect: 'none',
+                                  }}
+                                  onMouseDown={(e) => handleBlockMouseDown(e, bloque)}
+                                >
+                                  {/* Cards del bloque */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: isColumnas ? 'row' : 'column',
+                                      gap: '8px',
+                                    }}
+                                  >
+                                    {promos.map((promo, idx) => {
+                                      const isPrimary = promo.color_fondo === 'primary';
+                                      return (
+                                        <div
+                                          key={idx}
+                                          style={{
+                                            width: isColumnas ? '120px' : '155px',
+                                            padding: '10px',
+                                            borderRadius: '12px',
+                                            background: isPrimary
+                                              ? 'linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)'
+                                              : 'linear-gradient(135deg, #0f2033 0%, #1e293b 100%)',
+                                            border: `1px solid ${ isPrimary ? 'rgba(0,174,239,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                                            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                                          }}
+                                        >
+                                          <div style={{ fontSize: '6.5px', fontWeight: 900, textTransform: 'uppercase', background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: '4px', color: 'white', display: 'inline-block', marginBottom: '6px', letterSpacing: '0.1em' }}>
+                                            {promo.etiqueta || 'PROMO'}
+                                          </div>
+                                          <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'white', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                            {promo.titulo}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Icono de arrastre */}
+                                  <div style={{ position: 'absolute', top: '-8px', right: '-8px', width: '20px', height: '20px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                                    <Move style={{ width: '11px', height: '11px', color: 'white' }} />
+                                  </div>
+
+                                  {/* Indicador verde = posición anclada */}
+                                  {isAnclado && (
+                                    <div style={{ position: 'absolute', top: '-6px', left: '-6px', width: '14px', height: '14px', background: '#4ade80', borderRadius: '50%', border: '2px solid #030712', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }} />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Readout de coordenadas mientras arrastra */}
+                            {isDraggingPromoBlock && bloque.conf.promos_posicion && (
+                              <div className="absolute bottom-2 right-3 bg-black/75 backdrop-blur-sm rounded-lg px-2 py-1 font-mono text-[8px] text-green-400 border border-green-400/20">
+                                X: {bloque.conf.promos_posicion.x.toFixed(1)}% · Y: {bloque.conf.promos_posicion.y.toFixed(1)}%
+                              </div>
+                            )}
+
+                            {/* Hint */}
+                            <div className="absolute bottom-2 left-3 text-[7.5px] text-white/25 font-medium pointer-events-none">
+                              ↕ Arrastra el bloque · 🟢 Anclado · Reset limpia posición
+                            </div>
+                          </div>
+                        </div>
+
                       </div>
                     )}
 
@@ -451,18 +929,174 @@ export default function TabConstructor() {
                        </div>
                     )}
 
-                    {(bloque.tipo !== 'HeroBlock' && bloque.tipo !== 'StatsBlock') && (
-                       <div className="text-sm text-gray-400 p-6 bg-gray-950/50 rounded-2xl border border-gray-800/80 text-center font-medium shadow-inner">
-                         Bloque {bloque.tipo} editable. (Simulación de opciones).
-                       </div>
+                    {bloque.tipo === 'ServicesBlock' && (
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400">Título de la Sección</label>
+                          <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                          <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                        </div>
+                      </div>
+                    )}
+
+                    {bloque.tipo === 'SobreNosotrosBlock' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de Sección</label>
+                            <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Años de Experiencia</label>
+                            <input type="number" value={bloque.conf.anosExperiencia || ''} onChange={e => handleConfigChange(bloque.id, 'anosExperiencia', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Título de Cabecera</label>
+                            <input type="text" value={bloque.conf.tituloPrincipal || ''} onChange={e => handleConfigChange(bloque.id, 'tituloPrincipal', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Texto del Gradiente</label>
+                            <input type="text" value={bloque.conf.tituloGradiente || ''} onChange={e => handleConfigChange(bloque.id, 'tituloGradiente', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400">Descripción Sobre Nosotros</label>
+                          <textarea rows={3} value={bloque.conf.sobreNosotros || ''} onChange={e => handleConfigChange(bloque.id, 'sobreNosotros', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all resize-none" />
+                        </div>
+                      </div>
+                    )}
+
+                    {bloque.tipo === 'ContactoBlock' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de Sección</label>
+                            <input type="text" value={bloque.conf.subtituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'subtituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Título de Sección</label>
+                            <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Teléfono</label>
+                            <input type="text" value={bloque.conf.telefono || ''} onChange={e => handleConfigChange(bloque.id, 'telefono', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Email</label>
+                            <input type="email" value={bloque.conf.email || ''} onChange={e => handleConfigChange(bloque.id, 'email', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Ubicación / Dirección</label>
+                            <input type="text" value={bloque.conf.direccion || ''} onChange={e => handleConfigChange(bloque.id, 'direccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {bloque.tipo === 'TestimonialsBlock' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Título de la Sección</label>
+                            <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                            <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Estilo de Tarjetas</label>
+                            <select value={bloque.conf.estiloTarjeta || 'Estándar'} onChange={e => handleConfigChange(bloque.id, 'estiloTarjeta', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="Estándar">Estándar</option>
+                              <option value="Borde Neón (Cyberpunk)">Borde Neón (Cyberpunk)</option>
+                              <option value="Glassmorphism">Glassmorphism</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Fondo de Sección</label>
+                            <select value={bloque.conf.fondoSeccion || 'Oscuro Estándar'} onChange={e => handleConfigChange(bloque.id, 'fondoSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="Oscuro Estándar">Oscuro Estándar</option>
+                              <option value="Acentuado">Acentuado</option>
+                              <option value="Claro">Claro</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="flex gap-6 pt-2">
+                          <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" checked={bloque.conf.mostrarEstrellas !== false} onChange={e => handleConfigChange(bloque.id, 'mostrarEstrellas', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
+                            Mostrar Estrellas
+                          </label>
+                          <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" checked={bloque.conf.mostrarAvatares !== false} onChange={e => handleConfigChange(bloque.id, 'mostrarAvatares', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
+                            Mostrar Avatares
+                          </label>
+                          <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" checked={bloque.conf.mostrarEmpresa !== false} onChange={e => handleConfigChange(bloque.id, 'mostrarEmpresa', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
+                            Mostrar Vehículos
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {bloque.tipo === 'CTABlock' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Mensaje Principal</label>
+                            <input type="text" value={bloque.conf.mensaje || ''} onChange={e => handleConfigChange(bloque.id, 'mensaje', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Subtítulo</label>
+                            <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Texto del Botón</label>
+                            <input type="text" value={bloque.conf.textoBoton || ''} onChange={e => handleConfigChange(bloque.id, 'textoBoton', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Fondo</label>
+                            <select value={bloque.conf.colorFondo || 'Degradado Primario'} onChange={e => handleConfigChange(bloque.id, 'colorFondo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="Degradado Primario">Degradado Primario</option>
+                              <option value="Oscuro">Oscuro</option>
+                              <option value="Gris Claro">Gris Claro</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400">Esquinas</label>
+                            <select value={bloque.conf.esquinas || 'Redondeadas (xl)'} onChange={e => handleConfigChange(bloque.id, 'esquinas', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="Redondeadas (xl)">Redondeadas (xl)</option>
+                              <option value="Píldora">Píldora</option>
+                              <option value="Estándar">Estándar</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="pt-2">
+                          <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" checked={bloque.conf.animarBoton !== false} onChange={e => handleConfigChange(bloque.id, 'animarBoton', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
+                            Animar Botón (Efecto Latido)
+                          </label>
+                        </div>
+                      </div>
                     )}
 
                   </div>
                 </div>
               </div>
 
-            </div>
-          ))}
+              </div>
+            );
+          })}
 
           {/* BOTÓN PARA AGREGAR NUEVAS SECCIONES */}
           <button 
@@ -473,7 +1107,7 @@ export default function TabConstructor() {
           </button>
         </div>
 
-        {/* COLUMNA DERECHA: RESPONSIVE LIVE PREVIEW (WEB FIRST + MOBILE TOGGLE) */}
+        {/* COLUMNA DERECHA: RESPONSIVE LIVE PREVIEW */}
         <div className="xl:col-span-6 relative perspective-[1000px]">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[var(--primary)]/10 blur-[100px] rounded-full pointer-events-none -z-10 transition-all duration-700"></div>
           

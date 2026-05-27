@@ -2,7 +2,7 @@
 
 import { Award, CheckCircle2, Users, Wrench } from 'lucide-react';
 
-export default function SobreNosotros({ taller = {} }) {
+export default function SobreNosotros({ taller = {}, conf = {} }) {
   const caracteristicas = [
     { icono: Wrench,       titulo: 'Técnicos Certificados',    desc: 'Profesionales capacitados en mecánica general y electrónica automotriz de alta gama.' },
     { icono: CheckCircle2, titulo: 'Garantía por Escrito',      desc: 'Todos nuestros trabajos tienen garantía documentada de repuestos y mano de obra.' },
@@ -36,7 +36,7 @@ export default function SobreNosotros({ taller = {} }) {
                 </div>
                 <div>
                   <h4 className="text-lg font-bold text-white leading-tight">
-                    {taller.anos_experiencia || 12}+ Años
+                    {conf.anosExperiencia || taller.anos_experiencia || 12}+ Años
                   </h4>
                   <p className="text-xs text-white/60 font-light">Trayectoria ininterrumpida</p>
                 </div>
@@ -50,18 +50,18 @@ export default function SobreNosotros({ taller = {} }) {
 
           {/* Right: Text */}
           <div className="reveal-right">
-            <span className="section-label">¿Quiénes Somos?</span>
+            <span className="section-label">{conf.tituloSeccion || 'SOBRE NOSOTROS'}</span>
 
             <h2
               className="text-2xl sm:text-4xl md:text-5xl font-black text-navy tracking-tight leading-tight mb-4 lg:mb-6"
               style={{ fontFamily: "'Readex Pro', sans-serif" }}
             >
-              Compromiso con la{' '}
-              <span className="text-gradient">Calidad de Tu Auto</span>
+              {conf.tituloPrincipal || 'Compromiso con la'} {' '}
+              <span className="text-gradient">{conf.tituloGradiente || 'Calidad de Tu Auto'}</span>
             </h2>
 
             <p className="text-[#54595F] font-light leading-relaxed mb-5 lg:mb-10 text-xs sm:text-sm">
-              {taller.sobre_nosotros ||
+              {conf.sobreNosotros || taller.sobre_nosotros ||
                 'En Gallo Autos contamos con más de una década de trayectoria brindando servicios mecánicos integrales de alta calidad. Disponemos de tecnología de diagnóstico computarizado avanzada, cabinas de pintura al horno y un equipo de profesionales apasionados por el cuidado de tu vehículo.'}
             </p>
 

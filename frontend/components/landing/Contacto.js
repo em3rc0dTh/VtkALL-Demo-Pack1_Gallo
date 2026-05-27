@@ -2,7 +2,7 @@
 
 import { Mail, MapPin, Phone, MessageSquare, Clock } from 'lucide-react';
 
-export default function Contacto({ taller = {}, onOpenChat }) {
+export default function Contacto({ taller = {}, onOpenChat, conf = {} }) {
   const nombreTaller = taller.nombre_taller || 'Gallo Autos';
   const nombreAgente = taller.config_agente?.nombre_agente || 'Max';
   const anio = new Date().getFullYear();
@@ -21,10 +21,10 @@ export default function Contacto({ taller = {}, onOpenChat }) {
         {/* Title Header */}
         <div className="reveal">
           <span className="text-xs font-bold tracking-widest text-primary uppercase block mb-1">
-            CONTACTO & ATENCIÓN
+            {conf.subtituloSeccion || 'CONTACTO & ATENCIÓN'}
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-navy tracking-tight leading-tight">
-            ¿Tienes Consultas? Escríbenos
+            {conf.tituloSeccion || '¿Tienes Consultas? Escríbenos'}
           </h2>
         </div>
 
@@ -45,7 +45,7 @@ export default function Contacto({ taller = {}, onOpenChat }) {
                     Ubicación del Taller
                   </h4>
                   <p className="text-navy text-sm font-semibold leading-relaxed">
-                    {taller.direccion || 'Av. Javier Prado Este 2465, San Borja, Lima'}
+                    {conf.direccion || taller.direccion || 'Av. Javier Prado Este 2465, San Borja, Lima'}
                   </p>
                 </div>
               </div>
@@ -60,7 +60,7 @@ export default function Contacto({ taller = {}, onOpenChat }) {
                     Atención Telefónica
                   </h4>
                   <p className="text-navy text-sm font-semibold">
-                    {taller.telefono || '+51 1 617-6800'}
+                    {conf.telefono || taller.telefono || '+51 1 617-6800'}
                   </p>
                 </div>
               </div>
@@ -75,7 +75,7 @@ export default function Contacto({ taller = {}, onOpenChat }) {
                     Correo Electrónico
                   </h4>
                   <p className="text-navy text-sm font-semibold">
-                    {taller.email || 'contacto@mecanicapro.com'}
+                    {conf.email || taller.email || 'contacto@mecanicapro.com'}
                   </p>
                 </div>
               </div>
@@ -128,6 +128,17 @@ export default function Contacto({ taller = {}, onOpenChat }) {
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+                <a 
+                  href={taller.redes_sociales?.tiktok || 'https://tiktok.com'} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="p-2.5 bg-white hover:bg-primary rounded-xl border border-gray-250/50 hover:border-primary text-gray-400 hover:text-white transition-all duration-300 shadow-sm"
+                  title="TikTok"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.59 4.18.94 1.13 2.29 1.89 3.73 2.13.01 1.27.03 2.54.02 3.81-.08-.01-.17-.01-.25-.03-1.63-.12-3.15-.89-4.19-2.17-.07-.08-.13-.17-.19-.26V15.5c-.04 2.19-.88 4.31-2.42 5.86-1.74 1.76-4.22 2.69-6.69 2.51-2.58-.13-5.06-1.57-6.28-3.87-1.42-2.57-1.28-5.96.43-8.38 1.44-2.09 3.91-3.32 6.47-3.21.01 1.28.02 2.57.01 3.85-1.57-.1-3.19.46-4.08 1.77-.99 1.41-.83 3.49.44 4.7 1.1 1.09 2.87 1.34 4.2 0.58 1.07-.59 1.63-1.81 1.66-3.03V0h.95z"/>
                   </svg>
                 </a>
               </div>

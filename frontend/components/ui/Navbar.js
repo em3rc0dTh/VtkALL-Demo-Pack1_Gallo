@@ -22,17 +22,21 @@ export default function Navbar({ taller = {} }) {
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Contacto', href: '#contacto' },
   ];
-
+  // MÁS TAMAÑO A LOS BOTONES DE NAVEGACIÓN
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
       isScrolled 
-        ? 'py-4 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-md shadow-gray-200/25' 
-        : 'py-6 bg-transparent'
+        ? 'py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-md shadow-gray-200/25' 
+        : 'py-5 bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Brand Brand */}
         <Link href="/#inicio" className="flex items-center group select-none">
-          <div className="flex items-center justify-center w-32 h-12 md:w-40 md:h-16 p-2 rounded-2xl bg-transparent shadow-navbar ring-1 ring-primary/15 transition-all duration-300 group-hover:shadow-navbar-hover group-hover:ring-primary/25 flex-shrink-0">
+          <div className={`flex items-center justify-center w-28 h-10 md:w-36 md:h-14 p-1 rounded-xl md:rounded-2xl bg-white transition-all duration-300 group-hover:scale-105 flex-shrink-0 ${
+            isScrolled
+              ? 'shadow-md ring-2 ring-primary/45'
+              : 'shadow-sm ring-1 ring-primary/20'
+          }`}>
             <img
               src="/images/turagua.jpg"
               alt="Turagua"
@@ -69,7 +73,7 @@ export default function Navbar({ taller = {} }) {
             <a
               key={item.name}
               href={item.href}
-              className="text-base font-semibold text-[#54595F] hover:text-primary transition-colors duration-200"
+              className="text-[17px] font-bold text-navy/95 hover:text-primary transition-colors duration-200 tracking-wide"
             >
               {item.name}
             </a>
@@ -80,7 +84,7 @@ export default function Navbar({ taller = {} }) {
         <div className="md:hidden flex items-center">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-[#54595F] hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg text-navy hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -96,7 +100,7 @@ export default function Navbar({ taller = {} }) {
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 text-base font-medium text-[#54595F] hover:text-primary hover:bg-gray-50 rounded-xl transition-all duration-200"
+                className="px-4 py-2 text-lg font-bold text-navy hover:text-primary hover:bg-gray-50 rounded-xl transition-all duration-200"
               >
                 {item.name}
               </a>
