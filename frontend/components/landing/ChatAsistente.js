@@ -322,6 +322,10 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
   const formatMarkdown = (text) => {
     if (!text) return '';
     let cleanText = text.replace('[ABRIR_CALENDARIO]', '').trim();
+    // Normalizar enlaces markdown rotos por espacios o saltos de línea (por ejemplo: ] \n ()
+    cleanText = cleanText.replace(/\]\s*\(/g, '](');
+    // Eliminar negritas alrededor de los enlaces para evitar que se interpreten como texto plano: **[texto](url)** -> [texto](url)
+    cleanText = cleanText.replace(/\*\*\[(.*?)\]\((.*?)\)\*\*/g, '[$1]($2)');
     const lines = cleanText.split('\n');
     return lines.map((line, idx) => {
       let isBullet = false;
@@ -351,12 +355,12 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             </strong>
           );
         } else if (match[3] !== undefined && match[4] !== undefined) {
-          const url = match[4];
+          const url = match[4].trim();
           const text = match[3];
           
           const hashIndex = url.indexOf('#');
           if (hashIndex !== -1 && (url.startsWith('/') || url.startsWith('#') || (typeof window !== 'undefined' && !url.startsWith('http')))) {
-            const targetId = url.substring(hashIndex + 1);
+            const targetId = url.substring(hashIndex + 1).trim();
             parts.push(
               <a
                 key={match.index}
@@ -365,7 +369,7 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
                   e.preventDefault();
                   const element = document.getElementById(targetId);
                   if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
                 className="text-primary hover:text-primary-hover font-bold underline transition-colors cursor-pointer"
