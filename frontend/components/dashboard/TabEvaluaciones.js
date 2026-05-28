@@ -56,6 +56,20 @@ export default function TabEvaluaciones() {
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [teams, setTeams] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [subiendoImg, setSubiendoImg] = useState(false);
+
+  const [modalEditarCita, setModalEditarCita] = useState(null);
+  const [editNombre, setEditNombre] = useState('');
+  const [editTelefono, setEditTelefono] = useState('');
+  const [editTipo, setEditTipo] = useState('');
+  const [editFecha, setEditFecha] = useState('');
+  const [editEstado, setEditEstado] = useState('');
+  const [editNotas, setEditNotas] = useState('');
+  const [editMarca, setEditMarca] = useState('');
+  const [editModelo, setEditModelo] = useState('');
+  const [editPatente, setEditPatente] = useState('');
 
   const cargarEvaluaciones = async () => {
     setLoading(true);
@@ -63,7 +77,7 @@ export default function TabEvaluaciones() {
       const res = await api.getCitas();
       if (res && res.citas) {
         // Filtrar citas que están en alguno de nuestros estados de Kanban
-        const validStates = ['pendiente', 'validada', 'pendiente_confirmacion', 'confirmada', 'evaluacion_en_curso'];
+        const validStates = ['pendiente', 'validada', 'pendiente_confirmacion', 'confirmada', 'evaluacion_en_curso', 'cancelada'];
         const filtered = res.citas.filter(c => validStates.includes(c.estado));
         
         const mapped = filtered.map(c => ({
@@ -73,7 +87,11 @@ export default function TabEvaluaciones() {
           fecha: formatearFechaLegible(c.fecha_cita),
           fecha_original: c.fecha_cita,
           estado: mapBackendToUi(c.estado),
-          notas: c.descripcion_trabajo || c.notas_mecanico || ''
+          notas: c.descripcion_trabajo || c.notas_mecanico || '',
+          imagenes: c.imagenes || [],
+          numero_telefono: c.numero_telefono || '',
+          vehiculo: c.vehiculo || { marca: '', modelo: '', anio: null, patente: '' },
+          cliente_id: c.cliente?._id || c.cliente || null
         }));
         setEvaluaciones(mapped);
       }
@@ -85,9 +103,70 @@ export default function TabEvaluaciones() {
     }
   };
 
+  const cargarTeams = async () => {
+    try {
+      const data = await api.getTeams();
+      if (data) {
+        setTeams(data);
+      }
+    } catch (err) {
+      console.error('Error al cargar teams:', err);
+    }
+  };
+
   useEffect(() => {
     cargarEvaluaciones();
+    cargarTeams();
   }, []);
+
+  const handleOpenEditar = (e) => {
+    setModalEditarCita(e.id);
+    setEditNombre(e.cliente || '');
+    setEditTelefono(e.numero_telefono || '');
+    setEditTipo(e.tipo || 'Evaluación Presencial');
+    
+    let dateVal = '';
+    if (e.fecha_original) {
+      const d = new Date(e.fecha_original);
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      const localISODate = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+      dateVal = localISODate;
+    }
+    setEditFecha(dateVal);
+    setEditEstado(mapUiToBackend(e.estado));
+    setEditNotas(e.notas || '');
+    setEditMarca(e.vehiculo?.marca || '');
+    setEditModelo(e.vehiculo?.modelo || '');
+    setEditPatente(e.vehiculo?.patente || '');
+  };
+
+  const handleSubmitEditar = async (ev) => {
+    ev.preventDefault();
+    try {
+      const payload = {
+        nombre_cliente: editNombre,
+        numero_telefono: editTelefono,
+        tipo_cita: editTipo,
+        fecha_cita: editFecha ? new Date(editFecha).toISOString() : undefined,
+        estado: editEstado,
+        descripcion_trabajo: editNotas,
+        vehiculo: {
+          marca: editMarca,
+          modelo: editModelo,
+          patente: editPatente
+        }
+      };
+
+      const res = await api.actualizarCita(modalEditarCita, payload);
+      if (res && res.ok) {
+        setModalEditarCita(null);
+        await cargarEvaluaciones();
+      }
+    } catch (err) {
+      console.error('Error al editar cita:', err);
+      alert('Error al guardar cambios: ' + err.message);
+    }
+  };
 
   const cambiarEstado = async (id, nuevoEstado) => {
     try {
@@ -103,6 +182,37 @@ export default function TabEvaluaciones() {
 
   const handleOpenTasar = (id) => {
     setModalTasar(id);
+    const evalObj = evaluaciones.find(e => e.id === id);
+    setUploadedImages(evalObj?.imagenes || []);
+  };
+
+  const handleUploadImage = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setSubiendoImg(true);
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('imagen', file);
+        
+        const res = await api.subirImagenGeneral(formData);
+        if (res && res.ok && res.imageUrl) {
+          setUploadedImages(prev => [...prev, res.imageUrl]);
+        }
+      }
+    } catch (err) {
+      console.error('Error al subir imagen:', err);
+      alert('Error al subir una o más imágenes: ' + err.message);
+    } finally {
+      setSubiendoImg(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove) => {
+    setUploadedImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleSubmitTasacion = async (e) => {
@@ -110,10 +220,10 @@ export default function TabEvaluaciones() {
     const form = e.target;
     
     // Obtener los valores del formulario
-    const team = form.elements[0].value; // Team
-    const precio = parseFloat(form.elements[1].value); // Precio
-    const duracionRaw = form.elements[2].value; // Duración
-    const notas = form.elements[4].value; // Notas del diagnóstico (textarea)
+    const team = form.team_asignado.value;
+    const precio = parseFloat(form.precio_final.value) || 0;
+    const duracionRaw = form.duracion_trabajo.value;
+    const notas = form.notas_mecanico.value;
     
     // Calcular duración en minutos
     let duracionMinutos = 60;
@@ -122,12 +232,19 @@ export default function TabEvaluaciones() {
     else if (duracionRaw === '8h') duracionMinutos = 480;
     else if (duracionRaw === '2d') duracionMinutos = 960;
     
+    // Si tiene margen de pruebas, añadir 1 hora
+    if (form.margen && form.margen.checked) {
+      duracionMinutos += 60;
+    }
+    
     try {
       const payload = {
         estado: 'completada', // finalizada_evaluacion
         precio_final: precio,
         notas_mecanico: notas,
-        duracion_estimada_minutos: duracionMinutos
+        duracion_estimada_minutos: duracionMinutos,
+        team_asignado: team || null,
+        imagenes: uploadedImages
       };
       
       const res = await api.actualizarCita(modalTasar, payload);
@@ -245,7 +362,7 @@ export default function TabEvaluaciones() {
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'reserva').map(e => (
-                <div key={e.id} className="p-3 rounded-xl bg-gray-900 border border-yellow-500/20 flex flex-col gap-2 relative overflow-hidden">
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-yellow-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-yellow-500/50 transition-all select-none" title="Doble clic para editar detalles">
                   <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
                   <span className="block text-xs font-bold text-white">{e.cliente}</span>
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
@@ -265,7 +382,7 @@ export default function TabEvaluaciones() {
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'validado').map(e => (
-                <div key={e.id} className="p-3 rounded-xl bg-gray-900 border border-blue-500/20 flex flex-col gap-2 relative overflow-hidden group">
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-blue-500/20 flex flex-col gap-2 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all select-none" title="Doble clic para editar detalles">
                   <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
                   <span className="block text-xs font-bold text-white">{e.cliente}</span>
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
@@ -285,7 +402,7 @@ export default function TabEvaluaciones() {
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'pendiente_confirmacion').map(e => (
-                <div key={e.id} className="p-3 rounded-xl bg-gray-900 border border-purple-500/20 flex flex-col gap-2 relative overflow-hidden group">
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-purple-500/20 flex flex-col gap-2 relative overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-all select-none" title="Doble clic para editar detalles">
                   <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
                   <span className="block text-xs font-bold text-white">{e.cliente}</span>
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
@@ -305,7 +422,7 @@ export default function TabEvaluaciones() {
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'confirmada').map(e => (
-                <div key={e.id} className="p-3 rounded-xl bg-gray-900 border border-green-500/20 flex flex-col gap-2 relative overflow-hidden">
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-green-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-green-500/50 transition-all select-none" title="Doble clic para editar detalles">
                   <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
                   <span className="block text-xs font-bold text-white">{e.cliente}</span>
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
@@ -327,7 +444,7 @@ export default function TabEvaluaciones() {
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'evaluacion_en_curso').map(e => (
-                <div key={e.id} className="p-3 rounded-xl bg-gray-900 border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.1)] flex flex-col gap-2 relative overflow-hidden">
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.1)] flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-cyan-500/60 transition-all select-none" title="Doble clic para editar detalles">
                   <div className="absolute top-0 left-0 w-1 h-full bg-cyan-400 animate-pulse"></div>
                   <span className="block text-xs font-bold text-white">{e.cliente}</span>
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
@@ -336,6 +453,26 @@ export default function TabEvaluaciones() {
                     <button onClick={() => handleOpenTasar(e.id)} className="w-full flex items-center justify-center gap-1 text-[9px] bg-primary hover:bg-primary-hover text-white py-1.5 rounded cursor-pointer font-bold uppercase tracking-wide">
                       <FileText className="w-3 h-3" /> TASAR Y ENVIAR
                     </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Columna 6: Canceladas */}
+          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5"/> 6. Canceladas</span>
+            </div>
+            <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+              {evaluaciones.filter(e => e.estado === 'cancelada').map(e => (
+                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-red-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-red-500/50 transition-all select-none" title="Doble clic para editar detalles">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
+                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
+                  <span className="block text-[9px] text-blue-400">{e.fecha}</span>
+                  <div className="mt-2 pt-2 border-t border-gray-800 text-center">
+                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Cita Cancelada</span>
                   </div>
                 </div>
               ))}
@@ -496,11 +633,11 @@ export default function TabEvaluaciones() {
                 {/* Asignación de Equipo */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Team Asignado *</label>
-                  <select required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <select name="team_asignado" required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
                     <option value="">Selecciona un equipo...</option>
-                    <option value="mecanica">Team: Mecánica General</option>
-                    <option value="planchado">Team: Planchado y Pintura</option>
-                    <option value="atencion">Team: Atención Rápida</option>
+                    {teams.map(t => (
+                      <option key={t._id} value={t._id}>Team: {t.nombre}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -509,14 +646,14 @@ export default function TabEvaluaciones() {
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Acordado (S/.) *</label>
                   <div className="relative">
                     <span className="absolute left-4 top-3.5 text-gray-500 font-bold">S/.</span>
-                    <input type="number" required placeholder="0.00" className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <input name="precio_final" type="number" required placeholder="0.00" step="0.01" className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                 </div>
 
                 {/* Duración */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Duración Neta de Trabajo *</label>
-                  <select required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <select name="duracion_trabajo" required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
                     <option value="1h">1 hora</option>
                     <option value="2h">2 horas</option>
                     <option value="4h">4 horas (Medio Día)</option>
@@ -529,7 +666,7 @@ export default function TabEvaluaciones() {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Margen de Pruebas *</label>
                   <div className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
-                    <input type="checkbox" id="margen" defaultChecked className="w-4 h-4 text-primary bg-gray-800 border-gray-700 rounded focus:ring-primary" />
+                    <input type="checkbox" name="margen" id="margen" defaultChecked className="w-4 h-4 text-primary bg-gray-800 border-gray-700 rounded focus:ring-primary" />
                     <label htmlFor="margen" className="text-sm text-gray-300 font-medium cursor-pointer">
                       Añadir <span className="text-blue-400 font-bold">+1 Hora</span> de margen final
                     </label>
@@ -541,6 +678,7 @@ export default function TabEvaluaciones() {
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Notas del Diagnóstico Técnico</label>
                 <textarea 
+                  name="notas_mecanico"
                   rows="3" 
                   placeholder="Escribe los detalles que el mecánico del Team debe saber antes de empezar..."
                   className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
@@ -551,22 +689,35 @@ export default function TabEvaluaciones() {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Evidencias (Fotos del vehículo)</label>
                 <div className="grid grid-cols-4 gap-3">
-                  <div className="aspect-square bg-gray-900 border-2 border-dashed border-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-colors cursor-pointer">
+                  <label className="aspect-square bg-gray-900 border-2 border-dashed border-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-colors cursor-pointer">
                     <UploadCloud className="w-6 h-6 mb-1" />
-                    <span className="text-[9px] font-bold">Subir Foto</span>
-                  </div>
-                  {/* Dummy images */}
-                  <div className="aspect-square bg-gray-800 rounded-xl overflow-hidden relative group border border-gray-700">
-                    <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&q=80&w=200" alt="Evidencia" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="aspect-square bg-gray-800 rounded-xl overflow-hidden relative group border border-gray-700">
-                    <img src="https://images.unsplash.com/photo-1503376713356-2e8ab745131a?auto=format&fit=crop&q=80&w=200" alt="Evidencia" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                    <span className="text-[9px] font-bold">{subiendoImg ? 'Subiendo...' : 'Subir Foto'}</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadImage}
+                      disabled={subiendoImg}
+                    />
+                  </label>
+                  {uploadedImages.map((img, idx) => (
+                    <div key={idx} className="aspect-square bg-gray-800 rounded-xl overflow-hidden relative group border border-gray-700">
+                      <img src={img} alt="Evidencia" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-500 text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 shadow-md"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Acciones */}
-              <div className="pt-6 border-t border-gray-800 flex justify-end gap-3">
+              <div className="pt-6 border-t border-gray-850 flex justify-end gap-3">
                 <button type="button" onClick={() => setModalTasar(null)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 bg-gray-900 hover:bg-gray-800 border border-gray-800 transition-colors">
                   Cancelar
                 </button>
@@ -580,6 +731,157 @@ export default function TabEvaluaciones() {
         </div>
       )}
 
+      {/* MODAL PARA EDITAR DETALLES Y ESTADO DE LA CITA */}
+      {modalEditarCita && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="w-full max-w-2xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 md:p-8 relative">
+            <button 
+              onClick={() => setModalEditarCita(null)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+            
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" /> Editar Detalles de la Cita / Lead
+              </h2>
+              <p className="text-xs text-gray-400 mt-1">
+                Modifica el estado en el embudo, la información del cliente, fecha del turno o los datos del vehículo.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitEditar} className="space-y-4">
+              
+              {/* Grid 1: Cliente y Contacto */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Nombre del Cliente</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editNombre}
+                    onChange={e => setEditNombre(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Teléfono / WhatsApp</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editTelefono}
+                    onChange={e => setEditTelefono(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                  />
+                </div>
+              </div>
+
+              {/* Grid 2: Tipo de Cita, Fecha y Estado */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Cita</label>
+                  <select 
+                    value={editTipo} 
+                    onChange={e => setEditTipo(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  >
+                    <option value="Evaluación Presencial">Evaluación Presencial</option>
+                    <option value="Evaluación con Fotos">Evaluación con Fotos</option>
+                    <option value="Llamada Directa">Llamada Directa</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Fecha y Hora</label>
+                  <input 
+                    type="datetime-local" 
+                    required
+                    value={editFecha}
+                    onChange={e => setEditFecha(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Estado en Embudo</label>
+                  <select 
+                    value={editEstado} 
+                    onChange={e => setEditEstado(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  >
+                    <option value="pendiente">1. Reservas (Pendiente)</option>
+                    <option value="validada">2. Validados (Validada)</option>
+                    <option value="pendiente_confirmacion">3. Pendiente Confirmación</option>
+                    <option value="confirmada">4. Confirmadas</option>
+                    <option value="evaluacion_en_curso">5. Eval. En Curso</option>
+                    <option value="completada">Completada (Finalizada Evaluación)</option>
+                    <option value="cancelada">Cancelada</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Grid 3: Vehículo (Marca, Modelo, Patente) */}
+              <div className="bg-gray-950/40 border border-gray-800 rounded-2xl p-4 space-y-3">
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Datos del Vehículo</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-500 uppercase">Marca</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: Renault"
+                      value={editMarca}
+                      onChange={e => setEditMarca(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-500 uppercase">Modelo</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: Logan"
+                      value={editModelo}
+                      onChange={e => setEditModelo(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-500 uppercase">Patente (Placa)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: AKE473"
+                      value={editPatente}
+                      onChange={e => setEditPatente(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Descripción / Notas del Diagnóstico Inicial */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Motivo o Notas del Trabajo</label>
+                <textarea 
+                  value={editNotas}
+                  onChange={e => setEditNotas(e.target.value)}
+                  rows="3" 
+                  placeholder="Escribe el motivo del ingreso o las observaciones del diagnóstico..."
+                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
+                />
+              </div>
+
+              {/* Acciones */}
+              <div className="pt-6 border-t border-gray-800 flex justify-end gap-3">
+                <button type="button" onClick={() => setModalEditarCita(null)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 bg-gray-950 hover:bg-gray-800 border border-gray-800 transition-colors cursor-pointer">
+                  Cancelar
+                </button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-lg transition-all cursor-pointer">
+                  GUARDAR CAMBIOS
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

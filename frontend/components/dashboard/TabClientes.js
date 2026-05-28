@@ -3,9 +3,28 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
-import { Search, User, Car, Plus, Trash2, Calendar, Clipboard, Filter, Wrench, Check, MessageCircle } from 'lucide-react';
+import { Search, User, Car, Plus, Trash2, Calendar, Clipboard, Filter, Wrench, Check, MessageCircle, ImagePlus } from 'lucide-react';
 import EstadoBadge from '../ui/EstadoBadge.js';
 import Swal from 'sweetalert2';
+
+const formatRelativeTime = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+
+  if (diffMins < 1) return 'Hace un momento';
+  if (diffMins < 60) return `Hace ${diffMins} min`;
+  if (diffHours < 24) return `Hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+  if (diffDays < 30) return `Hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+  if (diffMonths < 12) return `Hace ${diffMonths} ${diffMonths === 1 ? 'mes' : 'meses'}`;
+  return `Hace ${diffYears} ${diffYears === 1 ? 'año' : 'años'}`;
+};
 
 export default function TabClientes() {
   const [clientes, setClientes] = useState([]);
@@ -41,6 +60,63 @@ export default function TabClientes() {
   const [vModelo, setVModelo] = useState('');
   const [vAnio, setVAnio] = useState('');
   const [vPatente, setVPatente] = useState('');
+
+  // Historial Clínico & Mantenimiento states
+  const [mensajesHistorial, setMensajesHistorial] = useState([]);
+  const [reparacionVehiculoActivo, setReparacionVehiculoActivo] = useState(null);
+  const [modalRepairDetail, setModalRepairDetail] = useState(null);
+  
+  const [modalReparacionOpen, setModalReparacionOpen] = useState(false);
+  const [repTitulo, setRepTitulo] = useState('');
+  const [repKilometraje, setRepKilometraje] = useState('');
+  const [repPiezas, setRepPiezas] = useState('');
+  const [repImagenAntes, setRepImagenAntes] = useState('');
+  const [repImagenDespues, setRepImagenDespues] = useState('');
+  const [repComentarios, setRepComentarios] = useState('');
+  const [repEstado, setRepEstado] = useState('OK');
+
+  const [modalMantenimientoOpen, setModalMantenimientoOpen] = useState(false);
+  const [mantKilometraje, setMantKilometraje] = useState('');
+  const [mantFechaEstimada, setMantFechaEstimada] = useState('');
+  const [mantSugerencia, setMantSugerencia] = useState('');
+
+  const [subiendoImg, setSubiendoImg] = useState(false);
+
+  const handleUploadImage = async (clienteId, patente, file) => {
+    if (!file) return;
+    setSubiendoImg(true);
+    const formData = new FormData();
+    formData.append('imagen', file);
+    formData.append('descripcion', 'Imagen subida desde Admin Dashboard');
+    
+    try {
+      const url = `/api/upload/vehiculo/${clienteId}/${patente}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Error al subir');
+      }
+      handleVerDetalle(clienteId);
+      Swal.fire({
+        icon: 'success',
+        title: 'Imagen vinculada',
+        background: '#111827', color: '#fff', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message,
+        background: '#111827', color: '#fff'
+      });
+    } finally {
+      setSubiendoImg(false);
+    }
+  };
 
   useEffect(() => {
     cargarClientes();
@@ -80,10 +156,132 @@ export default function TabClientes() {
       if (res) {
         setClienteDetalle(res.cliente);
         setCitasHistorial(res.citas || []);
+        
+        // Cargar historial de notificaciones (mensajes de WhatsApp)
+        try {
+          const resMsgs = await api.getMensajes(res.cliente.numero_telefono);
+          if (resMsgs && resMsgs.mensajes) {
+            setMensajesHistorial(resMsgs.mensajes);
+          } else {
+            setMensajesHistorial([]);
+          }
+        } catch (msgErr) {
+          console.error('Error al cargar mensajes:', msgErr);
+          setMensajesHistorial([]);
+        }
+        
         setModalDetalleOpen(true);
       }
     } catch (error) {
       console.error('Error al cargar detalle:', error);
+    }
+  };
+
+  const handleOpenReparacion = (vehiculo) => {
+    setReparacionVehiculoActivo(vehiculo);
+    setRepTitulo('');
+    setRepKilometraje('');
+    setRepPiezas('');
+    setRepImagenAntes('');
+    setRepImagenDespues('');
+    setRepComentarios('');
+    setRepEstado('OK');
+    setModalReparacionOpen(true);
+  };
+
+  const handleOpenMantenimiento = (vehiculo) => {
+    setReparacionVehiculoActivo(vehiculo);
+    setMantKilometraje(vehiculo.proximo_mantenimiento?.kilometraje || '');
+    setMantFechaEstimada(vehiculo.proximo_mantenimiento?.fecha_estimada || '');
+    setMantSugerencia(vehiculo.proximo_mantenimiento?.sugerencia || '');
+    setModalMantenimientoOpen(true);
+  };
+
+  const handleSubirImagenReparacion = async (tipo, file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('imagen', file);
+    try {
+      const res = await fetch('/api/upload/general', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Error al subir imagen');
+      const data = await res.json();
+      if (tipo === 'antes') {
+        setRepImagenAntes(data.imageUrl);
+      } else {
+        setRepImagenDespues(data.imageUrl);
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Imagen subida',
+        background: '#111827', color: '#fff', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message,
+        background: '#111827', color: '#fff'
+      });
+    }
+  };
+
+  const handleGuardarReparacion = async (e) => {
+    e.preventDefault();
+    if (!repTitulo) return;
+    try {
+      const piezasArray = repPiezas.split(',').map(p => p.trim()).filter(p => p);
+      await api.agregarReparacion(clienteDetalle._id, reparacionVehiculoActivo.patente, {
+        titulo: repTitulo,
+        kilometraje: repKilometraje ? Number(repKilometraje) : undefined,
+        piezas_cambiadas: piezasArray,
+        imagen_antes: repImagenAntes,
+        imagen_despues: repImagenDespues,
+        comentarios: repComentarios,
+        estado: repEstado
+      });
+      setModalReparacionOpen(false);
+      handleVerDetalle(clienteDetalle._id);
+      Swal.fire({
+        icon: 'success',
+        title: 'Reparación guardada',
+        background: '#111827', color: '#fff', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message,
+        background: '#111827', color: '#fff'
+      });
+    }
+  };
+
+  const handleGuardarMantenimiento = async (e) => {
+    e.preventDefault();
+    try {
+      await api.actualizarMantenimiento(clienteDetalle._id, reparacionVehiculoActivo.patente, {
+        kilometraje: mantKilometraje ? Number(mantKilometraje) : undefined,
+        fecha_estimada: mantFechaEstimada,
+        sugerencia: mantSugerencia
+      });
+      setModalMantenimientoOpen(false);
+      handleVerDetalle(clienteDetalle._id);
+      Swal.fire({
+        icon: 'success',
+        title: 'Mantenimiento actualizado',
+        background: '#111827', color: '#fff', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message,
+        background: '#111827', color: '#fff'
+      });
     }
   };
 
@@ -369,14 +567,62 @@ export default function TabClientes() {
               <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4">Vehículos Vinculados</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {clienteDetalle.vehiculos && clienteDetalle.vehiculos.map((v, i) => (
-                  <div key={i} className="p-4 rounded-2xl bg-gray-900/60 border border-gray-850 flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20">
-                      <Car className="w-5 h-5" />
+                  <div key={i} className="p-4 rounded-2xl bg-gray-900/60 border border-gray-850 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20">
+                          <Car className="w-5 h-5" />
+                        </div>
+                        <div className="text-xs">
+                          <span className="block font-bold text-white">{v.marca} {v.modelo}</span>
+                          <span className="text-[10px] text-gray-400">Año: {v.anio || 'N/C'} | Patente: <b className="uppercase">{v.patente || 'S/P'}</b></span>
+                        </div>
+                      </div>
+                      {/* Botón de subida de imagen */}
+                      {v.patente && (
+                        <label className={`cursor-pointer p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors ${subiendoImg ? 'opacity-50 pointer-events-none' : ''}`}>
+                          <input 
+                            type="file" 
+                            accept="image/png, image/jpeg, image/webp" 
+                            className="hidden" 
+                            onChange={(e) => handleUploadImage(clienteDetalle._id, v.patente, e.target.files[0])}
+                          />
+                          <ImagePlus className="w-4 h-4" />
+                        </label>
+                      )}
                     </div>
-                    <div className="text-xs">
-                      <span className="block font-bold text-white">{v.marca} {v.modelo}</span>
-                      <span className="text-[10px] text-gray-400">Año: {v.anio || 'N/C'} | Patente: <b className="uppercase">{v.patente || 'S/P'}</b></span>
-                    </div>
+
+                    {/* Botones de Acción para Historial Clínico & Mantenimiento */}
+                    {v.patente && (
+                      <div className="flex gap-2 border-t border-gray-800/60 pt-2">
+                        <button
+                          onClick={() => handleOpenReparacion(v)}
+                          className="flex-1 py-1.5 px-2 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary text-[10px] font-bold flex items-center justify-center gap-1 transition-all"
+                        >
+                          <Wrench className="w-3 h-3" /> + Reparación
+                        </button>
+                        <button
+                          onClick={() => handleOpenMantenimiento(v)}
+                          className="flex-1 py-1.5 px-2 rounded-lg bg-yellow-500/10 hover:bg-yellow-500 text-yellow-500 hover:text-white border border-yellow-500/20 hover:border-yellow-500 text-[10px] font-bold flex items-center justify-center gap-1 transition-all"
+                        >
+                          <Calendar className="w-3 h-3" /> Mantenimiento
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Galería de Imágenes */}
+                    {v.historial_imagenes && v.historial_imagenes.length > 0 && (
+                      <div className="flex gap-2 overflow-x-auto custom-scrollbar pt-2 border-t border-gray-800">
+                        {v.historial_imagenes.map((img, idx) => (
+                          <div key={idx} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-700 relative group">
+                            <img src={img.url} alt="Historia clínico" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <a href={img.url} target="_blank" rel="noreferrer" className="text-[8px] text-white">Ver</a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {(!clienteDetalle.vehiculos || clienteDetalle.vehiculos.length === 0) && (
@@ -395,98 +641,202 @@ export default function TabClientes() {
                 </h4>
                 <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-800 before:to-transparent">
                   
-                  {/* Item 1 */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                      <Check className="w-4 h-4" />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-white text-xs">Alineamiento y Balanceo</h4>
-                        <span className="text-[9px] font-bold text-blue-400">Hace 2 meses</span>
-                      </div>
-                      <p className="text-[10px] text-gray-400 mb-3">Toyota Yaris (ABC-123) • <span className="font-mono text-gray-500">45,000 km</span></p>
-                      
-                      <div className="space-y-2 border-t border-gray-800 pt-3">
-                        <p className="text-[10px] text-gray-300 font-semibold uppercase">Piezas Cambiadas:</p>
-                        <ul className="text-[10px] text-gray-500 list-disc pl-4">
-                          <li>Juego de Pastillas Delanteras Bosh</li>
-                          <li>Líquido de frenos DOT 4</li>
-                        </ul>
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-gray-700">
-                           <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover opacity-70" alt="Antes" />
-                        </div>
-                        <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative">
-                           <img src="https://images.unsplash.com/photo-1503376713356-2e8ab745131a?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover" alt="Después" />
-                           <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1">OK</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  {(() => {
+                    const obtenerTodasLasReparaciones = () => {
+                      if (!clienteDetalle || !clienteDetalle.vehiculos) return [];
+                      const reps = [];
+                      clienteDetalle.vehiculos.forEach(v => {
+                        if (v.reparaciones && v.reparaciones.length > 0) {
+                          v.reparaciones.forEach(r => {
+                            reps.push({
+                              ...r,
+                              vehiculoMarca: v.marca,
+                              vehiculoModelo: v.modelo,
+                              vehiculoPatente: v.patente
+                            });
+                          });
+                        }
+                      });
+                      return reps.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                    };
 
-                  {/* Item 2 */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-gray-800 text-gray-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                      <Clipboard className="w-4 h-4" />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm opacity-60">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-white text-xs">Mantenimiento Preventivo</h4>
-                        <span className="text-[9px] font-bold text-gray-500">Hace 1 año</span>
+                    const todasLasReparaciones = obtenerTodasLasReparaciones();
+
+                    if (todasLasReparaciones.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-xs text-gray-550 bg-gray-900/20 border border-gray-850 rounded-2xl">
+                          No hay reparaciones registradas en el historial clínico.
+                        </div>
+                      );
+                    }
+
+                    return todasLasReparaciones.map((rep, idx) => (
+                      <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                          {rep.estado === 'OK' ? <Check className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
+                        </div>
+                        <div 
+                          className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm cursor-zoom-in hover:border-primary/50 transition-all select-none"
+                          onDoubleClick={() => setModalRepairDetail(rep)}
+                          title="Doble clic para ver detalles y fotos de evaluación/ejecución"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-white text-xs">{rep.titulo}</h4>
+                            <span className="text-[9px] font-bold text-blue-400">{formatRelativeTime(rep.fecha)}</span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 mb-3">
+                            {rep.vehiculoMarca} {rep.vehiculoModelo} ({rep.vehiculoPatente})
+                            {rep.kilometraje ? ` • ` : ''}
+                            {rep.kilometraje ? <span className="font-mono text-gray-500">{rep.kilometraje.toLocaleString()} km</span> : ''}
+                          </p>
+                          
+                          {rep.piezas_cambiadas && rep.piezas_cambiadas.length > 0 && (
+                            <div className="space-y-2 border-t border-gray-800 pt-3">
+                              <p className="text-[10px] text-gray-300 font-semibold uppercase">Piezas Cambiadas:</p>
+                              <ul className="text-[10px] text-gray-500 list-disc pl-4">
+                                {rep.piezas_cambiadas.map((pieza, pIdx) => (
+                                  <li key={pIdx}>{pieza}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {rep.comentarios && (
+                            <p className="text-[10px] text-gray-500 mt-2 italic bg-gray-950/40 p-2 rounded border border-gray-850/60">
+                              {rep.comentarios}
+                            </p>
+                          )}
+
+                          {(rep.imagen_antes || rep.imagen_despues) && (
+                            <div className="mt-3 flex gap-2">
+                              {rep.imagen_antes && (
+                                <div className="w-16 h-16 rounded-lg bg-gray-800 overflow-hidden border border-gray-700 relative group">
+                                  <img src={rep.imagen_antes} className="w-full h-full object-cover opacity-75" alt="Antes" />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <a href={rep.imagen_antes} target="_blank" rel="noreferrer" className="text-[8px] text-white">Antes</a>
+                                  </div>
+                                </div>
+                              )}
+                              {rep.imagen_despues && (
+                                <div className="w-16 h-16 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative group">
+                                  <img src={rep.imagen_despues} className="w-full h-full object-cover" alt="Después" />
+                                  <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1 rounded-tl">OK</span>
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <a href={rep.imagen_despues} target="_blank" rel="noreferrer" className="text-[8px] text-white">Después</a>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-[10px] text-gray-400">Toyota Yaris (ABC-123) • <span className="font-mono text-gray-500">35,000 km</span></p>
-                      <p className="text-[10px] text-gray-500 mt-2">Revisión de niveles, cambio de aceite y filtro de aire.</p>
-                    </div>
-                  </div>
+                    ));
+                  })()}
+
                 </div>
 
-                <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-yellow-500 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-yellow-500">Próximo Mantenimiento Recomendado</h5>
-                    <p className="text-[10px] text-gray-400 mt-1">El vehículo alcanzará los 55,000 km aprox. en <b>Noviembre 2026</b>. Se sugiere programar Cambio de Faja de Distribución.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Registro de Notificaciones WhatsApp */}
-              <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-green-500" /> Historial de Notificaciones
-                </h4>
-                
-                <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[400px] overflow-y-auto">
-                  <div className="relative pl-4 border-l border-green-500/30">
-                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                    <span className="text-[9px] font-bold text-green-500">Hoy, 09:30 AM</span>
-                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Mensaje Entregado (Confirmación Cita)</p>
-                    <p className="text-[9px] text-gray-500 mt-0.5 italic">"Hola, tu cita para Alineamiento está confirmada..."</p>
-                  </div>
+                {/* Próximo Mantenimiento Recomendado */}
+                {(() => {
+                  const vehiculosConMant = clienteDetalle.vehiculos?.filter(v => v.proximo_mantenimiento && (v.proximo_mantenimiento.kilometraje || v.proximo_mantenimiento.fecha_estimada || v.proximo_mantenimiento.sugerencia)) || [];
+                  if (vehiculosConMant.length === 0) return null;
                   
-                  <div className="relative pl-4 border-l border-green-500/30">
-                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500"></span>
-                    <span className="text-[9px] font-bold text-green-500">Ayer, 16:45 PM</span>
-                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Respuesta del Cliente</p>
-                    <p className="text-[9px] text-gray-500 mt-0.5 italic">"Sí, confirmo la asistencia. Gracias."</p>
-                  </div>
+                  return vehiculosConMant.map((v, i) => {
+                    const pm = v.proximo_mantenimiento;
+                    return (
+                      <div key={i} className="mt-4 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 flex items-start gap-3">
+                        <Calendar className="w-5 h-5 text-yellow-500 mt-0.5" />
+                        <div>
+                          <h5 className="text-xs font-bold text-yellow-500">Próximo Mantenimiento Recomendado ({v.marca} {v.modelo} - {v.patente})</h5>
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            {pm.kilometraje ? `El vehículo alcanzará los ${pm.kilometraje.toLocaleString()} km aprox.` : ''}
+                            {pm.fecha_estimada ? ` en ${pm.fecha_estimada}.` : ''}
+                            {pm.sugerencia ? ` Se sugiere programar: ${pm.sugerencia}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
 
-                  <div className="relative pl-4 border-l border-red-500/30">
-                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                    <span className="text-[9px] font-bold text-red-500">Hace 2 meses</span>
-                    <p className="text-[10px] text-gray-300 mt-1 font-semibold">Fallo al enviar (Presupuesto Final)</p>
-                    <p className="text-[9px] text-gray-500 mt-0.5 italic">Error: El número de WhatsApp no existe o no tiene conexión.</p>
+              {/* Registro de Citas y Notificaciones WhatsApp */}
+              <div className="space-y-6">
+                
+                {/* Historial de Citas */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-400" /> Historial de Citas
+                  </h4>
+                  <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[250px] overflow-y-auto custom-scrollbar">
+                    {citasHistorial && citasHistorial.length > 0 ? (
+                      citasHistorial.map((cita, idx) => {
+                        const esCancelada = cita.estado === 'cancelada';
+                        const esCompletada = cita.estado === 'completada';
+                        const esConfirmada = cita.estado === 'confirmada';
+                        
+                        return (
+                          <div key={idx} className={`p-2.5 rounded-xl bg-gray-900 border text-[10px] ${
+                            esCancelada ? 'border-red-500/20' : esCompletada ? 'border-emerald-500/20' : 'border-gray-800'
+                          }`}>
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-bold text-white">{cita.servicio}</span>
+                              <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold uppercase tracking-wider ${
+                                esCancelada ? 'bg-red-500/10 text-red-500 border border-red-500/25' :
+                                esCompletada ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/25' :
+                                esConfirmada ? 'bg-blue-500/10 text-blue-400 border border-blue-500/25' :
+                                'bg-gray-850 text-gray-400 border border-gray-800'
+                              }`}>
+                                {cita.estado}
+                              </span>
+                            </div>
+                            <div className="text-gray-400 mt-1 flex flex-col gap-0.5">
+                              <span>Fecha: <b className="text-gray-300">{new Date(cita.fecha_cita).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })} - {new Date(cita.fecha_cita).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true })}</b></span>
+                              {cita.vehiculo && (cita.vehiculo.marca || cita.vehiculo.modelo) && (
+                                <span>Vehículo: <b className="text-gray-300">{cita.vehiculo.marca} {cita.vehiculo.modelo} ({cita.vehiculo.patente || 'S/P'})</b></span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-[10px] text-gray-550 italic text-center py-4">No hay citas registradas en el historial.</p>
+                    )}
                   </div>
+                </div>
 
-                  <div className="relative pl-4 border-l border-gray-800">
-                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-700"></span>
-                    <span className="text-[9px] font-bold text-gray-500">Hace 1 año</span>
-                    <p className="text-[10px] text-gray-400 mt-1 font-semibold">Mensaje Entregado (Recordatorio)</p>
+                {/* Historial de Notificaciones */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-green-500" /> Historial de Notificaciones
+                  </h4>
+                  
+                  <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[250px] overflow-y-auto custom-scrollbar">
+                    {mensajesHistorial && mensajesHistorial.length > 0 ? (
+                      [...mensajesHistorial].reverse().map((msg, idx) => {
+                        const isError = msg.contenido.startsWith('Error:') || msg.contenido.startsWith('Fallo:');
+                        const isCliente = msg.remitente === 'cliente';
+                        
+                        return (
+                          <div key={idx} className={`relative pl-4 border-l ${isError ? 'border-red-500/30' : isCliente ? 'border-green-500/30' : 'border-blue-500/30'}`}>
+                            <span className={`absolute -left-[5px] top-1 w-2 h-2 rounded-full ${isError ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : isCliente ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'}`}></span>
+                            <span className={`text-[9px] font-bold ${isError ? 'text-red-500' : isCliente ? 'text-green-500' : 'text-blue-500'}`}>
+                              {formatRelativeTime(msg.recibido_en)}
+                            </span>
+                            <p className="text-[10px] text-gray-300 mt-1 font-semibold">
+                              {isError ? 'Fallo al enviar' : isCliente ? 'Respuesta del Cliente' : 'Mensaje Entregado (WhatsApp)'}
+                            </p>
+                            <p className="text-[9px] text-gray-500 mt-0.5 italic">
+                              "{msg.contenido}"
+                            </p>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-[10px] text-gray-550 italic text-center py-4">No hay notificaciones ni mensajes registrados.</p>
+                    )}
                   </div>
                 </div>
               </div>
-
             </div>
 
             {/* Botones de acción inferior */}
@@ -675,6 +1025,372 @@ export default function TabClientes() {
               </div>
 
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL REGISTRAR REPARACION */}
+      {modalReparacionOpen && reparacionVehiculoActivo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-primary" /> Registrar Reparación
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Vehículo: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+                </p>
+              </div>
+              <button 
+                onClick={() => setModalReparacionOpen(false)} 
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleGuardarReparacion} className="space-y-4">
+              
+              <div>
+                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Título de la Reparación *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Alineamiento y Balanceo, Cambio de Aceite..."
+                  value={repTitulo}
+                  onChange={(e) => setRepTitulo(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Kilometraje (km)</label>
+                  <input
+                    type="number"
+                    placeholder="Ej. 45000"
+                    value={repKilometraje}
+                    onChange={(e) => setRepKilometraje(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Estado de Reparación</label>
+                  <select
+                    value={repEstado}
+                    onChange={(e) => setRepEstado(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="OK">OK (Reparado)</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Urgente">Urgente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Piezas Cambiadas (separadas por coma)</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Pastillas de freno, Filtro de aceite, Bujías..."
+                  value={repPiezas}
+                  onChange={(e) => setRepPiezas(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1 font-semibold">Comentarios / Notas</label>
+                <textarea
+                  value={repComentarios}
+                  onChange={(e) => setRepComentarios(e.target.value)}
+                  rows="3"
+                  placeholder="Detalles sobre el procedimiento, observaciones técnicas..."
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              {/* Upload general images (antes/despues) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Imagen Antes</label>
+                  <div className="flex flex-col gap-2">
+                    {repImagenAntes ? (
+                      <div className="relative w-full h-24 rounded-xl overflow-hidden border border-gray-800">
+                        <img src={repImagenAntes} className="w-full h-full object-cover" alt="Antes preview" />
+                        <button
+                          type="button"
+                          onClick={() => setRepImagenAntes('')}
+                          className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 text-[10px] hover:bg-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 rounded-xl border border-dashed border-gray-800 hover:border-primary/50 bg-gray-900/40 hover:bg-gray-900/60 cursor-pointer transition-all">
+                        <ImagePlus className="w-5 h-5 text-gray-500 mb-1" />
+                        <span className="text-[10px] text-gray-500">Subir Antes</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleSubirImagenReparacion('antes', e.target.files[0])}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Imagen Después (OK)</label>
+                  <div className="flex flex-col gap-2">
+                    {repImagenDespues ? (
+                      <div className="relative w-full h-24 rounded-xl overflow-hidden border border-gray-850">
+                        <img src={repImagenDespues} className="w-full h-full object-cover" alt="Después preview" />
+                        <button
+                          type="button"
+                          onClick={() => setRepImagenDespues('')}
+                          className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 text-[10px] hover:bg-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 rounded-xl border border-dashed border-gray-800 hover:border-primary/50 bg-gray-900/40 hover:bg-gray-900/60 cursor-pointer transition-all">
+                        <ImagePlus className="w-5 h-5 text-gray-500 mb-1" />
+                        <span className="text-[10px] text-gray-500">Subir Después</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleSubirImagenReparacion('despues', e.target.files[0])}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-850 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalReparacionOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover cursor-pointer"
+                >
+                  Guardar Reparación
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIGURAR MANTENIMIENTO */}
+      {modalMantenimientoOpen && reparacionVehiculoActivo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-yellow-500" /> Planificar Mantenimiento
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Vehículo: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+                </p>
+              </div>
+              <button 
+                onClick={() => setModalMantenimientoOpen(false)} 
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleGuardarMantenimiento} className="space-y-4">
+              
+              <div>
+                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Kilometraje Estimado (km)</label>
+                <input
+                  type="number"
+                  placeholder="Ej. 55000"
+                  value={mantKilometraje}
+                  onChange={(e) => setMantKilometraje(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Fecha Estimada / Mes</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Noviembre 2026, Septiembre 2026..."
+                  value={mantFechaEstimada}
+                  onChange={(e) => setMantFechaEstimada(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1 font-semibold">Mantenimiento Sugerido</label>
+                <textarea
+                  value={mantSugerencia}
+                  onChange={(e) => setMantSugerencia(e.target.value)}
+                  rows="3"
+                  placeholder="Ej. Se sugiere programar Cambio de Faja de Distribución, Filtro de Aire y Revisión de niveles..."
+                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-gray-850 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalMantenimientoOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover cursor-pointer"
+                >
+                  Guardar Planificación
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETALLE DE REPARACION CLINICA */}
+      {modalRepairDetail && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative">
+            <button 
+              onClick={() => setModalRepairDetail(null)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
+            
+            <div className="mb-6">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+                Historial Clínico • Reparación
+              </span>
+              <h3 className="text-lg font-bold text-white mt-3">
+                {modalRepairDetail.titulo}
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Realizado el {new Date(modalRepairDetail.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                {modalRepairDetail.kilometraje ? ` • ${modalRepairDetail.kilometraje.toLocaleString()} km` : ''}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Piezas Cambiadas */}
+              {modalRepairDetail.piezas_cambiadas && modalRepairDetail.piezas_cambiadas.length > 0 && (
+                <div className="bg-gray-950 p-4 rounded-xl border border-gray-850">
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Piezas / Repuestos Cambiados</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {modalRepairDetail.piezas_cambiadas.map((pieza, idx) => (
+                      <span key={idx} className="px-2 py-0.5 rounded bg-gray-900 border border-gray-800 text-[10px] text-gray-300 font-medium">
+                        {pieza}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Comentarios del Trabajo */}
+              <div className="bg-gray-950 p-4 rounded-xl border border-gray-850">
+                <span className="block text-[10px] font-bold text-gray-450 uppercase mb-2">Comentarios y Diagnóstico</span>
+                <p className="text-xs text-gray-300 font-light leading-relaxed">
+                  {modalRepairDetail.comentarios || 'Sin comentarios registrados para este trabajo.'}
+                </p>
+              </div>
+
+              {/* Evidencias fotográficas (Antes / Después) */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-bold text-gray-450 uppercase">Evidencias Fotográficas</span>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Antes (Evaluación) */}
+                  <div className="bg-gray-950 p-3 rounded-xl border border-gray-850 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-gray-400 mb-2 uppercase">Antes (Evaluación)</span>
+                    {modalRepairDetail.imagen_antes ? (
+                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-800 relative group">
+                        <img src={modalRepairDetail.imagen_antes} className="w-full h-full object-cover" alt="Antes" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <a href={modalRepairDetail.imagen_antes} target="_blank" rel="noreferrer" className="text-xs text-white bg-primary px-3 py-1 rounded font-bold">Ver Completa</a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-gray-650 text-[10px]">
+                        Sin foto de evaluación
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Después (Ejecución) */}
+                  <div className="bg-gray-950 p-3 rounded-xl border border-gray-850 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-gray-400 mb-2 uppercase">Después (Ejecución)</span>
+                    {modalRepairDetail.imagen_despues ? (
+                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-800 relative group">
+                        <img src={modalRepairDetail.imagen_despues} className="w-full h-full object-cover" alt="Después" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <a href={modalRepairDetail.imagen_despues} target="_blank" rel="noreferrer" className="text-xs text-white bg-emerald-600 px-3 py-1 rounded font-bold">Ver Completa</a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-gray-650 text-[10px]">
+                        Sin foto de finalización
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Historial completo de fotos de avance */}
+              {(() => {
+                const associatedCita = modalRepairDetail.cita_id 
+                  ? citasHistorial.find(c => c.id === modalRepairDetail.cita_id || c._id === modalRepairDetail.cita_id) 
+                  : null;
+                
+                if (!associatedCita || !associatedCita.imagenes || associatedCita.imagenes.length === 0) return null;
+                
+                return (
+                  <div className="bg-gray-950 p-4 rounded-xl border border-gray-850">
+                    <span className="block text-[10px] font-bold text-gray-450 uppercase mb-2">Línea de Tiempo del Progreso ({associatedCita.imagenes.length} Fotos)</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {associatedCita.imagenes.map((img, imgIdx) => (
+                        <a key={imgIdx} href={img} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border border-gray-800 relative group block">
+                          <img src={img} className="w-full h-full object-cover" alt={`Paso ${imgIdx + 1}`} />
+                          <span className="absolute bottom-1 left-1 bg-black/60 px-1 py-0.5 rounded text-[8px] text-gray-300">
+                            {imgIdx === 0 ? 'Evaluación' : imgIdx === associatedCita.imagenes.length - 1 ? 'Entrega' : `Avance #${imgIdx}`}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-gray-850 flex justify-end">
+              <button
+                onClick={() => setModalRepairDetail(null)}
+                className="px-6 py-2 rounded-xl text-xs font-bold bg-gray-800 hover:bg-gray-700 text-white cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

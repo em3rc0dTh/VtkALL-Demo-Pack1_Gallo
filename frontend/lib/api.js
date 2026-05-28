@@ -120,4 +120,21 @@ export const api = {
   // Configuración del taller
   getConfiguracion: () => request('/configuracion'),
   actualizarConfiguracion: (data) => request('/configuracion', { method: 'PUT', body: data }),
+
+  // Historial Clínico y Mantenimiento de Vehículos
+  agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
+  actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
+  subirImagenGeneral: (formData) => {
+    return fetch('/api/upload/general', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al subir imagen');
+      }
+      return res.json();
+    });
+  },
 };

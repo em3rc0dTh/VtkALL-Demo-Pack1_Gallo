@@ -29,6 +29,7 @@ router.get('/', protegerRuta, async (req, res) => {
       .populate('cliente', 'nombre dni numero_telefono email')
       .populate('experto_asignado', 'nombre rol')
       .populate('producto_id', 'nombre precio')
+      .populate('team_asignado', 'nombre')
       .sort({ fecha_cita: 1 })
       .skip(skip)
       .limit(parseInt(limite));
@@ -65,6 +66,10 @@ router.post('/', protegerRuta, async (req, res) => {
 
     if (!numero_telefono || !fecha_cita) {
       return res.status(400).json({ error: 'Teléfono y fecha son requeridos' });
+    }
+
+    if (dni && !/^[0-9]{8,15}$/.test(dni)) {
+      return res.status(400).json({ error: 'El documento de identidad debe contener solo números' });
     }
 
     const fechaCitaDate = new Date(fecha_cita);
@@ -125,7 +130,22 @@ router.post('/', protegerRuta, async (req, res) => {
 router.put('/:id', protegerRuta, async (req, res) => {
   try {
     const { id } = req.params;
-    const { estado, notas_mecanico, precio_final, fecha_cita, descripcion_trabajo, tipo_cita, experto_asignado } = req.body;
+    const { 
+      estado, 
+      notas_mecanico, 
+      precio_final, 
+      fecha_cita, 
+      descripcion_trabajo, 
+      tipo_cita, 
+      experto_asignado,
+      imagenes,
+      team_asignado,
+      duracion_estimada_minutos,
+      estado_trabajo,
+      nombre_cliente,
+      numero_telefono,
+      vehiculo
+    } = req.body;
 
     const cita = await Cita.findById(id);
     if (!cita) {
@@ -138,10 +158,90 @@ router.put('/:id', protegerRuta, async (req, res) => {
     if (fecha_cita) cita.fecha_cita = new Date(fecha_cita);
     if (descripcion_trabajo !== undefined) cita.descripcion_trabajo = descripcion_trabajo;
     if (tipo_cita) cita.tipo_cita = tipo_cita;
-    if (experto_asignado) cita.experto_asignado = experto_asignado;
+    if (experto_asignado !== undefined) cita.experto_asignado = experto_asignado;
+    if (imagenes !== undefined) cita.imagenes = imagenes;
+    if (team_asignado !== undefined) cita.team_asignado = team_asignado || null;
+    if (duracion_estimada_minutos !== undefined) cita.duracion_estimada_minutos = duracion_estimada_minutos;
+    if (nombre_cliente !== undefined) cita.nombre_cliente = nombre_cliente;
+    if (numero_telefono !== undefined) cita.numero_telefono = numero_telefono;
+    if (vehiculo !== undefined) {
+      cita.vehiculo = {
+        ...cita.vehiculo,
+        ...vehiculo
+      };
+    }
+    const prevEstadoTrabajo = cita.estado_trabajo;
+    if (estado_trabajo !== undefined) cita.estado_trabajo = estado_trabajo;
 
-    if (estado === 'completada' && precio_final) {
-      cita.precio_final = precio_final;
+    if (estado === 'completada' && precio_final !== undefined) {
+      cita.precio_final = Number(precio_final);
+      if (cita.cliente) {
+        await Cliente.findByIdAndUpdate(cita.cliente, {
+          $inc: { total_gastado: Number(precio_final) }
+        });
+      }
+    }
+
+    if (estado_trabajo === 'finalizado' && cita.cliente) {
+      const cliente = await Cliente.findById(cita.cliente);
+      if (cliente) {
+        let vehiculo = null;
+
+        // 1. Intentar buscar por patente exacta
+        if (cita.vehiculo?.patente) {
+          vehiculo = cliente.vehiculos.find(v => 
+            v.patente?.trim().toUpperCase() === cita.vehiculo.patente.trim().toUpperCase()
+          );
+        }
+
+        // 2. Si no se encuentra, intentar buscar por marca y modelo
+        if (!vehiculo && cita.vehiculo?.marca && cita.vehiculo?.modelo) {
+          vehiculo = cliente.vehiculos.find(v => 
+            v.marca?.trim().toLowerCase() === cita.vehiculo.marca?.trim().toLowerCase() && 
+            v.modelo?.trim().toLowerCase() === cita.vehiculo.modelo?.trim().toLowerCase()
+          );
+        }
+
+        // 3. Fallback: Si el cliente tiene un solo vehículo registrado, usar ese
+        if (!vehiculo && cliente.vehiculos?.length === 1) {
+          vehiculo = cliente.vehiculos[0];
+        }
+
+        // 4. Fallback: Si el cliente tiene múltiples vehículos y no hay coincidencia, pero la cita tiene datos parciales, crear uno nuevo
+        if (!vehiculo && cita.vehiculo && (cita.vehiculo.marca || cita.vehiculo.modelo || cita.vehiculo.patente)) {
+          cliente.vehiculos.push(cita.vehiculo);
+          vehiculo = cliente.vehiculos[cliente.vehiculos.length - 1];
+        }
+
+        // 5. Fallback extremo: Si la cita no tiene datos de vehículo, pero el cliente tiene al menos un vehículo, usar el primero
+        if (!vehiculo && cliente.vehiculos?.length > 0) {
+          vehiculo = cliente.vehiculos[0];
+        }
+
+        if (vehiculo) {
+          const existingRep = vehiculo.reparaciones.find(r => r.cita_id?.toString() === cita._id.toString());
+          if (!existingRep) {
+            const nuevaReparacion = {
+              titulo: cita.servicio || 'Servicio de Taller',
+              fecha: cita.fecha_cita || new Date(),
+              piezas_cambiadas: [],
+              imagen_antes: cita.imagenes?.[0] || '',
+              imagen_despues: cita.imagenes?.length > 1 ? cita.imagenes[cita.imagenes.length - 1] : '',
+              comentarios: cita.notas_mecanico || cita.descripcion_trabajo || '',
+              estado: 'OK',
+              cita_id: cita._id
+            };
+            vehiculo.reparaciones.push(nuevaReparacion);
+            await cliente.save();
+          } else {
+            existingRep.titulo = cita.servicio || 'Servicio de Taller';
+            existingRep.comentarios = cita.notas_mecanico || cita.descripcion_trabajo || '';
+            existingRep.imagen_antes = cita.imagenes?.[0] || '';
+            existingRep.imagen_despues = cita.imagenes?.length > 1 ? cita.imagenes[cita.imagenes.length - 1] : '';
+            await cliente.save();
+          }
+        }
+      }
     }
 
     await cita.save();

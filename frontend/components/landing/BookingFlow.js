@@ -37,6 +37,37 @@ export default function BookingFlow({
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleUploadFile = async (file) => {
+    if (!file) return;
+    setUploadingImage(true);
+    setBookingError('');
+    const formData = new FormData();
+    formData.append('imagen', file);
+    try {
+      const res = await fetch('/api/upload/public', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) {
+        throw new Error('Error al subir la imagen');
+      }
+      const data = await res.json();
+      setUploadedImages(prev => [...prev, data.imageUrl]);
+    } catch (err) {
+      console.error(err);
+      setBookingError(err.message || 'Error al subir la foto. Inténtalo de nuevo.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove) => {
+    setUploadedImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
   // Load services
   useEffect(() => {
     const cargarServicios = async () => {
@@ -137,6 +168,7 @@ export default function BookingFlow({
         servicio: formServicio || 'Evaluacion',
         evaluation_type: modality, // This is the new typification field
         fecha_cita: fechaHoraCita,
+        imagenes: uploadedImages // Send uploaded images
       };
 
       if (api && api.agendarCitaPublica) {
@@ -228,7 +260,7 @@ export default function BookingFlow({
               id="VIRTUAL_FOTOS" 
               icon={Camera} 
               title="Llamada con Fotos" 
-              description="Envíanos fotos por WhatsApp y el experto te llamará para darte un diagnóstico visual." 
+              description="Sube fotos de tu vehículo directamente aquí y el experto te llamará con un diagnóstico visual listo." 
             />
             <ModalityCard 
               id="LLAMADA_CIEGAS" 
@@ -399,6 +431,56 @@ export default function BookingFlow({
                       <option key={s._id} value={s.nombre}>{s.nombre}</option>
                     ))}
                   </select>
+                </div>
+              )}
+              
+              {modality === 'VIRTUAL_FOTOS' && (
+                <div className="col-span-2 border-t border-gray-150 pt-4 mt-2">
+                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                    Subir Fotos del Vehículo / Daño (Recomendado)
+                  </label>
+                  <p className="text-[10px] text-gray-500 mb-3">
+                    Sube fotos del auto (frontal, lateral o de la zona a evaluar) para que el experto pueda darte un diagnóstico visual más preciso.
+                  </p>
+                  
+                  <div className="grid grid-cols-4 gap-3">
+                    {uploadedImages.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                        <img src={url} className="w-full h-full object-cover" alt={`Evidencia ${idx + 1}`} />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1.5 right-1.5 bg-red-500/80 text-white rounded-full p-1 text-[8px] hover:bg-red-600 transition-colors shadow-sm"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {uploadedImages.length < 4 && (
+                      <label className={`aspect-square rounded-xl border border-dashed border-gray-300 hover:border-primary/50 bg-[#F9FAFB] hover:bg-white flex flex-col items-center justify-center cursor-pointer transition-all ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                        {uploadingImage ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 text-gray-400 mb-1" />
+                            <span className="text-[9px] text-gray-500 font-medium">Añadir Foto</span>
+                            <span className="text-[7px] text-gray-400">({uploadedImages.length}/4)</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleUploadFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

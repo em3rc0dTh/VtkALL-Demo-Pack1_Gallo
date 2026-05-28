@@ -27,6 +27,8 @@ import teamsRoutes from './routes/teams.js';
 import trabajadoresRoutes from './routes/trabajadores.js';
 import disponibilidadRoutes from './routes/disponibilidad.js';
 import configuracionRoutes from './routes/configuracion.js';
+import uploadRoutes from './routes/upload.js';
+import path from 'path';
 
 
 const app = express();
@@ -41,6 +43,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Servir archivos estáticos de uploads
+app.use('/upload_utils', express.static(path.join(process.cwd(), 'upload_utils')));
+
 // Rutas de la API
 app.use('/api/auth', authRoutes);
 app.use('/api/webhook', webhookRoutes);
@@ -53,6 +58,7 @@ app.use('/api/teams', teamsRoutes);
 app.use('/api/trabajadores', trabajadoresRoutes);
 app.use('/api/disponibilidad', disponibilidadRoutes);
 app.use('/api/configuracion', configuracionRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Endpoint de Diagnóstico
 app.get('/health', (req, res) => {

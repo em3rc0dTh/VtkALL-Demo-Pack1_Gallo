@@ -4,3 +4,4 @@ frontend/.env
 frontend/.env.example
 backend/.env
 backend/.env.example
+backend/upload_utils/

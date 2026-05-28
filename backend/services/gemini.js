@@ -168,6 +168,8 @@ export const ejecutarTool = async (nombre, args) => {
           vehiculo_modelo,
           vehiculo_anio,
           fecha_cita,
+          tipo_cita,
+          imagenes,
           _session_telefono
         } = args;
 
@@ -238,7 +240,9 @@ export const ejecutarTool = async (nombre, args) => {
           fecha_cita: fechaCitaDate,
           estado: 'pendiente', // Pendiente de validación de admin por defecto
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
-          precio_estimado: 0
+          precio_estimado: 0,
+          tipo_cita: tipo_cita || 'Evaluación Presencial',
+          imagenes: imagenes || []
         });
 
         // Buscar precio base del servicio en el taller

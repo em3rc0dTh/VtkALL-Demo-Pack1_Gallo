@@ -16,12 +16,18 @@ export default function Navbar({ taller = {} }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const bloques = taller?.constructor_bloques || [];
+  const isActive = (tipo) => {
+    const bloque = bloques.find(b => b.tipo === tipo);
+    return bloque ? bloque.activo : true; // Si no existe (default) lo asumimos true
+  };
+
   const menuItems = [
-    { name: 'Inicio', href: '#inicio' },
-    { name: 'Servicios', href: '#servicios' },
-    { name: 'Nosotros', href: '#nosotros' },
-    { name: 'Contacto', href: '#contacto' },
-  ];
+    { name: 'Inicio', href: '#inicio', visible: isActive('HeroBlock') },
+    { name: 'Servicios', href: '#servicios', visible: isActive('ServicesBlock') },
+    { name: 'Nosotros', href: '#nosotros', visible: isActive('SobreNosotrosBlock') },
+    { name: 'Contacto', href: '#contacto', visible: isActive('ContactoBlock') },
+  ].filter(item => item.visible);
   // MÁS TAMAÑO A LOS BOTONES DE NAVEGACIÓN
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${

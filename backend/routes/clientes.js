@@ -74,6 +74,16 @@ router.post('/', protegerRuta, async (req, res) => {
       return res.status(400).json({ error: 'Ya existe un cliente con ese número de teléfono' });
     }
 
+    if (vehiculos && vehiculos.length > 0) {
+      const patentesNuevas = vehiculos.map(v => v.patente).filter(p => p);
+      if (patentesNuevas.length > 0) {
+        const patenteExistente = await Cliente.findOne({ 'vehiculos.patente': { $in: patentesNuevas } });
+        if (patenteExistente) {
+          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en otro cliente' });
+        }
+      }
+    }
+
     const nuevoCliente = new Cliente({
       nombre: nombre || '',
       dni: dni || '',
@@ -112,7 +122,19 @@ router.put('/:id', protegerRuta, async (req, res) => {
       cliente.numero_telefono = numero_telefono;
     }
     if (email !== undefined) cliente.email = email;
-    if (vehiculos !== undefined) cliente.vehiculos = vehiculos;
+    if (vehiculos !== undefined) {
+      const patentesNuevas = vehiculos.map(v => v.patente).filter(p => p);
+      if (patentesNuevas.length > 0) {
+        const patenteExistente = await Cliente.findOne({ 
+          _id: { $ne: id },
+          'vehiculos.patente': { $in: patentesNuevas } 
+        });
+        if (patenteExistente) {
+          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en otro cliente' });
+        }
+      }
+      cliente.vehiculos = vehiculos;
+    }
     if (notas !== undefined) cliente.notas = notas;
 
     await cliente.save();
@@ -139,6 +161,81 @@ router.delete('/:id', protegerRuta, soloAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error al eliminar cliente:', error);
     res.status(500).json({ error: 'Error al eliminar cliente' });
+  }
+});
+
+// POST /api/clientes/:id/vehiculos/:patente/reparaciones
+router.post('/:id/vehiculos/:patente/reparaciones', protegerRuta, async (req, res) => {
+  try {
+    const { id, patente } = req.params;
+    const { titulo, fecha, kilometraje, piezas_cambiadas, imagen_antes, imagen_despues, comentarios, estado } = req.body;
+
+    if (!titulo) {
+      return res.status(400).json({ error: 'El título de la reparación es requerido' });
+    }
+
+    const cliente = await Cliente.findById(id);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    const vehiculo = cliente.vehiculos.find(v => v.patente?.toUpperCase() === patente.toUpperCase());
+    if (!vehiculo) {
+      return res.status(404).json({ error: 'Vehículo no encontrado en este cliente' });
+    }
+
+    if (!vehiculo.reparaciones) {
+      vehiculo.reparaciones = [];
+    }
+
+    const nuevaReparacion = {
+      titulo,
+      fecha: fecha ? new Date(fecha) : undefined,
+      kilometraje: kilometraje ? Number(kilometraje) : undefined,
+      piezas_cambiadas: Array.isArray(piezas_cambiadas) ? piezas_cambiadas : [],
+      imagen_antes: imagen_antes || '',
+      imagen_despues: imagen_despues || '',
+      comentarios: comentarios || '',
+      estado: estado || 'OK'
+    };
+
+    vehiculo.reparaciones.push(nuevaReparacion);
+    await cliente.save();
+
+    res.status(201).json({ ok: true, cliente, reparacion: nuevaReparacion });
+  } catch (error) {
+    console.error('Error al agregar reparación:', error);
+    res.status(500).json({ error: 'Error del servidor al agregar reparación' });
+  }
+});
+
+// PUT /api/clientes/:id/vehiculos/:patente/mantenimiento
+router.put('/:id/vehiculos/:patente/mantenimiento', protegerRuta, async (req, res) => {
+  try {
+    const { id, patente } = req.params;
+    const { kilometraje, fecha_estimada, sugerencia } = req.body;
+
+    const cliente = await Cliente.findById(id);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    const vehiculo = cliente.vehiculos.find(v => v.patente?.toUpperCase() === patente.toUpperCase());
+    if (!vehiculo) {
+      return res.status(404).json({ error: 'Vehículo no encontrado en este cliente' });
+    }
+
+    vehiculo.proximo_mantenimiento = {
+      kilometraje: kilometraje ? Number(kilometraje) : undefined,
+      fecha_estimada: fecha_estimada || '',
+      sugerencia: sugerencia || ''
+    };
+
+    await cliente.save();
+    res.json({ ok: true, cliente, proximo_mantenimiento: vehiculo.proximo_mantenimiento });
+  } catch (error) {
+    console.error('Error al actualizar mantenimiento:', error);
+    res.status(500).json({ error: 'Error del servidor al actualizar mantenimiento' });
   }
 });
 

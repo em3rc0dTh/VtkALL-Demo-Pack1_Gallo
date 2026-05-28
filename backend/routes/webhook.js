@@ -172,11 +172,21 @@ router.post('/agendar', async (req, res) => {
       vehiculo_modelo,
       vehiculo_anio,
       fecha_cita,
+      evaluation_type,
+      imagenes,
       _session_telefono
     } = req.body;
 
     if (!numero_telefono || !nombre_cliente || !dni || !servicio || !fecha_cita) {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    // Traducir evaluation_type (modality) a tipo_cita
+    let tipo_cita = 'Evaluación Presencial';
+    if (evaluation_type === 'VIRTUAL_FOTOS') {
+      tipo_cita = 'Evaluación con Fotos';
+    } else if (evaluation_type === 'LLAMADA_CIEGAS') {
+      tipo_cita = 'Llamada Directa';
     }
 
     // Usar la función agendar_cita del ejecutor de base de datos
@@ -190,6 +200,8 @@ router.post('/agendar', async (req, res) => {
       vehiculo_modelo,
       vehiculo_anio: vehiculo_anio ? parseInt(vehiculo_anio) : undefined,
       fecha_cita,
+      tipo_cita,
+      imagenes: imagenes || [],
       _session_telefono
     });
 

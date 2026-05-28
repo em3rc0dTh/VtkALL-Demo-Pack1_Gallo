@@ -34,7 +34,10 @@ const CitaSchema = new Schema({
   origen:          { type: String, enum: ['whatsapp', 'dashboard', 'web'], default: 'whatsapp' },
   recordatorio_enviado: { type: Boolean, default: false },
   fecha_recordatorio:   Date,
-  estado_confirmacion:  { type: String, enum: ['pendiente', 'confirmada_cliente', 'cancelada_cliente'], default: 'pendiente', index: true }
+  estado_confirmacion:  { type: String, enum: ['pendiente', 'confirmada_cliente', 'cancelada_cliente'], default: 'pendiente', index: true },
+  imagenes: [{ type: String }],
+  team_asignado:        { type: Schema.Types.ObjectId, ref: 'Team' },
+  estado_trabajo:       { type: String, enum: ['pendiente', 'en_curso', 'finalizado'], default: 'pendiente', index: true }
 }, { timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' } });
 
 export default mongoose.models.Cita || mongoose.model('Cita', CitaSchema);

@@ -82,6 +82,38 @@ export default function TabServicios() {
     }
   };
 
+  const handleEditarServicio = async (servicio) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Categoría de Servicio',
+      html: `
+        <input id="swal-edit1" class="swal2-input" value="${servicio.nombre}" placeholder="Nombre (Ej: Planchado)">
+        <input id="swal-edit2" class="swal2-input" value="${servicio.icono || ''}" placeholder="Icono (Ej: 🚗)">
+        <textarea id="swal-edit3" class="swal2-textarea" placeholder="Descripción de la categoría">${servicio.descripcion || ''}</textarea>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      background: '#111827',
+      color: '#fff',
+      preConfirm: () => {
+        return {
+          nombre: document.getElementById('swal-edit1').value,
+          icono: document.getElementById('swal-edit2').value,
+          descripcion: document.getElementById('swal-edit3').value
+        }
+      }
+    });
+
+    if (formValues && formValues.nombre) {
+      try {
+        await api.actualizarServicio(servicio._id, formValues);
+        Swal.fire({ title: 'Actualizado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarServicios();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  };
+
   const handleCrearProducto = async (servicioId) => {
     const { value: formValues } = await Swal.fire({
       title: 'Nuevo Producto / Variante',
@@ -108,6 +140,38 @@ export default function TabServicios() {
       try {
         await api.crearProducto(formValues);
         Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarServicios();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  };
+
+  const handleEditarProducto = async (producto) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Producto / Variante',
+      html: `
+        <input id="swal-pe1" class="swal2-input" value="${producto.nombre}" placeholder="Nombre">
+        <input id="swal-pe2" type="number" class="swal2-input" value="${producto.precio}" placeholder="Precio">
+        <input id="swal-pe3" type="number" class="swal2-input" value="${producto.duracion_minutos}" placeholder="Duración en minutos">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      background: '#111827',
+      color: '#fff',
+      preConfirm: () => {
+        return {
+          nombre: document.getElementById('swal-pe1').value,
+          precio: document.getElementById('swal-pe2').value,
+          duracion_minutos: document.getElementById('swal-pe3').value
+        }
+      }
+    });
+
+    if (formValues && formValues.nombre && formValues.precio) {
+      try {
+        await api.actualizarProducto(producto._id, formValues);
+        Swal.fire({ title: 'Actualizado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
         cargarServicios();
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -183,7 +247,7 @@ export default function TabServicios() {
                   )}
                 
                 <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                  <button className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors cursor-pointer" title="Editar Categoría">
+                  <button onClick={() => handleEditarServicio(s)} className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors cursor-pointer" title="Editar Categoría">
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleEliminarServicio(s._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-gray-800 transition-colors cursor-pointer" title="Eliminar Categoría">
@@ -218,7 +282,7 @@ export default function TabServicios() {
                         <span className="text-[10px] text-gray-500">Duración Est: <b className="text-gray-300">{p.duracion_minutos} min</b></span>
                         <span className="text-xs font-black text-green-400">S/. {p.precio.toFixed(2)}</span>
                         <div className="flex gap-1 border-l border-gray-800 pl-4">
-                           <button className="text-gray-500 hover:text-primary transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                           <button onClick={() => handleEditarProducto(p)} className="text-gray-500 hover:text-primary transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
                            <button onClick={() => handleEliminarProducto(p._id)} className="text-gray-500 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
