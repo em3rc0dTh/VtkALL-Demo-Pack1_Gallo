@@ -13,12 +13,18 @@ router.get('/', protegerRuta, async (req, res) => {
 
     if (busqueda) {
       const regex = new RegExp(busqueda, 'i');
+      
+      // Buscar IDs de clientes asociados a citas cuyo nombre_cliente coincida con la búsqueda
+      const citasCoincidentes = await Cita.find({ nombre_cliente: regex }).select('cliente');
+      const clienteIdsDeCitas = citasCoincidentes.map(c => c.cliente).filter(Boolean);
+
       query.$or = [
         { nombre: regex },
         { dni: regex },
         { numero_telefono: regex },
         { email: regex },
-        { 'vehiculos.patente': regex }
+        { 'vehiculos.patente': regex },
+        { _id: { $in: clienteIdsDeCitas } }
       ];
     }
 
@@ -29,8 +35,20 @@ router.get('/', protegerRuta, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limite));
 
+    // Agregar aliases (nombres en citas que difieren del nombre registrado del cliente)
+    const clientesConAlias = await Promise.all(clientes.map(async (c) => {
+      const citas = await Cita.find({ cliente: c._id }).select('nombre_cliente');
+      const nombresCitas = [...new Set(citas.map(cit => cit.nombre_cliente).filter(Boolean))];
+      const alias = nombresCitas.filter(n => n.toLowerCase() !== c.nombre?.toLowerCase());
+      
+      return {
+        ...c.toObject(),
+        alias
+      };
+    }));
+
     res.json({
-      clientes,
+      clientes: clientesConAlias,
       total,
       pagina: parseInt(pagina),
       paginas_totales: Math.ceil(total / parseInt(limite))
@@ -63,7 +81,7 @@ router.get('/:id', protegerRuta, async (req, res) => {
 // POST /api/clientes
 router.post('/', protegerRuta, async (req, res) => {
   try {
-    const { nombre, dni, numero_telefono, email, vehiculos, notas } = req.body;
+    const { nombre, dni, numero_telefono, email, vehiculos, notas, total_gastado, deuda_actual } = req.body;
     
     if (!numero_telefono) {
       return res.status(400).json({ error: 'El número de teléfono es requerido' });
@@ -74,12 +92,23 @@ router.post('/', protegerRuta, async (req, res) => {
       return res.status(400).json({ error: 'Ya existe un cliente con ese número de teléfono' });
     }
 
+    let vehiculosFormateados = [];
     if (vehiculos && vehiculos.length > 0) {
-      const patentesNuevas = vehiculos.map(v => v.patente).filter(p => p);
+      vehiculosFormateados = vehiculos.map(v => ({
+        ...v,
+        patente: v.patente?.trim().toUpperCase() || ''
+      }));
+      const patentesNuevas = vehiculosFormateados.map(v => v.patente).filter(p => p);
+      
+      const tieneDuplicados = patentesNuevas.some((p, idx) => patentesNuevas.indexOf(p) !== idx);
+      if (tieneDuplicados) {
+        return res.status(400).json({ error: 'No se permiten vehículos con la misma placa' });
+      }
+
       if (patentesNuevas.length > 0) {
         const patenteExistente = await Cliente.findOne({ 'vehiculos.patente': { $in: patentesNuevas } });
         if (patenteExistente) {
-          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en otro cliente' });
+          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en el sistema' });
         }
       }
     }
@@ -89,8 +118,10 @@ router.post('/', protegerRuta, async (req, res) => {
       dni: dni || '',
       numero_telefono,
       email: email || '',
-      vehiculos: vehiculos || [],
-      notas: notas || ''
+      vehiculos: vehiculosFormateados,
+      notas: notas || '',
+      total_gastado: total_gastado !== undefined ? Number(total_gastado) : 0,
+      deuda_actual: deuda_actual !== undefined ? Number(deuda_actual) : 0
     });
 
     await nuevoCliente.save();
@@ -105,7 +136,7 @@ router.post('/', protegerRuta, async (req, res) => {
 router.put('/:id', protegerRuta, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, dni, numero_telefono, email, vehiculos, notas } = req.body;
+    const { nombre, dni, numero_telefono, email, vehiculos, notas, total_gastado, deuda_actual } = req.body;
 
     const cliente = await Cliente.findById(id);
     if (!cliente) {
@@ -123,19 +154,31 @@ router.put('/:id', protegerRuta, async (req, res) => {
     }
     if (email !== undefined) cliente.email = email;
     if (vehiculos !== undefined) {
-      const patentesNuevas = vehiculos.map(v => v.patente).filter(p => p);
+      const vehiculosFormateados = vehiculos.map(v => ({
+        ...v,
+        patente: v.patente?.trim().toUpperCase() || ''
+      }));
+      const patentesNuevas = vehiculosFormateados.map(v => v.patente).filter(p => p);
+
+      const tieneDuplicados = patentesNuevas.some((p, idx) => patentesNuevas.indexOf(p) !== idx);
+      if (tieneDuplicados) {
+        return res.status(400).json({ error: 'No se permiten vehículos con la misma placa' });
+      }
+
       if (patentesNuevas.length > 0) {
         const patenteExistente = await Cliente.findOne({ 
           _id: { $ne: id },
           'vehiculos.patente': { $in: patentesNuevas } 
         });
         if (patenteExistente) {
-          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en otro cliente' });
+          return res.status(409).json({ error: 'Una de las placas ingresadas ya está registrada en el sistema' });
         }
       }
-      cliente.vehiculos = vehiculos;
+      cliente.vehiculos = vehiculosFormateados;
     }
     if (notas !== undefined) cliente.notas = notas;
+    if (total_gastado !== undefined) cliente.total_gastado = Number(total_gastado);
+    if (deuda_actual !== undefined) cliente.deuda_actual = Number(deuda_actual);
 
     await cliente.save();
     res.json({ ok: true, cliente });

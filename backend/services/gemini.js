@@ -4,6 +4,7 @@ import Taller from '../models/Taller.js';
 import Cliente from '../models/Cliente.js';
 import Cita from '../models/Cita.js';
 import Mensaje from '../models/Mensaje.js';
+import Producto from '../models/Producto.js';
 import { calcularSlots, formatearFechaEsp, formatearFechaHoraEsp } from '../utils/fechas.js';
 
 // Inicializar cliente de Gemini si existe la API Key
@@ -60,21 +61,22 @@ const tools = [
     type: "function",
     function: {
       name: "agendar_cita",
-      description: "Crea una nueva cita en el sistema. Usar SOLO cuando el cliente haya confirmado explícitamente todos los datos: nombre, vehículo, servicio, fecha/hora, DNI y teléfono.",
+      description: "Crea una nueva cita en el sistema. Usar SOLO cuando el cliente haya confirmado explícitamente todos los datos: nombre, vehículo, servicio, fecha/hora, DNI (opcional) y teléfono.",
       parameters: {
         type: "object",
         properties: {
           numero_telefono:     { type: "string", description: "Número de teléfono real del cliente (ej: 999888777)" },
           nombre_cliente:      { type: "string", description: "Nombre completo del cliente" },
-          dni:                 { type: "string", description: "DNI (Documento Nacional de Identidad) del cliente (8 dígitos)" },
+          dni:                 { type: "string", description: "DNI (Documento Nacional de Identidad) del cliente (8 dígitos, opcional)" },
           servicio:            { type: "string", description: "Nombre del servicio a realizar" },
           descripcion_trabajo: { type: "string", description: "Detalles del problema o lo que le pasa al auto" },
           vehiculo_marca:      { type: "string", description: "Marca del vehículo (ej: Toyota)" },
           vehiculo_modelo:     { type: "string", description: "Modelo del vehículo (ej: Yaris)" },
+          vehiculo_patente:    { type: "string", description: "Placa o patente del vehículo (ej: ABC-123)" },
           vehiculo_anio:       { type: "integer", description: "Año del vehículo (ej: 2018)" },
           fecha_cita:          { type: "string", description: "Fecha y hora en formato ISO 8601 (ej: 2026-05-20T10:00:00)" }
         },
-        required: ["numero_telefono", "nombre_cliente", "dni", "servicio", "fecha_cita"]
+        required: ["numero_telefono", "nombre_cliente", "servicio", "fecha_cita"]
       }
     }
   },
@@ -163,9 +165,11 @@ export const ejecutarTool = async (nombre, args) => {
           nombre_cliente,
           dni,
           servicio,
+          producto_id,
           descripcion_trabajo,
           vehiculo_marca,
           vehiculo_modelo,
+          vehiculo_patente,
           vehiculo_anio,
           fecha_cita,
           tipo_cita,
@@ -206,7 +210,26 @@ export const ejecutarTool = async (nombre, args) => {
         }
         
         // Agregar vehículo si no existe en su perfil
-        if (vehiculo_marca) {
+        const patenteLimpia = vehiculo_patente ? vehiculo_patente.trim().toUpperCase() : '';
+        if (patenteLimpia) {
+          const patenteExistente = await Cliente.findOne({
+            _id: { $ne: cliente._id },
+            'vehiculos.patente': patenteLimpia
+          });
+          if (patenteExistente) {
+            return { error: 'La placa ingresada ya está registrada en otro cliente' };
+          }
+
+          const yaTienePatente = cliente.vehiculos.some(v => v.patente === patenteLimpia);
+          if (!yaTienePatente) {
+            cliente.vehiculos.push({
+              marca: vehiculo_marca || 'Genérica',
+              modelo: vehiculo_modelo || 'Vehículo',
+              anio: vehiculo_anio,
+              patente: patenteLimpia
+            });
+          }
+        } else if (vehiculo_marca) {
           const yaExiste = cliente.vehiculos.some(v => 
             v.marca?.toLowerCase() === vehiculo_marca.toLowerCase() &&
             v.modelo?.toLowerCase() === vehiculo_modelo?.toLowerCase()
@@ -235,7 +258,7 @@ export const ejecutarTool = async (nombre, args) => {
             marca: vehiculo_marca || '',
             modelo: vehiculo_modelo || '',
             anio: vehiculo_anio || null,
-            patente: ''
+            patente: patenteLimpia
           },
           fecha_cita: fechaCitaDate,
           estado: 'pendiente', // Pendiente de validación de admin por defecto
@@ -245,13 +268,28 @@ export const ejecutarTool = async (nombre, args) => {
           imagenes: imagenes || []
         });
 
-        // Buscar precio base del servicio en el taller
-        const taller = await Taller.findOne();
-        if (taller) {
-          const servInfo = taller.servicios.find(s => s.nombre.toLowerCase().includes(servicio.toLowerCase()));
-          if (servInfo) {
-            nuevaCita.precio_estimado = servInfo.precio_base;
-            nuevaCita.duracion_estimada_minutos = servInfo.duracion_minutos;
+        // Buscar precio base del servicio o producto
+        if (producto_id) {
+          try {
+            const prod = await Producto.findById(producto_id);
+            if (prod) {
+              nuevaCita.producto_id = prod._id;
+              nuevaCita.precio_estimado = prod.precio;
+              nuevaCita.duracion_estimada_minutos = prod.duracion_minutos || 60;
+            }
+          } catch (err) {
+            console.error('Error al obtener producto por ID:', err);
+          }
+        }
+
+        if (!nuevaCita.precio_estimado) {
+          const taller = await Taller.findOne();
+          if (taller) {
+            const servInfo = taller.servicios.find(s => s.nombre.toLowerCase().includes(servicio.toLowerCase()));
+            if (servInfo) {
+              nuevaCita.precio_estimado = servInfo.precio_base;
+              nuevaCita.duracion_estimada_minutos = servInfo.duracion_minutos;
+            }
           }
         }
 
@@ -516,6 +554,13 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
     dni = dniMatch[0];
   }
 
+  // Extraer placa (patente) de forma acumulada
+  let patente = null;
+  const patenteMatch = textoAcumulado.match(/\b([a-zA-Z0-9]{3}-[a-zA-Z0-9]{3})\b/) || textoAcumulado.match(/\b([a-zA-Z0-9]{6})\b/);
+  if (patenteMatch) {
+    patente = patenteMatch[0].trim().toUpperCase();
+  }
+
   // Extraer teléfono real de 9 o más dígitos de forma acumulada si es sesión web
   let realPhone = null;
   if (numero_telefono.startsWith('web_')) {
@@ -613,7 +658,7 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
       }
     }
 
-    const tieneTodosActualizado = nombreCliente && servicioElegido && fechaStr && horaStr && dni && realPhone;
+    const tieneTodosActualizado = nombreCliente && servicioElegido && fechaStr && horaStr && patente && realPhone;
 
     if (tieneTodosActualizado) {
       // Agendar directamente
@@ -623,11 +668,12 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
       const res = await ejecutarTool('agendar_cita', {
         numero_telefono: realPhone,
         nombre_cliente: nombreCliente,
-        dni: dni,
+        dni: dni || '',
         servicio: servicioElegido,
         descripcion_trabajo: 'Agendado automáticamente vía chat simulado',
         vehiculo_marca: autoMod,
         vehiculo_modelo: 'Detalle',
+        vehiculo_patente: patente,
         vehiculo_anio: 2018,
         fecha_cita: ISOFecha,
         _session_telefono: numero_telefono
@@ -637,13 +683,13 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
         return `¡Upps! No pude agendar la cita. ${res.error}. ¿Elegimos otro horario? Puedes consultar los horarios libres.`;
       }
 
-      return `¡Genial ${nombreCliente}! He registrado tu solicitud de cita para ${servicioElegido} el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (DNI: ${dni}, Teléfono: ${realPhone}). Queda pendiente de confirmación por el administrador del taller. El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te avisaremos pronto! 🚗🔧`;
+      return `¡Genial ${nombreCliente}! He registrado tu solicitud de cita para ${servicioElegido} el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (${patente ? 'Placa: ' + patente : ''}, Teléfono: ${realPhone}). Queda pendiente de confirmación por el administrador del taller. El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te avisaremos pronto! 🚗🔧`;
     }
 
     // Si falta información, guiar de forma conversacional
     let faltantes = [];
     if (!nombreCliente) faltantes.push('tu nombre completo (ej: "Me llamo Juan Perez")');
-    if (!dni) faltantes.push('tu DNI (8 dígitos, ej: "mi DNI es 12345678")');
+    if (!patente) faltantes.push('la placa o patente de tu vehículo (ej: "mi placa es ABC-123")');
     if (numero_telefono.startsWith('web_') && !realPhone) {
       faltantes.push('tu número de teléfono celular real (9 dígitos, ej: "mi celular es 999888777")');
     }
@@ -667,8 +713,9 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
 
     return `Para agendar tu cita de ${servicioElegido || 'servicio'}, por favor facilítame los siguientes datos faltantes:
 ${faltantes.map(f => `- ${f}`).join('\n')}${disponibilidadTexto}
+Pacientes sin DNI pueden dejar este campo vacío.
 
-Ejemplo: "Soy Juan Perez, DNI 12345678, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
+Ejemplo: "Soy Juan Perez, mi placa es ABC-123, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
   }
 
   // 5. RESPUESTA DE BIENVENIDA O SALUDO DEFAULT
@@ -792,20 +839,21 @@ FLUJO DE CALENDARIO INTERACTIVO (REGLA CRÍTICA):
 DATOS PARA AGENDAR UNA CITA:
 - Para confirmar y agendar la cita, necesitas obligatoriamente los siguientes datos mínimos:
   1. Nombre completo del cliente
-  2. DNI (Documento Nacional de Identidad, 8 dígitos) -> ¡MUY IMPORTANTE!
+  2. Placa o patente del vehículo (¡MUY IMPORTANTE!)
   3. Número de teléfono real (para podernos comunicar con ellos)
   4. Marca, modelo y año del vehículo
   5. Fecha y hora preferida (siempre valida disponibilidad antes con 'consultar_disponibilidad')
   6. Servicio o motivo de la cita
+  * Nota: El DNI (Documento Nacional de Identidad) es opcional. Si el cliente lo brinda, puedes guardarlo, pero no lo exijas de forma obligatoria para agendar.
 
 DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 - El identificador actual de la sesión del cliente es: ${numero_telefono}.
-- Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real y su DNI para completar la reserva.
-- Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro, además del DNI y los otros datos.
+- Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real para completar la reserva (el DNI es opcional).
+- Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro.
 
 REGLAS IMPORTANTES:
 - Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).
-- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y DNI).
+- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y la placa/patente).
 - Al agendar la cita con 'agendar_cita', aclara al cliente que su cita queda registrada como **pendiente de confirmación** y que el administrador la validará pronto.
 - Nunca inventes precios, fechas ni datos que no tengas.
 - Si el cliente pregunta algo que no puedes resolver, ofrece: "¿Quieres que te contacte alguien de nuestro equipo directamente?"

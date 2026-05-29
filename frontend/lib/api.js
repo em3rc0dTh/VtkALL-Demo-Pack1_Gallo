@@ -38,7 +38,11 @@ const request = async (endpoint, options = {}) => {
   } catch (error) {
     // Evitar inundar la consola con errores 401 (no autorizado) al verificar sesión o login
     if (error.status !== 401 || (endpoint !== '/auth/me' && endpoint !== '/auth/login')) {
-      console.error(`Error en API Request [${endpoint}]:`, error);
+      if (error.status === 400 || error.status === 409) {
+        console.warn(`Validation Warning [${endpoint}]:`, error.message);
+      } else {
+        console.error(`Error en API Request [${endpoint}]:`, error);
+      }
     }
     throw error;
   }

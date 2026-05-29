@@ -34,6 +34,10 @@ export default function BookingFlow({
   const [formDni, setFormDni] = useState(initialDni);
   const [formTelefono, setFormTelefono] = useState(initialTelefono);
   const [formServicio, setFormServicio] = useState(initialServicio);
+  const [formProductoId, setFormProductoId] = useState('');
+  const [formMarca, setFormMarca] = useState('');
+  const [formModelo, setFormModelo] = useState('');
+  const [formPatente, setFormPatente] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
@@ -164,10 +168,14 @@ export default function BookingFlow({
       const payload = {
         numero_telefono: formTelefono,
         nombre_cliente: formNombre,
-        dni: formDni,
+        dni: formDni || '',
         servicio: formServicio || 'Evaluacion',
+        producto_id: formProductoId || undefined,
         evaluation_type: modality, // This is the new typification field
         fecha_cita: fechaHoraCita,
+        vehiculo_marca: formMarca,
+        vehiculo_modelo: formModelo,
+        vehiculo_patente: formPatente,
         imagenes: uploadedImages // Send uploaded images
       };
 
@@ -215,7 +223,7 @@ export default function BookingFlow({
   );
 
   return (
-    <div className={`flex flex-col bg-white overflow-hidden ${isEmbedded ? 'w-full h-full' : 'rounded-3xl shadow-2xl border border-gray-150 max-w-2xl mx-auto'}`}>
+    <div className={`flex flex-col bg-white overflow-hidden ${isEmbedded ? 'w-full h-full' : 'rounded-3xl shadow-2xl border border-gray-150 max-w-2xl mx-auto max-h-[90vh]'}`}>
       {/* Header */}
       <div className="bg-light-panel px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <div>
@@ -394,20 +402,12 @@ export default function BookingFlow({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Nombre Completo *</label>
                 <input
                   type="text" required
                   value={formNombre} onChange={(e) => setFormNombre(e.target.value)}
-                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">DNI *</label>
-                <input
-                  type="text" required
-                  value={formDni} onChange={(e) => setFormDni(e.target.value)}
                   className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -419,23 +419,96 @@ export default function BookingFlow({
                   className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
-              {serviciosDisponibles.length > 0 && (
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Servicio de Interés</label>
-                  <select
-                    value={formServicio} onChange={(e) => setFormServicio(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                  >
-                    <option value="">No estoy seguro aún</option>
-                    {serviciosDisponibles.map(s => (
-                      <option key={s._id} value={s.nombre}>{s.nombre}</option>
-                    ))}
-                  </select>
+              <div>
+                <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">DNI (Opcional)</label>
+                <input
+                  type="text"
+                  value={formDni} onChange={(e) => setFormDni(e.target.value)}
+                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              {/* Información del Vehículo */}
+              <div className="col-span-1 sm:col-span-2 border-t border-gray-150 pt-4 mt-2">
+                <span className="block text-[10px] font-bold text-[#54595F] uppercase mb-3">Información del Vehículo</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Marca *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: Toyota"
+                      value={formMarca} onChange={(e) => setFormMarca(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Modelo *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: Yaris"
+                      value={formModelo} onChange={(e) => setFormModelo(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Placa (Patente) *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: ABC-123"
+                      value={formPatente} onChange={(e) => setFormPatente(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary uppercase"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {serviciosDisponibles.length > 0 && (
+                <>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Servicio de Interés</label>
+                    <select
+                      value={formServicio}
+                      onChange={(e) => {
+                        setFormServicio(e.target.value);
+                        setFormProductoId('');
+                      }}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    >
+                      <option value="">No estoy seguro aún</option>
+                      {serviciosDisponibles.map(s => (
+                        <option key={s._id} value={s.nombre}>{s.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {(() => {
+                    const selectedServiceObj = serviciosDisponibles.find(s => s.nombre === formServicio);
+                    const productosFiltrados = selectedServiceObj ? selectedServiceObj.productos || [] : [];
+                    if (formServicio && productosFiltrados.length > 0) {
+                      return (
+                        <div className="col-span-1 sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Paquete / Producto de Interés</label>
+                          <select
+                            value={formProductoId}
+                            onChange={(e) => setFormProductoId(e.target.value)}
+                            className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                          >
+                            <option value="">Selecciona un paquete (Opcional - Ver precios base)</option>
+                            {productosFiltrados.map(p => (
+                              <option key={p._id} value={p._id}>
+                                {p.nombre} - S/. {p.precio.toFixed(2)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </>
               )}
               
               {modality === 'VIRTUAL_FOTOS' && (
-                <div className="col-span-2 border-t border-gray-150 pt-4 mt-2">
+                <div className="col-span-1 sm:col-span-2 border-t border-gray-150 pt-4 mt-2">
                   <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
                     Subir Fotos del Vehículo / Daño (Recomendado)
                   </label>
@@ -443,7 +516,7 @@ export default function BookingFlow({
                     Sube fotos del auto (frontal, lateral o de la zona a evaluar) para que el experto pueda darte un diagnóstico visual más preciso.
                   </p>
                   
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {uploadedImages.map((url, idx) => (
                       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
                         <img src={url} className="w-full h-full object-cover" alt={`Evidencia ${idx + 1}`} />

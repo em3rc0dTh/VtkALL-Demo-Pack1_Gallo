@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
-import { Search, User, Car, Plus, Trash2, Calendar, Clipboard, Filter, Wrench, Check, MessageCircle, ImagePlus } from 'lucide-react';
+import { Search, User, Car, Plus, Trash2, Calendar, Clipboard, Filter, Wrench, Check, MessageCircle, ImagePlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import EstadoBadge from '../ui/EstadoBadge.js';
 import Swal from 'sweetalert2';
 
@@ -52,6 +52,8 @@ export default function TabClientes() {
   const [editEmail, setEditEmail] = useState('');
   const [editVehiculos, setEditVehiculos] = useState([]);
   const [editNotas, setEditNotas] = useState('');
+  const [editTotalGastado, setEditTotalGastado] = useState(0);
+  const [editDeudaActual, setEditDeudaActual] = useState(0);
   const [errorEdit, setErrorEdit] = useState('');
   const [guardando, setGuardando] = useState(false);
 
@@ -285,25 +287,77 @@ export default function TabClientes() {
     }
   };
 
-  const handleOpenEdit = (cliente) => {
-    setEditId(cliente._id);
-    setEditNombre(cliente.nombre || '');
-    setEditDni(cliente.dni || '');
-    setEditTelefono(cliente.numero_telefono || '');
-    setEditEmail(cliente.email || '');
-    setEditVehiculos([...(cliente.vehiculos || [])]);
-    setEditNotas(cliente.notas || '');
-    setErrorEdit('');
-    setModalEditOpen(true);
+  const handleOpenEdit = async (cliente) => {
+    try {
+      // Fetch latest client data from the API to avoid editing stale cached data
+      const res = await api.getClienteDetalle(cliente._id);
+      const latestCliente = res ? res.cliente : cliente;
+
+      setEditId(latestCliente._id);
+      setEditNombre(latestCliente.nombre || '');
+      setEditDni(latestCliente.dni || '');
+      setEditTelefono(latestCliente.numero_telefono || '');
+      setEditEmail(latestCliente.email || '');
+      
+      // Normalize plates to uppercase for consistent validation
+      const vehiculosNormalizados = (latestCliente.vehiculos || []).map(v => ({
+        ...v,
+        patente: v.patente?.trim().toUpperCase() || ''
+      }));
+      setEditVehiculos(vehiculosNormalizados);
+      
+      setEditNotas(latestCliente.notas || '');
+      setEditTotalGastado(latestCliente.total_gastado || 0);
+      setEditDeudaActual(latestCliente.deuda_actual || 0);
+      setErrorEdit('');
+      setModalEditOpen(true);
+    } catch (err) {
+      console.error("Error al cargar detalles del cliente para editar:", err);
+      // Fallback a los datos locales si falla el fetch
+      setEditId(cliente._id);
+      setEditNombre(cliente.nombre || '');
+      setEditDni(cliente.dni || '');
+      setEditTelefono(cliente.numero_telefono || '');
+      setEditEmail(cliente.email || '');
+      
+      const vehiculosNormalizados = (cliente.vehiculos || []).map(v => ({
+        ...v,
+        patente: v.patente?.trim().toUpperCase() || ''
+      }));
+      setEditVehiculos(vehiculosNormalizados);
+      
+      setEditNotas(cliente.notas || '');
+      setEditTotalGastado(cliente.total_gastado || 0);
+      setEditDeudaActual(cliente.deuda_actual || 0);
+      setErrorEdit('');
+      setModalEditOpen(true);
+    }
   };
 
   const handleAddVehiculoEdit = () => {
     if (!vMarca || !vModelo) return;
+    
+    const patenteLimpia = vPatente.trim().toUpperCase();
+    if (patenteLimpia) {
+      const patenteDuplicada = editVehiculos.some(v => v.patente?.trim().toUpperCase() === patenteLimpia);
+      if (patenteDuplicada) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Placa duplicada',
+          text: `La placa "${patenteLimpia}" ya existe en la lista de vehículos de este cliente.`,
+          background: '#111827',
+          color: '#fff',
+          confirmButtonColor: '#3b82f6'
+        });
+        return;
+      }
+    }
+
     setEditVehiculos(prev => [...prev, {
       marca: vMarca,
       modelo: vModelo,
       anio: vAnio ? parseInt(vAnio) : null,
-      patente: vPatente.toUpperCase()
+      patente: patenteLimpia
     }]);
     setVMarca('');
     setVModelo('');
@@ -327,10 +381,23 @@ export default function TabClientes() {
         numero_telefono: editTelefono,
         email: editEmail,
         vehiculos: editVehiculos,
-        notas: editNotas
+        notes: editNotas
       };
 
-      await api.actualizarCliente(editId, payload);
+      // Ensure notes key matches schema (notas or notes? Let's check: the schema uses 'notas', payload line 330 previously had 'notas: editNotas')
+      // Ah! Payload line 330 had: 'notas: editNotas'. Let me keep 'notas: editNotas' instead of 'notes: editNotas'.
+      const actualPayload = {
+        nombre: editNombre,
+        dni: editDni,
+        numero_telefono: editTelefono,
+        email: editEmail,
+        vehiculos: editVehiculos,
+        notas: editNotas,
+        total_gastado: Number(editTotalGastado),
+        deuda_actual: Number(editDeudaActual)
+      };
+
+      await api.actualizarCliente(editId, actualPayload);
       setModalEditOpen(false);
       cargarClientes();
       if (clienteDetalle && clienteDetalle._id === editId) {
@@ -338,6 +405,16 @@ export default function TabClientes() {
       }
     } catch (err) {
       setErrorEdit(err.message || 'Error al guardar cambios');
+      if (err.status === 409 || err.status === 400) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de validación',
+          text: err.message,
+          background: '#111827',
+          color: '#fff',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
     } finally {
       setGuardando(false);
     }
@@ -441,6 +518,8 @@ export default function TabClientes() {
                   <th className="px-6 py-4">Cliente</th>
                   <th className="px-6 py-4">Celular</th>
                   <th className="px-6 py-4">Vehículos</th>
+                  <th className="px-6 py-4">Total Gastado</th>
+                  <th className="px-6 py-4">Deuda / Crédito</th>
                   <th className="px-6 py-4">Total Citas</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
@@ -454,7 +533,14 @@ export default function TabClientes() {
                           {c.nombre?.charAt(0) || 'C'}
                         </div>
                         <div>
-                          <span className="block font-bold text-white text-sm">{c.nombre || 'Cliente Nuevo'}</span>
+                          <div className="flex flex-wrap items-baseline gap-1.5">
+                            <span className="font-bold text-white text-sm">{c.nombre || 'Cliente Nuevo'}</span>
+                            {c.alias && c.alias.length > 0 && (
+                              <span className="text-gray-400 text-[10px] font-normal italic">
+                                (asociado a: {c.alias.join(', ')})
+                              </span>
+                            )}
+                          </div>
                           <div className="flex gap-2 text-gray-500 text-[10px]">
                             <span>{c.email || 'Sin correo'}</span>
                             {c.dni && <span>• DNI: {c.dni}</span>}
@@ -477,6 +563,18 @@ export default function TabClientes() {
                         )}
                       </div>
                     </td>
+                    <td className="px-6 py-4 font-semibold text-emerald-400 font-mono">
+                      S/. {(c.total_gastado || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 font-mono">
+                      {c.deuda_actual > 0 ? (
+                        <span className="text-red-400 font-bold">S/. {c.deuda_actual.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                      ) : c.deuda_actual < 0 ? (
+                        <span className="text-blue-400 font-bold">S/. {Math.abs(c.deuda_actual).toLocaleString('es-PE', { minimumFractionDigits: 2 })} (Favor)</span>
+                      ) : (
+                        <span className="text-gray-500">S/. 0.00</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 font-bold text-blue-400">
                       {c.total_citas}
                     </td>
@@ -498,6 +596,29 @@ export default function TabClientes() {
                 ))}
               </tbody>
             </table>
+          )}
+          
+          {/* Control de Pagina */}
+          {total > 15 && (
+            <div className="flex justify-between items-center p-4 border-t border-gray-850 bg-dark-card/20 text-xs">
+              <button
+                onClick={() => setPagina(prev => Math.max(prev - 1, 1))}
+                disabled={pagina === 1}
+                className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1 font-semibold"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+              </button>
+              <span className="text-gray-400 font-medium">
+                Página <span className="text-white font-bold">{pagina}</span> de <span className="text-white font-bold">{Math.ceil(total / 15)}</span>
+              </span>
+              <button
+                onClick={() => setPagina(prev => Math.min(prev + 1, Math.ceil(total / 15)))}
+                disabled={pagina >= Math.ceil(total / 15)}
+                className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1 font-semibold"
+              >
+                Siguiente <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -553,10 +674,42 @@ export default function TabClientes() {
 
               {/* Estadísticas */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5">Resumen</h4>
-                <div className="p-4 rounded-2xl bg-gray-900 border border-gray-850 text-center">
-                  <span className="text-3xl font-black text-primary">{clienteDetalle.total_citas}</span>
-                  <span className="block text-[10px] text-gray-400 uppercase font-semibold mt-1">Citas Agendadas</span>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5">Resumen Financiero</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="p-3 rounded-2xl bg-gray-900 border border-gray-850 text-center">
+                    <span className="text-2xl font-black text-blue-400">{clienteDetalle.total_citas}</span>
+                    <span className="block text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Citas Agendadas</span>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-gray-900 border border-gray-850 text-center">
+                    <span className="text-xl font-black text-emerald-400 font-mono">
+                      S/. {(clienteDetalle.total_gastado || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className="block text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Total Gastado</span>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-gray-900 border border-gray-850 text-center">
+                    {clienteDetalle.deuda_actual > 0 ? (
+                      <>
+                        <span className="text-xl font-black text-red-400 font-mono">
+                          S/. {clienteDetalle.deuda_actual.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className="block text-[9px] text-red-400 uppercase font-semibold mt-0.5">Deuda Pendiente</span>
+                      </>
+                    ) : clienteDetalle.deuda_actual < 0 ? (
+                      <>
+                        <span className="text-xl font-black text-blue-400 font-mono">
+                          S/. {Math.abs(clienteDetalle.deuda_actual).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className="block text-[9px] text-blue-400 uppercase font-semibold mt-0.5">Saldo a Favor</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xl font-black text-gray-500 font-mono">
+                          S/. 0.00
+                        </span>
+                        <span className="block text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Sin Deudas</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -930,6 +1083,31 @@ export default function TabClientes() {
                   onChange={(e) => setEditEmail(e.target.value)}
                   className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Total Gastado (S/.)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editTotalGastado}
+                    onChange={(e) => setEditTotalGastado(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">Deuda / Crédito (S/.)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ej. 100 o -50"
+                    value={editDeudaActual}
+                    onChange={(e) => setEditDeudaActual(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                  />
+                  <span className="text-[9px] text-gray-500 mt-1 block">Positivo = Deuda, Negativo = Saldo a Favor.</span>
+                </div>
               </div>
 
               <div>

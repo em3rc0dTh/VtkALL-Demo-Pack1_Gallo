@@ -14,6 +14,13 @@ export default function TabTeam() {
   const [equipos, setEquipos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
+  // Estados para Disponibilidad
+  const [duracionSlot, setDuracionSlot] = useState(30);
+  const [diasLaborables, setDiasLaborables] = useState([1, 2, 3, 4, 5, 6]);
+  const [horaInicio, setHoraInicio] = useState('08:00');
+  const [horaFin, setHoraFin] = useState('18:00');
+  const [guardandoHorario, setGuardandoHorario] = useState(false);
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -32,6 +39,101 @@ export default function TabTeam() {
       setCargando(false);
     }
   };
+
+  const handleAbrirHorario = async (eq) => {
+    setEquipoSeleccionado(eq);
+    try {
+      const res = await api.getDisponibilidad(eq._id);
+      if (res) {
+        setDuracionSlot(res.duracion_slot_minutos ?? 30);
+        setDiasLaborables(res.dias_laborables || [1, 2, 3, 4, 5, 6]);
+        setHoraInicio(res.hora_inicio || '08:00');
+        setHoraFin(res.hora_fin || '18:00');
+      } else {
+        setDuracionSlot(30);
+        setDiasLaborables([1, 2, 3, 4, 5, 6]);
+        setHoraInicio('08:00');
+        setHoraFin('18:00');
+      }
+    } catch (error) {
+      console.error('Error al cargar disponibilidad:', error);
+      // Fallback a valores por defecto
+      setDuracionSlot(30);
+      setDiasLaborables([1, 2, 3, 4, 5, 6]);
+      setHoraInicio('08:00');
+      setHoraFin('18:00');
+    }
+    setModalHorarioOpen(true);
+  };
+
+  const handleGuardarDisponibilidad = async () => {
+    setGuardandoHorario(true);
+    try {
+      // Guardar en la base de datos de Disponibilidad
+      await api.guardarDisponibilidad({
+        entidad_id: equipoSeleccionado._id,
+        tipo_entidad: 'Team',
+        duracion_slot_minutos: duracionSlot,
+        dias_laborables: diasLaborables,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin
+      });
+
+      // Generar horario referencial para mostrar en la tarjeta de equipo
+      let diasText = '';
+      if (diasLaborables.length === 0) {
+        diasText = 'Sin días';
+      } else if (diasLaborables.length === 7) {
+        diasText = 'Lun-Dom';
+      } else {
+        const diasNombresCortos = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+        const isContiguous = (arr) => {
+          for (let i = 1; i < arr.length; i++) {
+            if (arr[i] !== arr[i - 1] + 1) return false;
+          }
+          return true;
+        };
+        if (isContiguous(diasLaborables)) {
+          diasText = `${diasNombresCortos[diasLaborables[0] - 1]}-${diasNombresCortos[diasLaborables[diasLaborables.length - 1] - 1]}`;
+        } else {
+          diasText = diasLaborables.map(d => diasNombresCortos[d - 1]).join(',');
+        }
+      }
+
+      const slotText = duracionSlot === 0 ? 'Continúo' : `Slots ${duracionSlot} min`;
+      const horarioReferencial = `${diasText} ${horaInicio} - ${horaFin} (${slotText})`;
+
+      // Actualizar el horario_referencial en la colección del Team
+      await api.actualizarTeam(equipoSeleccionado._id, {
+        horario_referencial: horarioReferencial
+      });
+
+      Swal.fire({
+        title: 'Guardado',
+        text: 'La disponibilidad se actualizó correctamente.',
+        icon: 'success',
+        background: '#111827',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 1500
+      });
+
+      setModalHorarioOpen(false);
+      cargarDatos();
+    } catch (error) {
+      console.error('Error al guardar disponibilidad:', error);
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'No se pudo guardar la disponibilidad.',
+        icon: 'error',
+        background: '#111827',
+        color: '#fff'
+      });
+    } finally {
+      setGuardandoHorario(false);
+    }
+  };
+
   const handleCrearTeam = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Nuevo Team / Especialidad',
@@ -120,10 +222,6 @@ export default function TabTeam() {
         cargarDatos();
       } catch (e) {}
     }
-  };
-  const handleAbrirHorario = (eq) => {
-    setEquipoSeleccionado(eq);
-    setModalHorarioOpen(true);
   };
 
   return (
@@ -241,9 +339,33 @@ export default function TabTeam() {
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Duración por defecto del Slot</label>
                 <div className="flex gap-3">
-                  <button className="flex-1 py-2 rounded-xl border border-primary bg-primary/10 text-primary text-xs font-bold">30 Minutos</button>
-                  <button className="flex-1 py-2 rounded-xl border border-gray-800 bg-gray-900 text-gray-400 hover:text-white text-xs font-bold">45 Minutos</button>
-                  <button className="flex-1 py-2 rounded-xl border border-gray-800 bg-gray-900 text-gray-400 hover:text-white text-xs font-bold">1 Hora</button>
+                  <button 
+                    type="button"
+                    onClick={() => setDuracionSlot(30)}
+                    className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      duracionSlot === 30 ? 'border-primary bg-primary/10 text-primary' : 'border-gray-800 bg-gray-900 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    30 Minutos
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setDuracionSlot(60)}
+                    className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      duracionSlot === 60 ? 'border-primary bg-primary/10 text-primary' : 'border-gray-800 bg-gray-900 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    1 Hora
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setDuracionSlot(0)}
+                    className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      duracionSlot === 0 ? 'border-primary bg-primary/10 text-primary' : 'border-gray-800 bg-gray-900 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Continúo
+                  </button>
                 </div>
               </div>
 
@@ -251,11 +373,30 @@ export default function TabTeam() {
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Días de Atención</label>
                 <div className="flex flex-wrap gap-2">
-                  {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map((dia, idx) => (
-                    <button key={dia} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${idx < 6 ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-gray-900 border-gray-800 text-gray-500'}`}>
-                      {dia}
-                    </button>
-                  ))}
+                  {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map((dia, idx) => {
+                    const diaNum = idx + 1; // 1 = LUN, 7 = DOM
+                    const seleccionado = diasLaborables.includes(diaNum);
+                    return (
+                      <button 
+                        key={dia} 
+                        type="button"
+                        onClick={() => {
+                          if (seleccionado) {
+                            setDiasLaborables(prev => prev.filter(d => d !== diaNum));
+                          } else {
+                            setDiasLaborables(prev => [...prev, diaNum].sort());
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
+                          seleccionado 
+                            ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' 
+                            : 'bg-gray-900 border-gray-800 text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        {dia}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -263,27 +404,41 @@ export default function TabTeam() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Hora Inicio</label>
-                  <input type="time" defaultValue="08:00" className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white text-xs outline-none" />
+                  <input 
+                    type="time" 
+                    value={horaInicio} 
+                    onChange={(e) => setHoraInicio(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white text-xs outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Hora Fin</label>
-                  <input type="time" defaultValue="18:00" className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white text-xs outline-none" />
+                  <input 
+                    type="time" 
+                    value={horaFin} 
+                    onChange={(e) => setHoraFin(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white text-xs outline-none" 
+                  />
                 </div>
               </div>
 
               {/* Botones */}
               <div className="pt-4 border-t border-gray-850 flex justify-end gap-3">
                 <button
+                  type="button"
                   onClick={() => setModalHorarioOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800"
+                  disabled={guardandoHorario}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
-                  onClick={() => setModalHorarioOpen(false)}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover"
+                  type="button"
+                  onClick={handleGuardarDisponibilidad}
+                  disabled={guardandoHorario}
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-50 cursor-pointer"
                 >
-                  Guardar Disponibilidad
+                  {guardandoHorario ? 'Guardando...' : 'Guardar Disponibilidad'}
                 </button>
               </div>
 

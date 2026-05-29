@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarRange, Check, MessageCircle, AlertCircle, Clock, Calendar as CalendarIcon, LayoutGrid, Wrench, UploadCloud, Image as ImageIcon, FileText, Send, XCircle, Plus, UserPlus, Car } from 'lucide-react';
 import { api } from '../../lib/api';
+import Swal from 'sweetalert2';
 
 const mapBackendToUi = (estado) => {
   switch (estado) {
@@ -91,7 +92,9 @@ export default function TabEvaluaciones() {
           imagenes: c.imagenes || [],
           numero_telefono: c.numero_telefono || '',
           vehiculo: c.vehiculo || { marca: '', modelo: '', anio: null, patente: '' },
-          cliente_id: c.cliente?._id || c.cliente || null
+          cliente_id: c.cliente?._id || c.cliente || null,
+          servicio: c.servicio || '',
+          producto: c.producto_id || null
         }));
         setEvaluaciones(mapped);
       }
@@ -164,7 +167,14 @@ export default function TabEvaluaciones() {
       }
     } catch (err) {
       console.error('Error al editar cita:', err);
-      alert('Error al guardar cambios: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de validación',
+        text: err.message || 'Error al guardar cambios',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     }
   };
 
@@ -300,11 +310,18 @@ export default function TabEvaluaciones() {
           notas: c.descripcion_trabajo || notas
         };
         setEvaluaciones(prev => [...prev, nuevaEval]);
+        setModalNuevoIngreso(false);
       }
     } catch (err) {
       console.error('Error al crear ingreso manual:', err);
-    } finally {
-      setModalNuevoIngreso(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de validación',
+        text: err.message || 'Error al crear el ingreso manual',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     }
   };
 
@@ -540,7 +557,7 @@ export default function TabEvaluaciones() {
       {/* MODAL DE NUEVO INGRESO (WALK-IN) */}
       {modalNuevoIngreso && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative">
+          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setModalNuevoIngreso(false)}
               className="absolute top-6 right-6 text-gray-400 hover:text-white"
@@ -608,133 +625,158 @@ export default function TabEvaluaciones() {
       )}
 
       {/* MODAL DE DIAGNÓSTICO Y TASACIÓN */}
-      {modalTasar && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative">
-            <button 
-              onClick={() => setModalTasar(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
-            
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-primary" /> Diagnóstico y Presupuesto
-              </h2>
-              <p className="text-xs text-gray-500 mt-1">
-                La evaluación ha finalizado. Asigna el trabajo a un Team, define el precio y estima el tiempo necesario.
-              </p>
-            </div>
+      {modalTasar && (() => {
+        const evalObj = evaluaciones.find(e => e.id === modalTasar);
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <div className="w-full max-w-2xl rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
+              <button 
+                onClick={() => setModalTasar(null)}
+                className="absolute top-6 right-6 text-gray-400 hover:text-white"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+              
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-primary" /> Diagnóstico y Presupuesto
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  La evaluación ha finalizado. Asigna el trabajo a un Team, define el precio y estima el tiempo necesario.
+                </p>
+              </div>
 
-            <form onSubmit={handleSubmitTasacion} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmitTasacion} className="space-y-6">
                 
-                {/* Asignación de Equipo */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Team Asignado *</label>
-                  <select name="team_asignado" required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
-                    <option value="">Selecciona un equipo...</option>
-                    {teams.map(t => (
-                      <option key={t._id} value={t._id}>Team: {t.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Precio Final */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Acordado (S/.) *</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-gray-500 font-bold">S/.</span>
-                    <input name="precio_final" type="number" required placeholder="0.00" step="0.01" className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                </div>
-
-                {/* Duración */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Duración Neta de Trabajo *</label>
-                  <select name="duracion_trabajo" required className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
-                    <option value="1h">1 hora</option>
-                    <option value="2h">2 horas</option>
-                    <option value="4h">4 horas (Medio Día)</option>
-                    <option value="8h">8 horas (Día Completo)</option>
-                    <option value="2d">2 Días</option>
-                  </select>
-                </div>
-
-                {/* Margen de seguridad */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Margen de Pruebas *</label>
-                  <div className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
-                    <input type="checkbox" name="margen" id="margen" defaultChecked className="w-4 h-4 text-primary bg-gray-800 border-gray-700 rounded focus:ring-primary" />
-                    <label htmlFor="margen" className="text-sm text-gray-300 font-medium cursor-pointer">
-                      Añadir <span className="text-blue-400 font-bold">+1 Hora</span> de margen final
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notas Técnicas */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Notas del Diagnóstico Técnico</label>
-                <textarea 
-                  name="notas_mecanico"
-                  rows="3" 
-                  placeholder="Escribe los detalles que el mecánico del Team debe saber antes de empezar..."
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
-                />
-              </div>
-
-              {/* Evidencia Fotográfica */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Evidencias (Fotos del vehículo)</label>
-                <div className="grid grid-cols-4 gap-3">
-                  <label className="aspect-square bg-gray-900 border-2 border-dashed border-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                    <UploadCloud className="w-6 h-6 mb-1" />
-                    <span className="text-[9px] font-bold">{subiendoImg ? 'Subiendo...' : 'Subir Foto'}</span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleUploadImage}
-                      disabled={subiendoImg}
-                    />
-                  </label>
-                  {uploadedImages.map((img, idx) => (
-                    <div key={idx} className="aspect-square bg-gray-800 rounded-xl overflow-hidden relative group border border-gray-700">
-                      <img src={img} alt="Evidencia" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-500 text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 shadow-md"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
+                {/* Producto / Paquete de Reserva */}
+                {evalObj?.producto && (
+                  <div className="bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 text-xs">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Servicio y Producto Solicitado</span>
+                    <div className="flex justify-between items-center text-white">
+                      <span>🔧 <b>{evalObj.servicio}</b> • {evalObj.producto.nombre}</span>
+                      <span className="font-mono font-bold text-emerald-400">
+                        Precio Base: S/. {(evalObj.producto.precio || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Asignación de Equipo */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Team Asignado *</label>
+                    <select name="team_asignado" required className="w-full bg-gray-950 border border-gray-850 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
+                      <option value="">Selecciona un equipo...</option>
+                      {teams.map(t => (
+                        <option key={t._id} value={t._id}>Team: {t.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Precio Final */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Acordado (S/.) *</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3.5 text-gray-500 font-bold">S/.</span>
+                      <input 
+                        name="precio_final" 
+                        type="number" 
+                        required 
+                        placeholder="0.00" 
+                        defaultValue={evalObj?.producto?.precio || ''}
+                        step="0.01" 
+                        className="w-full bg-gray-950 border border-gray-850 text-white rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Duración */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Duración Neta de Trabajo *</label>
+                    <select name="duracion_trabajo" required className="w-full bg-gray-950 border border-gray-855 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
+                      <option value="1h">1 hora</option>
+                      <option value="2h">2 horas</option>
+                      <option value="4h">4 horas (Medio Día)</option>
+                      <option value="8h">8 horas (Día Completo)</option>
+                      <option value="2d">2 Días</option>
+                    </select>
+                  </div>
+
+                  {/* Margen de seguridad */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Margen de Pruebas *</label>
+                    <div className="flex items-center gap-3 bg-gray-950 border border-gray-850 rounded-xl px-4 py-3">
+                      <input type="checkbox" name="margen" id="margen" defaultChecked className="w-4 h-4 text-primary bg-gray-800 border-gray-750 rounded focus:ring-primary" />
+                      <label htmlFor="margen" className="text-sm text-gray-300 font-medium cursor-pointer">
+                        Añadir <span className="text-blue-400 font-bold">+1 Hora</span> de margen final
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Acciones */}
-              <div className="pt-6 border-t border-gray-850 flex justify-end gap-3">
-                <button type="button" onClick={() => setModalTasar(null)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 bg-gray-900 hover:bg-gray-800 border border-gray-800 transition-colors">
-                  Cancelar
-                </button>
-                <button type="submit" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-btn-primary hover:shadow-btn-primary-hover transition-all">
-                  ENVIAR A EJECUCIÓN <Send className="w-3 h-3" />
-                </button>
-              </div>
+                {/* Notas Técnicas */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Notas del Diagnóstico Técnico</label>
+                  <textarea 
+                    name="notas_mecanico"
+                    rows="3" 
+                    placeholder="Escribe los detalles que el mecánico del Team debe saber antes de empezar..."
+                    className="w-full bg-gray-950 border border-gray-850 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
+                  />
+                </div>
 
-            </form>
+                {/* Evidencia Fotográfica */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Evidencias (Fotos del vehículo)</label>
+                  <div className="grid grid-cols-4 gap-3">
+                    <label className="aspect-square bg-gray-950 border-2 border-dashed border-gray-850 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-colors cursor-pointer">
+                      <UploadCloud className="w-6 h-6 mb-1" />
+                      <span className="text-[9px] font-bold">{subiendoImg ? 'Subiendo...' : 'Subir Foto'}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleUploadImage}
+                        disabled={subiendoImg}
+                      />
+                    </label>
+                    {uploadedImages.map((img, idx) => (
+                      <div key={idx} className="aspect-square bg-gray-800 rounded-xl overflow-hidden relative group border border-gray-700">
+                        <img src={img} alt="Evidencia" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-500 text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 shadow-md"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Acciones */}
+                <div className="pt-6 border-t border-gray-850 flex justify-end gap-3">
+                  <button type="button" onClick={() => setModalTasar(null)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 bg-gray-950 border border-gray-850 hover:bg-gray-800 transition-colors">
+                    Cancelar
+                  </button>
+                  <button type="submit" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-btn-primary hover:shadow-btn-primary-hover transition-all">
+                    ENVIAR A EJECUCIÓN <Send className="w-3 h-3" />
+                  </button>
+                </div>
+
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL PARA EDITAR DETALLES Y ESTADO DE LA CITA */}
       {modalEditarCita && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 md:p-8 relative">
+          <div className="w-full max-w-2xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setModalEditarCita(null)}
               className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"

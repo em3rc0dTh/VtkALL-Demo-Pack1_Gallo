@@ -21,6 +21,143 @@ const obtenerDiaActualId = () => {
   return nombresDias[hoyIdx];
 };
 
+const splitCitaEnSegmentos = (c, defaultStartHour, defaultEndHour, diasLaborablesJS) => {
+  const segments = [];
+  let currentDateTime = new Date(c.fecha_cita);
+  
+  const obtenerSiguienteDiaLaboral = (fecha) => {
+    const next = new Date(fecha);
+    let attempts = 0;
+    while (attempts < 14) {
+      next.setDate(next.getDate() + 1);
+      if (diasLaborablesJS.includes(next.getDay())) {
+        return next;
+      }
+      attempts++;
+    }
+    return next;
+  };
+
+  if (!diasLaborablesJS.includes(currentDateTime.getDay())) {
+    let attempts = 0;
+    while (!diasLaborablesJS.includes(currentDateTime.getDay()) && attempts < 14) {
+      currentDateTime.setDate(currentDateTime.getDate() + 1);
+      attempts++;
+    }
+    currentDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+  }
+  
+  let startHour = currentDateTime.getHours() + currentDateTime.getMinutes() / 60;
+  
+  if (startHour < defaultStartHour) {
+    currentDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+    startHour = defaultStartHour;
+  }
+  
+  if (startHour >= defaultEndHour) {
+    currentDateTime = obtenerSiguienteDiaLaboral(currentDateTime);
+    currentDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+    startHour = defaultStartHour;
+  }
+
+  const duracionTotalMinutos = c.duracion_estimada_minutos || 60;
+  let horasRestantes = duracionTotalMinutos / 60;
+  
+  const simulacionSegmentos = [];
+  let simDateTime = new Date(currentDateTime);
+  let simStartHour = startHour;
+  let simHorasRestantes = horasRestantes;
+  
+  while (simHorasRestantes > 0) {
+    let horasDisponiblesHoy = defaultEndHour - simStartHour;
+    if (horasDisponiblesHoy <= 0) {
+      simDateTime = obtenerSiguienteDiaLaboral(simDateTime);
+      simDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+      simStartHour = defaultStartHour;
+      horasDisponiblesHoy = defaultEndHour - defaultStartHour;
+    }
+    let horasTrabajoHoy = Math.min(simHorasRestantes, horasDisponiblesHoy);
+    simulacionSegmentos.push({
+      startHour: simStartHour,
+      duration: horasTrabajoHoy
+    });
+    simHorasRestantes -= horasTrabajoHoy;
+    if (simHorasRestantes > 0) {
+      simDateTime = obtenerSiguienteDiaLaboral(simDateTime);
+      simDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+      simStartHour = defaultStartHour;
+    }
+  }
+
+  const totalSegmentos = simulacionSegmentos.length;
+  
+  let segmentIndex = 0;
+  while (horasRestantes > 0) {
+    let horasDisponiblesHoy = defaultEndHour - startHour;
+    if (horasDisponiblesHoy <= 0) {
+      currentDateTime = obtenerSiguienteDiaLaboral(currentDateTime);
+      currentDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+      startHour = defaultStartHour;
+      horasDisponiblesHoy = defaultEndHour - defaultStartHour;
+    }
+    
+    let horasTrabajoHoy = Math.min(horasRestantes, horasDisponiblesHoy);
+    
+    const fechaSegmento = new Date(currentDateTime);
+    
+    const hora = Math.floor(startHour);
+    const minutos = Math.round((startHour - hora) * 60);
+    const inicio = `${hora.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+    
+    const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaId = nombresDias[fechaSegmento.getDay()];
+    
+    const duracionHoras = Math.round(horasTrabajoHoy * 10) / 10;
+    const duracionTotalHoras = Math.round((duracionTotalMinutos / 60) * 10) / 10;
+    
+    let tiempoEstLabel = '';
+    if (totalSegmentos > 1) {
+      tiempoEstLabel = `${duracionHoras} hr${duracionHoras === 1 ? '' : 's'} (Parte ${segmentIndex + 1}/${totalSegmentos})`;
+    } else {
+      tiempoEstLabel = duracionTotalMinutos >= 60 
+        ? `${duracionTotalHoras} ${duracionTotalHoras === 1 ? 'hr' : 'hrs'}` 
+        : `${duracionTotalMinutos} min`;
+    }
+    
+    segments.push({
+      id: `${c._id}-${segmentIndex}`,
+      originalId: c._id,
+      dia: diaId,
+      fechaCompleta: fechaSegmento,
+      cliente: c.nombre_cliente || c.cliente?.nombre || 'Cliente de Dashboard',
+      servicio: c.servicio || 'Servicio General',
+      equipo: c.team_asignado?.nombre || 'Mecánica General',
+      tiempoEst: tiempoEstLabel,
+      precioFinal: `S/. ${(c.precio_final || c.precio_estimado || 0).toFixed(2)}`,
+      estado: c.estado_trabajo || 'pendiente',
+      inicio,
+      horaNum: startHour,
+      duracionNum: horasTrabajoHoy,
+      notas_mecanico: c.notas_mecanico || '',
+      descripcion_trabajo: c.descripcion_trabajo || '',
+      imagenes: c.imagenes || [],
+      segmentIndex,
+      totalSegmentos
+    });
+    
+    horasRestantes -= horasTrabajoHoy;
+    segmentIndex++;
+    
+    if (horasRestantes > 0) {
+      currentDateTime = obtenerSiguienteDiaLaboral(currentDateTime);
+      currentDateTime.setHours(Math.floor(defaultStartHour), Math.round((defaultStartHour % 1) * 60), 0, 0);
+      startHour = defaultStartHour;
+    }
+  }
+  
+  return segments;
+};
+
 const HOUR_HEIGHT = 70;
 
 const getTeamColorClass = (teamName) => {
@@ -57,10 +194,12 @@ export default function TabEjecuciones() {
   
   const [ejecuciones, setEjecuciones] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [disponibilidades, setDisponibilidades] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [modalFinalizar, setModalFinalizar] = useState(null);
+  const [precioFinalizacion, setPrecioFinalizacion] = useState(0);
   const [notasFinalizacion, setNotasFinalizacion] = useState('');
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subiendoImg, setSubiendoImg] = useState(false);
@@ -87,37 +226,59 @@ export default function TabEjecuciones() {
         // Filtrar citas que tienen equipo asignado
         const citasConEquipo = res.citas.filter(c => c.team_asignado);
         
-        const mapped = citasConEquipo.map(c => {
-          const fechaObj = new Date(c.fecha_cita);
-          const hora = fechaObj.getHours();
-          const minutos = fechaObj.getMinutes();
-          const horaNum = hora + minutos / 60;
-          const inicio = `${hora.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
-          
-          const duracionNum = (c.duracion_estimada_minutos || 60) / 60;
-          const duracionHoras = Math.max(1, Math.round(duracionNum));
-          
-          const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-          const diaId = nombresDias[fechaObj.getDay()];
-          
-          return {
-            id: c._id,
-            dia: diaId,
-            fechaCompleta: fechaObj,
-            cliente: c.nombre_cliente || c.cliente?.nombre || 'Cliente de Dashboard',
-            servicio: c.servicio || 'Servicio General',
-            equipo: c.team_asignado?.nombre || 'Mecánica General',
-            tiempoEst: c.duracion_estimada_minutos >= 60 ? `${duracionHoras} ${duracionHoras === 1 ? 'hr' : 'hrs'}` : `${c.duracion_estimada_minutos} min`,
-            precioFinal: `S/. ${(c.precio_final || c.precio_estimado || 0).toFixed(2)}`,
-            estado: c.estado_trabajo || 'pendiente',
-            inicio,
-            horaNum,
-            duracionNum,
-            notas_mecanico: c.notas_mecanico || '',
-            descripcion_trabajo: c.descripcion_trabajo || '',
-            imagenes: c.imagenes || []
-          };
+        // Cargar los teams si aún no están cargados
+        let currentTeams = teams;
+        if (currentTeams.length === 0) {
+          currentTeams = await api.getTeams();
+          setTeams(currentTeams);
+        }
+
+        // Obtener disponibilidades para cada equipo
+        const dispMap = {};
+        for (const team of currentTeams) {
+          try {
+            const disp = await api.getDisponibilidad(team._id);
+            if (disp) {
+              dispMap[team.nombre] = disp;
+            }
+          } catch (err) {
+            console.error(`Error al cargar disponibilidad para team ${team.nombre}:`, err);
+          }
+        }
+        setDisponibilidades(dispMap);
+
+        const mapped = [];
+        citasConEquipo.forEach(c => {
+          const equipoNombre = c.team_asignado?.nombre || 'Mecánica General';
+          const disp = dispMap[equipoNombre];
+
+          // Valores por defecto
+          let startHour = 8;
+          let endHour = 18;
+          let diasLaborables = [1, 2, 3, 4, 5, 6]; // Lun-Sáb
+
+          if (disp) {
+            if (disp.hora_inicio) {
+              const parts = disp.hora_inicio.split(':');
+              startHour = parseFloat(parts[0]) + parseFloat(parts[1] || 0) / 60;
+            }
+            if (disp.hora_fin) {
+              const parts = disp.hora_fin.split(':');
+              endHour = parseFloat(parts[0]) + parseFloat(parts[1] || 0) / 60;
+            }
+            if (disp.dias_laborables && disp.dias_laborables.length > 0) {
+              diasLaborables = disp.dias_laborables;
+            }
+          }
+
+          // Mapear días de DB (1-7, 7=Dom) a JS (0=Dom, 1-6)
+          const diasLaborablesJS = diasLaborables.map(d => d === 7 ? 0 : d);
+
+          // Dividir la cita
+          const segmentos = splitCitaEnSegmentos(c, startHour, endHour, diasLaborablesJS);
+          mapped.push(...segmentos);
         });
+
         setEjecuciones(mapped);
       }
     } catch (err) {
@@ -157,11 +318,11 @@ export default function TabEjecuciones() {
     });
   };
 
-  const iniciarTrabajo = async (id) => {
+  const iniciarTrabajo = async (originalId) => {
     try {
-      const res = await api.actualizarCita(id, { estado_trabajo: 'en_curso' });
+      const res = await api.actualizarCita(originalId, { estado_trabajo: 'en_curso' });
       if (res && res.ok) {
-        setEjecuciones(prev => prev.map(e => e.id === id ? { ...e, estado: 'en_curso' } : e));
+        setEjecuciones(prev => prev.map(e => e.originalId === originalId ? { ...e, estado: 'en_curso' } : e));
       }
     } catch (err) {
       console.error('Error al iniciar trabajo:', err);
@@ -169,11 +330,13 @@ export default function TabEjecuciones() {
     }
   };
 
-  const handleOpenFinalizar = (id) => {
-    setModalFinalizar(id);
-    const ejec = ejecuciones.find(e => e.id === id);
+  const handleOpenFinalizar = (originalId) => {
+    setModalFinalizar(originalId);
+    const ejec = ejecuciones.find(e => e.originalId === originalId);
     setNotasFinalizacion(ejec?.notas_mecanico || ejec?.descripcion_trabajo || '');
     setUploadedImages(ejec?.imagenes || []);
+    const originalPrice = parseFloat(ejec?.precioFinal?.replace(/[^0-9.]/g, '')) || 0;
+    setPrecioFinalizacion(originalPrice);
   };
 
   const handleUploadImage = async (e) => {
@@ -211,16 +374,18 @@ export default function TabEjecuciones() {
       const payload = {
         estado_trabajo: 'finalizado',
         notas_mecanico: notasFinalizacion,
-        imagenes: uploadedImages
+        imagenes: uploadedImages,
+        precio_final: Number(precioFinalizacion)
       };
       
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
-        setEjecuciones(prev => prev.map(item => item.id === modalFinalizar ? { 
+        setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
           ...item, 
           estado: 'finalizado',
           notas_mecanico: notasFinalizacion,
-          imagenes: uploadedImages
+          imagenes: uploadedImages,
+          precioFinal: `S/. ${Number(precioFinalizacion).toFixed(2)}`
         } : item));
       }
     } catch (err) {
@@ -241,7 +406,7 @@ export default function TabEjecuciones() {
       
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
-        setEjecuciones(prev => prev.map(item => item.id === modalFinalizar ? { 
+        setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
           ...item, 
           notas_mecanico: notasFinalizacion,
           imagenes: uploadedImages
@@ -267,8 +432,8 @@ export default function TabEjecuciones() {
     }
   };
 
-  const finalizarTrabajo = (id) => {
-    handleOpenFinalizar(id);
+  const finalizarTrabajo = (originalId) => {
+    handleOpenFinalizar(originalId);
   };
 
   const anteriorSemana = () => {
@@ -288,7 +453,45 @@ export default function TabEjecuciones() {
   };
 
   const equipos = teams.length > 0 ? teams.map(t => t.nombre) : ['Mecánica General', 'Planchado y Pintura', 'Atención Rápida'];
-  const horasDia = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+  
+  let calendarStartHour = 8;
+  let calendarEndHour = 18;
+
+  if (teamSeleccionado !== 'Todos') {
+    const disp = disponibilidades[teamSeleccionado];
+    if (disp) {
+      if (disp.hora_inicio) {
+        calendarStartHour = parseInt(disp.hora_inicio.split(':')[0]);
+      }
+      if (disp.hora_fin) {
+        calendarEndHour = parseInt(disp.hora_fin.split(':')[0]);
+      }
+    }
+  } else {
+    // Para 'Todos', buscar el mínimo inicio y máximo fin entre las disponibilidades cargadas
+    let minStart = 8;
+    let maxEnd = 18;
+    const disps = Object.values(disponibilidades);
+    if (disps.length > 0) {
+      disps.forEach((disp, idx) => {
+        if (disp.hora_inicio) {
+          const h = parseInt(disp.hora_inicio.split(':')[0]);
+          if (idx === 0 || h < minStart) minStart = h;
+        }
+        if (disp.hora_fin) {
+          const h = parseInt(disp.hora_fin.split(':')[0]);
+          if (idx === 0 || h > maxEnd) maxEnd = h;
+        }
+      });
+      calendarStartHour = minStart;
+      calendarEndHour = maxEnd;
+    }
+  }
+
+  const horasDia = [];
+  for (let h = calendarStartHour; h < calendarEndHour; h++) {
+    horasDia.push(h);
+  }
 
   const ejecucionesSemana = filtrarEjecucionesPorSemana(ejecuciones);
 
@@ -419,14 +622,14 @@ export default function TabEjecuciones() {
                             <span className="font-bold text-emerald-500 text-xs">{e.precioFinal}</span>
                             {e.estado === 'pendiente' ? (
                               <button 
-                                onClick={() => iniciarTrabajo(e.id)}
+                                onClick={() => iniciarTrabajo(e.originalId)}
                                 className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-white bg-primary/10 hover:bg-primary px-3 py-1.5 rounded transition-all cursor-pointer"
                               >
                                 <PlayCircle className="w-3.5 h-3.5" /> INICIAR
                               </button>
                             ) : (
                               <button 
-                                onClick={() => finalizarTrabajo(e.id)}
+                                onClick={() => finalizarTrabajo(e.originalId)}
                                 className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-white bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded transition-all cursor-pointer"
                               >
                                 <CheckCircle className="w-3.5 h-3.5" /> FINALIZAR
@@ -543,7 +746,7 @@ export default function TabEjecuciones() {
                       </div>
                       
                       {/* Columnas de los días */}
-                      <div className="flex-1 grid grid-cols-6 divide-x divide-gray-850/40 relative z-10">
+                      <div className="flex-1 grid grid-cols-6 divide-x divide-gray-850/40 relative z-10 h-full overflow-hidden">
                         {diasSemana.map((dia) => {
                           const tareasDelDia = ejecucionesSemana.filter(
                             e => (teamSeleccionado === 'Todos' || e.equipo === teamSeleccionado) && 
@@ -552,17 +755,17 @@ export default function TabEjecuciones() {
                           );
                           
                           return (
-                            <div key={dia.id} className="relative h-full">
+                            <div key={dia.id} className="relative h-full overflow-hidden">
                               {/* Citas de este día */}
                               {tareasDelDia.map((e) => {
                                 const colors = getTeamColorClass(e.equipo);
-                                const top = (e.horaNum - 8) * HOUR_HEIGHT;
+                                const top = (e.horaNum - calendarStartHour) * HOUR_HEIGHT;
                                 const height = e.duracionNum * HOUR_HEIGHT;
                                 
                                 return (
                                   <div
                                     key={e.id}
-                                    onClick={() => handleOpenFinalizar(e.id)}
+                                    onClick={() => handleOpenFinalizar(e.originalId)}
                                     className={`absolute left-1 right-1 rounded-xl p-2 border transition-all hover:scale-[1.01] hover:z-20 shadow-lg cursor-pointer flex flex-col justify-between ${colors.bg}`}
                                     style={{ top: `${top}px`, height: `${height - 4}px` }}
                                   >
@@ -587,7 +790,7 @@ export default function TabEjecuciones() {
                                         <div className="flex gap-1" onClick={(ev) => ev.stopPropagation()}>
                                           {e.estado === 'pendiente' ? (
                                             <button 
-                                              onClick={() => iniciarTrabajo(e.id)} 
+                                              onClick={() => iniciarTrabajo(e.originalId)} 
                                               className="p-1 bg-primary/20 hover:bg-primary text-primary hover:text-white rounded transition-colors cursor-pointer" 
                                               title="Iniciar Trabajo"
                                             >
@@ -595,7 +798,7 @@ export default function TabEjecuciones() {
                                             </button>
                                           ) : (
                                             <button 
-                                              onClick={() => handleOpenFinalizar(e.id)} 
+                                              onClick={() => handleOpenFinalizar(e.originalId)} 
                                               className="p-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded transition-colors cursor-pointer" 
                                               title="Finalizar Trabajo"
                                             >
@@ -626,7 +829,7 @@ export default function TabEjecuciones() {
       {/* MODAL DE FINALIZACIÓN DE TRABAJO */}
       {modalFinalizar && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative">
+          <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setModalFinalizar(null)}
               className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
@@ -656,6 +859,20 @@ export default function TabEjecuciones() {
                   onChange={(e) => setNotasFinalizacion(e.target.value)}
                   placeholder="Ej: Se realizó el cambio de pastillas de frenos y rectificado de discos. Se probó el frenado y responde de forma de manera óptima..."
                   className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
+                />
+              </div>
+
+              {/* Precio Final de Facturación */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Cobrado (S/.) *</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  required
+                  min="0"
+                  value={precioFinalizacion}
+                  onChange={(e) => setPrecioFinalizacion(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 

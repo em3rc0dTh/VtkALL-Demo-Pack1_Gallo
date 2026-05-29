@@ -168,8 +168,10 @@ router.post('/agendar', async (req, res) => {
       nombre_cliente,
       dni,
       servicio,
+      producto_id,
       vehiculo_marca,
       vehiculo_modelo,
+      vehiculo_patente,
       vehiculo_anio,
       fecha_cita,
       evaluation_type,
@@ -177,8 +179,8 @@ router.post('/agendar', async (req, res) => {
       _session_telefono
     } = req.body;
 
-    if (!numero_telefono || !nombre_cliente || !dni || !servicio || !fecha_cita) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    if (!numero_telefono || !nombre_cliente || !servicio || !fecha_cita || !vehiculo_marca || !vehiculo_modelo || !vehiculo_patente) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios (Teléfono, Nombre, Servicio, Fecha, Marca, Modelo y Placa son requeridos)' });
     }
 
     // Traducir evaluation_type (modality) a tipo_cita
@@ -193,11 +195,13 @@ router.post('/agendar', async (req, res) => {
     const resAgendamiento = await ejecutarTool('agendar_cita', {
       numero_telefono,
       nombre_cliente,
-      dni,
+      dni: dni || '',
       servicio,
+      producto_id,
       descripcion_trabajo: 'Cita agendada vía Calendario Interactivo Web',
       vehiculo_marca,
       vehiculo_modelo,
+      vehiculo_patente,
       vehiculo_anio: vehiculo_anio ? parseInt(vehiculo_anio) : undefined,
       fecha_cita,
       tipo_cita,
