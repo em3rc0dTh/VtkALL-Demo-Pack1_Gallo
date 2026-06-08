@@ -24,8 +24,8 @@ export default function Home() {
   // Activate scroll reveal after data is loaded (moved down)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+    if (typeof globalThis !== 'undefined' && globalThis.window) {
+      const params = new URLSearchParams(globalThis.window.location.search);
       const chatMsg = params.get('chat_msg');
       const openChatParam = params.get('open_chat');
       
@@ -36,8 +36,17 @@ export default function Home() {
       }
       
       if (chatMsg || openChatParam) {
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
+        const newUrl = globalThis.window.location.pathname;
+        globalThis.window.history.replaceState({}, '', newUrl);
+      }
+
+      const storedTaller = globalThis.window.localStorage.getItem('taller-config');
+      if (storedTaller) {
+        try {
+          setTaller(JSON.parse(storedTaller));
+        } catch (e) {
+          console.warn('No se pudo parsear taller-config desde localStorage', e);
+        }
       }
     }
   }, []);
@@ -66,6 +75,16 @@ export default function Home() {
     }
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    if (typeof globalThis !== 'undefined' && globalThis.window && taller?.nombre_taller) {
+      try {
+        globalThis.window.localStorage.setItem('taller-config', JSON.stringify(taller));
+      } catch (e) {
+        console.warn('No se pudo guardar taller-config en localStorage', e);
+      }
+    }
+  }, [taller]);
 
   useEffect(() => {
     if (taller?.nombre_taller) {

@@ -7,6 +7,7 @@ import { Menu, X, Shield } from 'lucide-react';
 export default function Navbar({ taller = {} }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [savedNombreTaller, setSavedNombreTaller] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +17,28 @@ export default function Navbar({ taller = {} }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem('taller-config');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.nombre_taller) {
+          setSavedNombreTaller(parsed.nombre_taller);
+        }
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar nombre_taller desde localStorage', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (taller?.nombre_taller) {
+      setSavedNombreTaller(taller.nombre_taller);
+    }
+  }, [taller]);
+
+  const nombreTaller = taller.nombre_taller || savedNombreTaller;
   const bloques = taller?.constructor_bloques || [];
   const isActive = (tipo) => {
     const bloque = bloques.find(b => b.tipo === tipo);
@@ -47,7 +70,7 @@ export default function Navbar({ taller = {} }) {
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Brand Brand */}
         <Link href="/#inicio" className="flex items-center group select-none">
-          <div className={`flex items-center justify-center w-28 h-10 md:w-36 md:h-14 p-1 rounded-xl md:rounded-2xl bg-white transition-all duration-300 group-hover:scale-105 flex-shrink-0 ${
+          <div className={`flex items-center justify-center w-32 h-16 md:w-36 md:h-14 p-1 rounded-xl md:rounded-2xl bg-white transition-all duration-300 group-hover:scale-105 flex-shrink-0 ${
             isScrolled
               ? 'shadow-md ring-2 ring-primary/45'
               : 'shadow-sm ring-1 ring-primary/20'
@@ -55,10 +78,11 @@ export default function Navbar({ taller = {} }) {
             <img
               src="/images/bateylate.png"
               alt="Bateylate"
-              className="w-full h-full object-contain"
+              className="w-24 h-24 mt-4 "
             />
           </div>
-          <div className="hidden md:block max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap">
+          {/* <div className="hidden md:block max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap"></div> */}
+          <div className="hidden md:block ml-3 whitespace-nowrap">
             <span className="text-xl font-bold tracking-tight text-navy">
               {taller.nombre_taller ? (
                 <>
