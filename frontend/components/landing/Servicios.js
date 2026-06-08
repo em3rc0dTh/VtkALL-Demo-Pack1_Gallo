@@ -98,7 +98,7 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
             viewport={{ once: true }}
             className="text-[11px] font-bold tracking-widest text-primary uppercase block mb-2"
           >
-            {conf.subtitulo || "SOLUCIONES PARA CADA NECESIDAD DE TU VEHÍCULO."}
+            {conf.subtitulo || "POSTRES PARA CADA MOMENTO ESPECIAL."}
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
@@ -186,7 +186,7 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
                   className="text-lg font-bold text-navy tracking-tight"
                   style={{ fontFamily: "'Readex Pro', sans-serif" }}
                 >
-                  ¿Cómo Reservar tu Box?
+                  {conf.reservaTitulo || '¿Cómo Reservar tu Box?'}
                 </h3>
               </div>
 
@@ -195,27 +195,27 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
                 <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
                   <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">1</span>
                   <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">Elige Especialidad</h4>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">{conf.paso1Titulo || 'Elige Especialidad'}</h4>
                     <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      Haz clic en cualquier tarjeta de servicio arriba para ver detalles.
+                      {conf.paso1Desc || 'Haz clic en cualquier tarjeta de servicio arriba para ver detalles.'}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
                   <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">2</span>
                   <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">{nombreAgente} Coordina tu Cita</h4>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">{conf.paso2Titulo || `${nombreAgente} Coordina tu Cita`}</h4>
                     <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      Atención al cliente consulta la agenda y te asigna el mejor horario.
+                      {conf.paso2Desc || 'Atención al cliente consulta la agenda y te asigna el mejor horario.'}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-row items-center gap-4 bg-white/50 border border-slate-200/40 rounded-2xl p-4 flex-1">
                   <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-black flex items-center justify-center shrink-0">3</span>
                   <div>
-                    <h4 className="text-xs font-bold text-navy mb-0.5">¡Listo! Box Reservado</h4>
+                    <h4 className="text-xs font-bold text-navy mb-0.5">{conf.paso3Titulo || '¡Listo! Box Reservado'}</h4>
                     <p className="text-[11px] text-[#54595F] font-light leading-relaxed">
-                      La cita queda agendada al instante en el sistema del taller.
+                      {conf.paso3Desc || 'La cita queda agendada al instante en el sistema del taller.'}
                     </p>
                   </div>
                 </div>
@@ -225,15 +225,15 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
               <div className="flex lg:hidden flex-row gap-2 w-full">
                 <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
                   <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">1</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">Elige Servicio</h4>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">{conf.paso1Mobile || 'Elige Servicio'}</h4>
                 </div>
                 <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
                   <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">2</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">{nombreAgente} Coordina</h4>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">{conf.paso2Mobile || `${nombreAgente} Coordina`}</h4>
                 </div>
                 <div className="flex flex-col items-center text-center gap-1.5 bg-white/50 border border-slate-200/40 rounded-2xl p-2.5 flex-1">
                   <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center shrink-0">3</span>
-                  <h4 className="text-[10px] font-bold text-navy leading-tight">Box Reservado</h4>
+                  <h4 className="text-[10px] font-bold text-navy leading-tight">{conf.paso3Mobile || 'Box Reservado'}</h4>
                 </div>
               </div>
             </div>
@@ -294,7 +294,13 @@ export default function Servicios({ servicios = [], onOpenChat, taller = {}, con
                 })}
               </div>
             </div>
-
+<div className="relative z-20 text-center mb-6">
+  <button>
+  <h1 className="text-sm font-bold text-primary tracking-widest uppercase block mb-0.5">
+    Visualiza nuestro catálogo!
+  </h1>
+  </button>
+</div>
             {/* Fila inferior - desplazamiento derecha */}
             <div
               className="hidden sm:block overflow-hidden carousel-fade-mask py-2"

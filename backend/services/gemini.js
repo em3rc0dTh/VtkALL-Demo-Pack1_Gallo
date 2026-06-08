@@ -6,6 +6,7 @@ import Cita from '../models/Cita.js';
 import Mensaje from '../models/Mensaje.js';
 import Producto from '../models/Producto.js';
 import { calcularSlots, formatearFechaEsp, formatearFechaHoraEsp } from '../utils/fechas.js';
+import { Connection, Client } from '@temporalio/client';
 
 // Inicializar cliente de Gemini si existe la API Key
 const apiKey = process.env.GEMINI_API_KEY || process.env.GCP_API_KEY;
@@ -69,11 +70,8 @@ const tools = [
           nombre_cliente:      { type: "string", description: "Nombre completo del cliente" },
           dni:                 { type: "string", description: "DNI (Documento Nacional de Identidad) del cliente (8 dígitos, opcional)" },
           servicio:            { type: "string", description: "Nombre del servicio a realizar" },
-          descripcion_trabajo: { type: "string", description: "Detalles del problema o lo que le pasa al auto" },
-          vehiculo_marca:      { type: "string", description: "Marca del vehículo (ej: Toyota)" },
-          vehiculo_modelo:     { type: "string", description: "Modelo del vehículo (ej: Yaris)" },
-          vehiculo_patente:    { type: "string", description: "Placa o patente del vehículo (ej: ABC-123)" },
-          vehiculo_anio:       { type: "integer", description: "Año del vehículo (ej: 2018)" },
+          descripcion_trabajo: { type: "string", description: "Detalles del requerimiento general" },
+          detalles_extra:      { type: "string", description: "Objeto JSON en formato string con todos los detalles adicionales específicos solicitados por el comercio (ej. temática, porciones, sabor, talla, modelo, etc.)" },
           fecha_cita:          { type: "string", description: "Fecha y hora en formato ISO 8601 (ej: 2026-05-20T10:00:00)" }
         },
         required: ["numero_telefono", "nombre_cliente", "servicio", "fecha_cita"]
@@ -167,10 +165,7 @@ export const ejecutarTool = async (nombre, args) => {
           servicio,
           producto_id,
           descripcion_trabajo,
-          vehiculo_marca,
-          vehiculo_modelo,
-          vehiculo_patente,
-          vehiculo_anio,
+          detalles_extra,
           fecha_cita,
           tipo_cita,
           imagenes,
@@ -209,41 +204,18 @@ export const ejecutarTool = async (nombre, args) => {
           if (nombre_cliente && !cliente.nombre) cliente.nombre = nombre_cliente;
         }
         
-        // Agregar vehículo si no existe en su perfil
-        const patenteLimpia = vehiculo_patente ? vehiculo_patente.trim().toUpperCase() : '';
-        if (patenteLimpia) {
-          const patenteExistente = await Cliente.findOne({
-            _id: { $ne: cliente._id },
-            'vehiculos.patente': patenteLimpia
-          });
-          if (patenteExistente) {
-            return { error: 'La placa ingresada ya está registrada en otro cliente' };
-          }
-
-          const yaTienePatente = cliente.vehiculos.some(v => v.patente === patenteLimpia);
-          if (!yaTienePatente) {
-            cliente.vehiculos.push({
-              marca: vehiculo_marca || 'Genérica',
-              modelo: vehiculo_modelo || 'Vehículo',
-              anio: vehiculo_anio,
-              patente: patenteLimpia
-            });
-          }
-        } else if (vehiculo_marca) {
-          const yaExiste = cliente.vehiculos.some(v => 
-            v.marca?.toLowerCase() === vehiculo_marca.toLowerCase() &&
-            v.modelo?.toLowerCase() === vehiculo_modelo?.toLowerCase()
-          );
-          if (!yaExiste) {
-            cliente.vehiculos.push({
-              marca: vehiculo_marca,
-              modelo: vehiculo_modelo,
-              anio: vehiculo_anio,
-              patente: ''
-            });
+        // Parsear detalles extra si es posible
+        let parsedDetalles = {};
+        if (detalles_extra) {
+          try {
+            parsedDetalles = JSON.parse(detalles_extra);
+          } catch (e) {
+            parsedDetalles = { info_adicional: detalles_extra };
           }
         }
-        
+
+        // Actualizar detalles_extra del cliente
+        cliente.detalles_extra = { ...cliente.detalles_extra, ...parsedDetalles };
         cliente.total_citas += 1;
         await cliente.save();
 
@@ -254,14 +226,9 @@ export const ejecutarTool = async (nombre, args) => {
           nombre_cliente,
           servicio,
           descripcion_trabajo: descripcion_trabajo || '',
-          vehiculo: {
-            marca: vehiculo_marca || '',
-            modelo: vehiculo_modelo || '',
-            anio: vehiculo_anio || null,
-            patente: patenteLimpia
-          },
+          detalles_reserva: parsedDetalles,
           fecha_cita: fechaCitaDate,
-          estado: 'pendiente', // Pendiente de validación de admin por defecto
+          estado: 'revision_maestro', // Pendiente de validación del pastelero
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
           precio_estimado: 0,
           tipo_cita: tipo_cita || 'Evaluación Presencial',
@@ -295,6 +262,32 @@ export const ejecutarTool = async (nombre, args) => {
 
         await nuevaCita.save();
         
+        // Iniciar Workflow Temporal
+        try {
+          const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS || 'localhost:7233' });
+          const client = new Client({ connection });
+          
+          const descripcionParaPastelero = [
+            `Servicio: ${servicio}`,
+            `Detalles: ${descripcion_trabajo}`,
+            `Requerimientos Extra: ${JSON.stringify(parsedDetalles)}`
+          ].join('\n');
+
+          await client.workflow.start('pastryOrderWorkflow', {
+            taskQueue: 'pasteleria-pedidos',
+            workflowId: `pedido-${nuevaCita._id}`,
+            args: [{
+              pedidoId: nuevaCita._id.toString(),
+              numeroWhatsApp: numero_telefono,
+              clienteNombre: nombre_cliente,
+              descripcionInicial: descripcionParaPastelero
+            }]
+          });
+          console.log(`✅ [Temporal] Workflow pastryOrderWorkflow iniciado para cita ${nuevaCita._id}`);
+        } catch (temporalErr) {
+          console.error('❌ Error al iniciar Workflow Temporal desde gemini.js:', temporalErr);
+        }
+
         return {
           ok: true,
           mensaje: 'Cita agendada con éxito',
@@ -758,23 +751,32 @@ const llamarCompletionsConFallback = async (openaiClient, params) => {
 };
 
 // CORE AGENT PROCESSOR
-export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
+export const procesarMensajeIA = async (numero_telefono, mensaje_usuario, adjuntos_nuevos = []) => {
   const msgClean = mensaje_usuario.toLowerCase().trim();
   const esConfirmacion = ['sí', 'si', 'confirmar', 'confirmo', 'correcto', 'ok', 'dale', 'afirmativo'].includes(msgClean) || msgClean === 'si' || msgClean === 'sí' || msgClean.startsWith('si ') || msgClean.startsWith('sí ') || msgClean.includes('confirmar') || msgClean.includes('confirmada') || msgClean.includes('confirmado');
   const esCancelacion = ['no', 'cancelar', 'cancelo', 'rechazar', 'no iré', 'no ire', 'negativo'].includes(msgClean) || msgClean === 'no' || msgClean.startsWith('no ') || msgClean.includes('cancelar') || msgClean.includes('cancela') || msgClean.includes('cancelo');
 
   if (esConfirmacion || esCancelacion) {
+    const numClean = numero_telefono.trim().replace(/[^0-9]/g, '');
+    let numPeruano = numClean;
+    if (numClean.length === 11 && numClean.startsWith('51')) {
+      numPeruano = numClean.substring(2);
+    }
+
     // Buscar si hay una cita activa que tenga recordatorio enviado y confirmación pendiente
     const citaRecordatorio = await Cita.findOne({
-      numero_telefono: numero_telefono.trim(),
+      numero_telefono: { $in: [numero_telefono.trim(), numClean, numPeruano, '51' + numPeruano] },
       recordatorio_enviado: true,
       estado_confirmacion: 'pendiente',
-      estado: 'confirmada'
+      estado: { $in: ['confirmada', 'pendiente_confirmacion'] }
     }).sort({ fecha_cita: 1 });
 
     if (citaRecordatorio) {
       if (esConfirmacion) {
         citaRecordatorio.estado_confirmacion = 'confirmada_cliente';
+        if (citaRecordatorio.estado === 'pendiente_confirmacion') {
+          citaRecordatorio.estado = 'confirmada';
+        }
         await citaRecordatorio.save();
         return `¡Muchas gracias! He revalidado tu cita para ${citaRecordatorio.servicio} el día ${formatearFechaHoraEsp(citaRecordatorio.fecha_cita)}. ¡Te esperamos en el taller! 🚗🔧`;
       } else {
@@ -810,57 +812,52 @@ export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
     return await agenteSimulado(mensaje_usuario, numero_telefono);
   }
 
-  const systemPrompt = `Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
+  const camposRequeridosStr = (taller && taller.campos_dinamicos_reserva) 
+    ? taller.campos_dinamicos_reserva.join(', ') 
+    : 'los datos necesarios';
+
+  const fechaActual = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const systemPrompt = `Eres ${nombreAgente}, asistente virtual de ${nombreTaller}. Eres humana, amable, cálida y tratas a los clientes como amigos ("cutie"). NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
+HOY ES: ${fechaActual} (Hora de Perú). Úsalo como referencia estricta para agendar citas.
 
 TU ROL ES:
- - Responder preguntas sobre el taller, servicios, horarios y ubicación.
-- Ayudar a los clientes a agendar, consultar, confirmar y cancelar citas.
-- Ser cálido, conciso y profesional.
-- Usar español latinoamericano (Perú). Evita hablar con modismos o acentos argentinos (no uses voseo como "decime", "querés", "preferís", "escribime"). Usa formas como "dime", "quieres", "prefieres", "escríbeme".
-- Usar la moneda oficial de Perú, que es el Sol (S/.).
-- Usar emojis moderadamente 🔧.
-- REGLA DE EVITAR CHATS LARGOS Y FOMENTAR LA INTERACCIÓN: Para mantener la conversación fluida y evitar mensajes ineficientemente largos en el chat, NUNCA listes todos los servicios, descripciones y precios a la vez.
-  - Si te preguntan de forma general por el catálogo, precios o qué servicios ofrecen, menciona como máximo 3 especialidades y pídele al usuario dirigirse a la sección en pantalla usando el enlace Markdown: [Nuestras Especialidades](#servicios). Explícale que al hacer clic en cualquiera de las tarjetas de especialidad, se abrirá un modal interactivo con el detalle completo de sub-servicios y precios.
-  - Si te preguntan por un servicio específico (ej. planchado y pintura, detailing, cambio de aceite, etc.) de manera general (es decir, sin indicar intención de agendar), responde de manera muy natural y conversacional: describe brevemente el servicio con empatía, menciona los productos/sub-servicios específicos que incluye (ej. para planchado y pintura, menciona Planchado Básico y Planchado Especial) y plantéale de inmediato una pregunta de diagnóstico interactiva y empática. Invítalo también a hacer clic en su tarjeta dentro de [Nuestras Especialidades](#servicios) para ver todos los precios y opciones.
-  - SIEMPRE que indiques dirigirse a la sección en pantalla para consultas generales, recuérdale explícitamente al cliente: "Una vez que revises la información en la pantalla, recuerda volver a este chat para continuar con tu reserva o hacerme más preguntas."
-  - REGLA DE RESERVAS DIRECTAS (SIN REDUNDANCIAS): Si el cliente ya viene con la intención directa de agendar o ya seleccionó un servicio/producto específico (por ejemplo, si su mensaje dice "Hola, me interesa agendar una cita para..." o menciona un paquete de reserva como "Afinamiento Menor"), él ya conoce la información de precios y detalles. NUNCA le digas que puede ver los detalles en la sección de especialidades ni le envíes el link '#servicios'. Simplemente valida su elección con entusiasmo (ej: "¡Qué excelente elección! Es fantástico que te preocupes por el mantenimiento preventivo de tu auto..."), hazle directamente la pregunta diagnóstica de seguimiento si aplica (ej: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último afinamiento?"), e inicia directamente el flujo para recopilar sus datos o guiarlo a abrir el calendario para concretar la reserva.
+- Responder preguntas sobre nuestro catálogo, servicios, horarios y ubicación de ${nombreTaller}.
+- Ayudar a los clientes a agendar, consultar, confirmar y cancelar reservas.
+- Ser cálido, usar lenguaje dulce, empático y usar emojis tiernos como ✨, 💕, 🎂, 🍰.
+- Usar español latinoamericano (Perú) y la moneda oficial de Perú, que es el Sol (S/.).
+- Si el cliente envía una imagen (foto de referencia), **ANALIZA** visualmente la imagen (qué colores tiene, qué temática es, si tiene pisos, cómo es la decoración) y coméntalo con entusiasmo ("¡Qué hermosa idea! Veo que es una torta de dos pisos con flores..."). Úsala como base para cotizar y asesorar.
+- REGLA DE EVITAR CHATS LARGOS: No listes todos los servicios a la vez. Sugiere un par de opciones y diles que pueden ver más detalles en la sección de [Nuestros Productos](#servicios) en la página.
 
-DIÁLOGO DE DIAGNÓSTICO Y CONVERSACIÓN:
-- Entabla una conversación corta e interactiva cuando el cliente mencione un problema o mantenimiento.
-- Por ejemplo, si te dicen "necesito cambio de aceite" o "revisar frenos", haz una pregunta corta de seguimiento útil antes de agendar, como: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último cambio de aceite?" o "¿Sientes algún ruido o vibración al frenar?".
-- Si el cliente no sabe qué responder o decides concluir las preguntas de diagnóstico, debes preguntarle: "¿Deseas reservar una cita para realizar el servicio en el taller?".
+DIÁLOGO DE DIAGNÓSTICO Y COTIZACIÓN:
+- Entabla una conversación corta e interactiva cuando el cliente pregunte por un pedido.
+- Ej: "¿Qué tipo de masa prefieres para este diseño?" o "¿Para cuántas personas será la celebración?".
+- Analiza imágenes para deducir complejidad y da un precio base estimado o sugiere un producto de nuestro catálogo que se adapte.
 
-FLUJO DE CALENDARIO INTERACTIVO (REGLA CRÍTICA):
-- Cuando ofrezcas agendar/reservar una cita y el cliente te responda de manera afirmativa ("sí", "dale", "me gustaría", "quiero", etc.), debes preguntarle exactamente:
-  "¿Me permites abrirte un calendario para mostrarte las citas o las horas disponibles que tenga?"
-- Si el cliente responde afirmativamente a esta pregunta ("sí", "por favor", "dale", etc.), debes responder con un mensaje amigable que termine incluyendo EXACTAMENTE la etiqueta "[ABRIR_CALENDARIO]" al final del texto. Por ejemplo: "¡Excelente! Te abro el calendario para que elijas tu turno: [ABRIR_CALENDARIO]" o "Perfecto, aquí tienes el calendario para elegir: [ABRIR_CALENDARIO]".
-- Si el cliente responde que no o prefiere no usar el calendario ("no", "prefiero escribir", "no abras nada", etc.), debes decirle amablemente: "De acuerdo. Por favor, introduce la fecha en el siguiente formato: AAAA-MM-DD (ej: 2026-05-25) y la hora deseada (ej: 11:00)." y continuar con la recopilación manual de datos por chat.
+REGLA CRÍTICA DE WHATSAPP:
+- JAMÁS cierres una venta ni agendes sin antes pedirle amablemente su número de WhatsApp. "Para enviarte la cotización formal validada por nuestro Maestro Pastelero, ¿me podrías brindar tu número de WhatsApp?"
+- Si el cliente te da el WhatsApp y ya tienes su idea/fecha, procede inmediatamente a usar 'agendar_cita' para enviarlo a revisión del Maestro.
 
-DATOS PARA AGENDAR UNA CITA:
-- Para confirmar y agendar la cita, necesitas obligatoriamente los siguientes datos mínimos:
+DATOS PARA AGENDAR UNA CITA/RESERVA:
+- Para confirmar y agendar en el sistema, necesitas obligatoriamente los siguientes datos:
   1. Nombre completo del cliente
-  2. Placa o patente del vehículo (¡MUY IMPORTANTE!)
-  3. Número de teléfono real (para podernos comunicar con ellos)
-  4. Marca, modelo y año del vehículo
-  5. Fecha y hora preferida (siempre valida disponibilidad antes con 'consultar_disponibilidad')
-  6. Servicio o motivo de la cita
-  * Nota: El DNI (Documento Nacional de Identidad) es opcional. Si el cliente lo brinda, puedes guardarlo, pero no lo exijas de forma obligatoria para agendar.
+  2. Número de teléfono real
+  3. Fecha y hora preferida (valida disponibilidad antes con 'consultar_disponibilidad')
+  4. Servicio o Producto deseado
+  5. DETALLES EXTRA REQUERIDOS: Debes extraer obligatoriamente los siguientes datos según la configuración del comercio: **${camposRequeridosStr}**. Recopílalos y envíalos en formato JSON dentro del campo \`detalles_extra\` al llamar la función \`agendar_cita\`.
 
 DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 - El identificador actual de la sesión del cliente es: ${numero_telefono}.
-- Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real para completar la reserva (el DNI es opcional).
-- Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro.
+- Si el identificador actual empieza con 'web_', significa que el cliente chatea desde el sitio web anónimamente. Pídele su número de teléfono celular real para completar la reserva (DNI es opcional).
+- Si el identificador NO empieza con 'web_', puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto.
 
 REGLAS IMPORTANTES:
-- Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).
-- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y la placa/patente).
-- Al agendar la cita con 'agendar_cita', aclara al cliente que su cita queda registrada como **pendiente de confirmación** y que el administrador la validará pronto.
-- Nunca inventes precios, fechas ni datos que no tengas.
-- Si el cliente pregunta algo que no puedes resolver, ofrece: "¿Quieres que te contacte alguien de nuestro equipo directamente?"
-- Si el cliente está enojado: reconoce el inconveniente, sé empático y ofrece una solución concreta.
-- Si el cliente cancela, usa la tool 'cancelar_cita' con el id correspondiente.
-- Si el cliente confirma su asistencia (a raíz de un recordatorio o pregunta), usa la tool 'confirmar_cita' con el id correspondiente.
-- Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.`;
+- Usa Markdown básico (negritas, viñetas).
+- NUNCA confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo \`detalles_extra\` con los datos: ${camposRequeridosStr}).
+- Al agendar, aclara al cliente que su pedido queda en **evaluación por el maestro pastelero**. No prometas que la reserva o el precio es final hasta que el pastelero lo apruebe.
+- Si recibes un mensaje que comienza con "INSTRUCCIÓN INTERNA:", significa que es un mensaje del sistema/pastelero. Tu labor es reescribir ese feedback de manera extremadamente cálida, amigable (como si se lo contaras a una amiga) y enviárselo al cliente para negociar y buscar su aprobación final.
+- Si el cliente cancela, usa 'cancelar_cita'.
+- Si piden horarios libres, usa 'consultar_disponibilidad'.`;
 
   try {
     // 1. Obtener historial de mensajes de DB (últimos 20)
@@ -871,17 +868,37 @@ REGLAS IMPORTANTES:
     // Invertir para que quede en orden cronológico
     historialDB.reverse();
     
-    const historial = historialDB.map(m => ({
-      role: m.remitente === 'cliente' ? 'user' : 'assistant',
-      content: m.contenido
-    }));
+    const historial = historialDB.map(m => {
+      if (m.adjuntos && m.adjuntos.length > 0) {
+        const contentArray = [{ type: 'text', text: m.contenido }];
+        m.adjuntos.forEach(adj => {
+          contentArray.push({ type: 'image_url', image_url: { url: adj } });
+        });
+        return {
+          role: m.remitente === 'cliente' ? 'user' : 'assistant',
+          content: contentArray
+        };
+      }
+      return {
+        role: m.remitente === 'cliente' ? 'user' : 'assistant',
+        content: m.contenido
+      };
+    });
+
+    let currentUserContent = mensaje_usuario;
+    if (adjuntos_nuevos && adjuntos_nuevos.length > 0) {
+      currentUserContent = [{ type: 'text', text: mensaje_usuario }];
+      adjuntos_nuevos.forEach(adj => {
+        currentUserContent.push({ type: 'image_url', image_url: { url: adj } });
+      });
+    }
 
     // 2. Primera llamada a Gemini con fallback de modelos
     const respuesta = await llamarCompletionsConFallback(geminiClient, {
       messages: [
         { role: "system", content: systemPrompt },
         ...historial,
-        { role: "user", content: mensaje_usuario }
+        { role: "user", content: currentUserContent }
       ],
       tools: tools,
       tool_choice: "auto"
@@ -925,7 +942,7 @@ REGLAS IMPORTANTES:
           messages: [
             { role: "system", content: systemPrompt },
             ...historial,
-            { role: "user", content: mensaje_usuario },
+            { role: "user", content: currentUserContent },
             choice.message,
             ...resultadosTools
           ]

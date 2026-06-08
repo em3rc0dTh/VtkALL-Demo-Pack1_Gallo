@@ -15,7 +15,7 @@ export default function ComoFunciona({ taller = {} }) {
     {
       num: '02',
       titulo: `${nombreAgente} Coordina tu Cita`,
-      desc: 'Nuestra IA consulta la agenda en tiempo real, te solicita los datos de tu vehículo y reserva el mejor horario.',
+      desc: 'Nuestra IA consulta la agenda en tiempo real, te solicita los detalles de tu pedido y reserva tu entrega o recojo.',
       icono: Calendar,
       delay: 'delay-3',
     },

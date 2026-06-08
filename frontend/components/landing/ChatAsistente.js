@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Wrench, Calendar, Clock, User, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Wrench, Calendar, Clock, User, ChevronLeft, ChevronRight, Minimize2, Paperclip } from 'lucide-react';
 import { api } from '../../lib/api.js';
 import BookingFlow from './BookingFlow';
 
@@ -12,6 +12,8 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
   const [mensajes, setMensajes] = useState([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [escribiendo, setEscribiendo] = useState(false);
+  const [imagenesAdjuntas, setImagenesAdjuntas] = useState([]);
+  const fileInputRef = useRef(null);
 
   // Client info loaded from DB
   const [clienteData, setClienteData] = useState({
@@ -147,25 +149,52 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensajes, escribiendo]);
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (imagenesAdjuntas.length + files.length > 2) {
+      alert('Puedes adjuntar máximo 2 imágenes por mensaje.');
+      return;
+    }
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagenesAdjuntas(prev => [...prev, event.target.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = null; // reset
+  };
+
+  const removeAdjunto = (index) => {
+    setImagenesAdjuntas(prev => prev.filter((_, i) => i !== index));
+  };
+
   const enviarMensaje = async (textoOverride = '') => {
     const texto = (textoOverride || nuevoMensaje).trim();
-    if (!texto) return;
+    if (!texto && imagenesAdjuntas.length === 0) return;
 
     if (!textoOverride) setNuevoMensaje('');
+    
+    const adjuntosToSend = [...imagenesAdjuntas];
+    setImagenesAdjuntas([]);
 
     const temporalId = `cliente-${Date.now()}`;
     const nuevoMsgCliente = {
       _id: temporalId,
       remitente: 'cliente',
-      contenido: texto,
-      recibido_en: new Date().toISOString()
+      contenido: texto || '📷 Imagen adjunta',
+      recibido_en: new Date().toISOString(),
+      adjuntos: adjuntosToSend
     };
 
     setMensajes(prev => [...prev, nuevoMsgCliente]);
     setEscribiendo(true);
 
     try {
-      const res = await api.enviarMensajeSimulado(telefono, texto);
+      const res = await api.enviarMensajeSimulado(telefono, texto || 'Analiza esta imagen', adjuntosToSend);
       if (res && res.ok && res.respuesta) {
         const containsTrigger = res.respuesta.includes('[ABRIR_CALENDARIO]');
         const cleanRespuesta = res.respuesta.replace('[ABRIR_CALENDARIO]', '').trim();
@@ -573,6 +602,13 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
                     ? 'bg-primary text-white rounded-br-none'
                     : 'bg-white text-slate-800 border border-slate-200/60 rounded-bl-none shadow-sm'
                 }`}>
+                  {m.adjuntos && m.adjuntos.length > 0 && (
+                    <div className="flex gap-2 mb-2 overflow-x-auto">
+                      {m.adjuntos.map((adj, i) => (
+                        <img key={i} src={adj} alt="adjunto" className="w-24 h-24 object-cover rounded-lg border border-white/20 shadow-sm" />
+                      ))}
+                    </div>
+                  )}
                   <div className="whitespace-pre-wrap">{formatMarkdown(m.contenido)}</div>
                   <span className={`block text-[8px] text-right mt-1.5 ${
                     m.remitente === 'cliente' ? 'text-blue-200' : 'text-[#7A7A7A]'
@@ -616,21 +652,39 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
           </div>
 
           {/* Input */}
-          <div className="p-3 bg-light-panel border-t border-gray-200 flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Escribe un mensaje..."
-              value={nuevoMensaje}
-              onChange={(e) => setNuevoMensaje(e.target.value)}
-              onKeyDown={handleKeyPress}
-              className="flex-1 bg-white border border-gray-200 text-slate-800 rounded-xl px-4 py-2.5 text-xs focus:ring-1 focus:ring-primary outline-none shadow-sm"
-            />
-            <button
-              onClick={() => enviarMensaje()}
-              className="p-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <Send className="w-4 h-4 fill-current" />
-            </button>
+          <div className="bg-light-panel border-t border-gray-200 flex flex-col">
+            {imagenesAdjuntas.length > 0 && (
+              <div className="flex gap-2 p-2 border-b border-gray-100 overflow-x-auto bg-white/50">
+                {imagenesAdjuntas.map((adj, idx) => (
+                  <div key={idx} className="relative inline-block shrink-0">
+                    <img src={adj} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-primary/20 shadow-sm" />
+                    <button onClick={() => removeAdjunto(idx)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:scale-110 transition-transform">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="p-3 flex items-center gap-2">
+              <input type="file" accept="image/*" multiple ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+              <button onClick={() => fileInputRef.current?.click()} className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors cursor-pointer" title="Adjuntar foto">
+                <Paperclip className="w-5 h-5" />
+              </button>
+              <input
+                type="text"
+                placeholder="Escribe un mensaje..."
+                value={nuevoMensaje}
+                onChange={(e) => setNuevoMensaje(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="flex-1 bg-white border border-gray-200 text-slate-800 rounded-xl px-4 py-2.5 text-xs focus:ring-1 focus:ring-primary outline-none shadow-sm min-w-0"
+              />
+              <button
+                onClick={() => enviarMensaje()}
+                className="p-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              >
+                <Send className="w-4 h-4 fill-current" />
+              </button>
+            </div>
           </div>
 
         </div>

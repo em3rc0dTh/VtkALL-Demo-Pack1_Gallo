@@ -11,23 +11,25 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
   const urlFondo = taller.url_fondo || "/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4";
   const isVideo = /\.(mp4|webm|ogg)($|\?)/i.test(urlFondo) || urlFondo.includes('/videos/') || urlFondo.startsWith('data:video/');
   
-  const promosActivas = (taller.promociones || []).filter(p => p.activo);
-  const listadoPromos = promosActivas.length > 0 ? promosActivas : [
+  const fallbackPromos = [
     {
-      titulo: 'Cambio de Aceite + Diagnóstico Gratis',
-      descripcion: 'Agenda tu cambio de aceite con nosotros este mes y recibe un escaneo computarizado de sensores OBD-II completamente gratis.',
+      titulo: 'Promo del Mes: Box Degustación',
+      descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
       etiqueta: 'PROMO DEL MES',
-      mensaje_chat: 'Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis',
+      mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
       color_fondo: 'primary'
     },
     {
-      titulo: 'Especial Black Friday: 20% OFF',
-      descripcion: 'Consigue un acabado impecable de fábrica con un 20% de descuento en trabajos completos de planchado y pintura automotriz al horno.',
-      etiqueta: 'EDICIÓN LIMITADA',
-      mensaje_chat: 'Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura',
+      titulo: 'Especial Eventos: 15% OFF',
+      descripcion: 'Reserva la mesa de dulces para tu evento con un mes de anticipación y obtén 15% de descuento.',
+      etiqueta: 'ESPECIAL EVENTOS',
+      mensaje_chat: 'Hola, quiero el descuento del 15% para mi evento',
       color_fondo: 'navy'
     }
   ];
+  
+  const listadoRaw = taller.promociones !== undefined ? taller.promociones : fallbackPromos;
+  const listadoPromos = listadoRaw.filter(p => p.activo);
 
   // Dynamic values from builder conf
   const tituloPrincipalRaw = conf.tituloPrincipal || 'Precisión de Alto Rendimiento.';
@@ -35,7 +37,7 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
   const lastWord = words.length > 0 ? words[words.length - 1] : '';
   const restOfWords = words.length > 1 ? words.slice(0, -1).join(' ') : '';
 
-  const subtituloRaw = conf.subtitulo || 'El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por {nombreAgente}, nuestro equipo de reservas.';
+  const subtituloRaw = conf.subtitulo || 'Los postres más deliciosos que mereces, asistidos las 24 horas por {nombreAgente}, nuestro equipo de atención.';
   const subtituloText = subtituloRaw.replace(/{nombreAgente}/g, nombreAgente);
 
   const textoBotonRaw = conf.textoBoton || 'AGENDAR CON {nombreAgente}';
@@ -138,9 +140,9 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
           className="absolute bottom-[200px] translate-y-[-25px] lg:translate-y-[70px] lg:bottom-[-80px] left-0 right-0 lg:inset-0 h-[52%] lg:h-full w-full object-cover object-top lg:object-right-bottom pointer-events-none z-[1]"
           style={{
             filter: 'brightness(1.05) saturate(1.15)',
-            maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 50%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 50%, transparent 100%)',
-            opacity: 0.55,
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 70%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 70%, transparent 100%)',
+            opacity: 0.65,
           }}
           src={urlFondo}
         />

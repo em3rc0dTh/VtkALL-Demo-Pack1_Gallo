@@ -120,6 +120,13 @@ export default function TabEvaluaciones() {
   useEffect(() => {
     cargarEvaluaciones();
     cargarTeams();
+
+    // Poll for updates every 8 seconds to automatically sync the Kanban board status
+    const interval = setInterval(() => {
+      cargarEvaluaciones();
+    }, 8000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleOpenEditar = (e) => {
@@ -333,9 +340,9 @@ export default function TabEvaluaciones() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <CalendarRange className="w-4 h-4 text-primary" /> Evaluaciones y Filtro de Leads
+            <CalendarRange className="w-4 h-4 text-primary" /> Cotizaciones y Filtro de Leads
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Valida intenciones de cita, espera confirmación y ejecuta la evaluación para poder tasar el trabajo.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Valida intenciones de pedido, espera confirmación y envía cotizaciones para empezar a hornear.</p>
         </div>
         
         {/* Toggle Vistas y Botón Nuevo Ingreso */}
@@ -405,7 +412,7 @@ export default function TabEvaluaciones() {
                   <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
                   <span className="block text-[9px] text-blue-400">{e.fecha}</span>
                   <div className="mt-2 hidden group-hover:flex justify-end gap-1">
-                     <button onClick={() => cambiarEstado(e.id, 'pendiente_confirmacion')} className="text-[8px] bg-gray-800 text-gray-400 px-2 py-1 rounded cursor-pointer">Simular Envío WP</button>
+                      <button onClick={() => cambiarEstado(e.id, 'pendiente_confirmacion')} className="text-[8px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-1 rounded cursor-pointer font-semibold transition-colors">Enviar Confirmación WP</button>
                   </div>
                 </div>
               ))}
@@ -446,7 +453,7 @@ export default function TabEvaluaciones() {
                   <span className="block text-[9px] text-blue-400">{e.fecha}</span>
                   <div className="mt-2 pt-2 border-t border-gray-800">
                     <button onClick={() => cambiarEstado(e.id, 'evaluacion_en_curso')} className="w-full text-[9px] bg-gray-800 hover:bg-gray-700 text-white py-1.5 rounded cursor-pointer font-bold uppercase tracking-wide">
-                      INICIAR EVALUACIÓN ➔
+                      INICIAR COTIZACIÓN ➔
                     </button>
                   </div>
                 </div>
@@ -457,7 +464,7 @@ export default function TabEvaluaciones() {
           {/* Columna 5: Evaluación en Curso */}
           <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5"><Wrench className="w-3.5 h-3.5"/> 5. Eval. En Curso</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5"><Wrench className="w-3.5 h-3.5"/> 5. Cotizando</span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'evaluacion_en_curso').map(e => (
@@ -570,7 +577,7 @@ export default function TabEvaluaciones() {
                 <Car className="w-5 h-5 text-primary" /> Ingreso Manual de Taller
               </h2>
               <p className="text-xs text-gray-500 mt-1">
-                Registra un cliente que ha llegado físicamente (Walk-in) sin cita previa. El vehículo pasará directamente a Evaluación en Curso.
+                Registra un cliente que ha llegado físicamente (Walk-in) sin cita previa. El pedido pasará directamente a Evaluación en Curso.
               </p>
             </div>
 
@@ -642,7 +649,7 @@ export default function TabEvaluaciones() {
                   <Wrench className="w-5 h-5 text-primary" /> Diagnóstico y Presupuesto
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  La evaluación ha finalizado. Asigna el trabajo a un Team, define el precio y estima el tiempo necesario.
+                  La cotización está lista. Asigna el trabajo a un pastelero, define el precio final y estima el tiempo necesario.
                 </p>
               </div>
 
@@ -728,7 +735,7 @@ export default function TabEvaluaciones() {
 
                 {/* Evidencia Fotográfica */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Evidencias (Fotos del vehículo)</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Evidencias (Fotos de referencia)</label>
                   <div className="grid grid-cols-4 gap-3">
                     <label className="aspect-square bg-gray-950 border-2 border-dashed border-gray-850 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-colors cursor-pointer">
                       <UploadCloud className="w-6 h-6 mb-1" />
@@ -763,7 +770,7 @@ export default function TabEvaluaciones() {
                     Cancelar
                   </button>
                   <button type="submit" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-btn-primary hover:shadow-btn-primary-hover transition-all">
-                    ENVIAR A EJECUCIÓN <Send className="w-3 h-3" />
+                    ENVIAR A PRODUCCIÓN <Send className="w-3 h-3" />
                   </button>
                 </div>
 
@@ -789,7 +796,7 @@ export default function TabEvaluaciones() {
                 <FileText className="w-5 h-5 text-primary" /> Editar Detalles de la Cita / Lead
               </h2>
               <p className="text-xs text-gray-400 mt-1">
-                Modifica el estado en el embudo, la información del cliente, fecha del turno o los datos del vehículo.
+                Modifica el estado en el embudo, la información del cliente, fecha del turno o los datos del pedido.
               </p>
             </div>
 
@@ -861,9 +868,9 @@ export default function TabEvaluaciones() {
                 </div>
               </div>
 
-              {/* Grid 3: Vehículo (Marca, Modelo, Patente) */}
+              {/* Grid 3: Pedido (Detalles) */}
               <div className="bg-gray-950/40 border border-gray-800 rounded-2xl p-4 space-y-3">
-                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Datos del Vehículo</span>
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Datos del Pedido</span>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-gray-500 uppercase">Marca</label>

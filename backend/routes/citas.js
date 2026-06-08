@@ -3,6 +3,10 @@ import Cita from '../models/Cita.js';
 import Cliente from '../models/Cliente.js';
 import Taller from '../models/Taller.js';
 import { protegerRuta, soloAdmin } from '../middleware/auth.js';
+import { enviarMensajeWhatsApp } from '../services/twilio.js';
+import Mensaje from '../models/Mensaje.js';
+import { formatearFechaHoraEsp } from '../utils/fechas.js';
+import { procesarMensajeIA } from '../services/gemini.js';
 
 const router = express.Router();
 
@@ -363,6 +367,37 @@ router.put('/:id', protegerRuta, async (req, res) => {
       }
     }
 
+    // Si pasa de cualquier estado a 'pendiente_confirmacion', enviar un mensaje real por WhatsApp!
+    if (cita.estado === 'pendiente_confirmacion' && estadoAnterior !== 'pendiente_confirmacion') {
+      try {
+        const taller = await Taller.findOne() || { nombre_taller: 'MecánicaPro' };
+        const nombreTaller = taller.nombre_taller;
+        const fechaFormateada = formatearFechaHoraEsp(cita.fecha_cita);
+        const mensaje = `Hola ${cita.nombre_cliente}, te contactamos de ${nombreTaller}. Tu solicitud de cita para ${cita.servicio} el día ${fechaFormateada} ha sido validada. ¿Confirmas tu asistencia? Por favor, responde SÍ para confirmar o NO para cancelar. 🔧`;
+        
+        // Enviar WhatsApp real
+        await enviarMensajeWhatsApp(cita.numero_telefono, mensaje);
+        
+        // Guardar en el historial
+        const msgHistorial = new Mensaje({
+          numero_telefono: cita.numero_telefono,
+          nombre_cliente: cita.nombre_cliente,
+          contenido: mensaje,
+          remitente: 'asistente'
+        });
+        await msgHistorial.save();
+        
+        // Marcar recordatorio como enviado para evitar que el cron lo duplique
+        cita.recordatorio_enviado = true;
+        cita.fecha_recordatorio = new Date();
+        cita.estado_confirmacion = 'pendiente';
+        
+        console.log(`[Notificación] Mensaje de confirmación de cita enviado a ${cita.nombre_cliente} (${cita.numero_telefono})`);
+      } catch (err) {
+        console.error('Error al enviar notificación de confirmación de cita por WhatsApp:', err);
+      }
+    }
+
     await cita.save();
     res.json({ ok: true, cita });
   } catch (error) {
@@ -389,6 +424,65 @@ router.delete('/:id', protegerRuta, soloAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error al eliminar cita:', error);
     res.status(500).json({ error: 'Error al eliminar la cita' });
+  }
+});
+
+// POST /api/citas/:id/feedback-maestro
+router.post('/:id/feedback-maestro', protegerRuta, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notas_pastelero, precio_propuesto, imagen_contrapropuesta } = req.body;
+
+    const cita = await Cita.findById(id);
+    if (!cita) {
+      return res.status(404).json({ error: 'No se encontró la cita' });
+    }
+
+    // Actualizar la cita
+    cita.estado = 'esperando_cliente';
+    cita.precio_estimado = precio_propuesto || cita.precio_estimado;
+    cita.notas_mecanico = notas_pastelero;
+    if (imagen_contrapropuesta) {
+      cita.imagenes.push(imagen_contrapropuesta);
+    }
+    await cita.save();
+
+    // Crear el mensaje interno (oculto para WhatsApp, pero visible en contexto)
+    const mensajeInterno = new Mensaje({
+      numero_telefono: cita.numero_telefono,
+      nombre_cliente: cita.nombre_cliente,
+      contenido: `INSTRUCCIÓN INTERNA: El maestro pastelero ha evaluado el pedido. Comentarios: '${notas_pastelero}'. Precio propuesto: S/. ${precio_propuesto || cita.precio_estimado}. Por favor, comunícale esto al cliente de forma muy amable (estilo cutie) y pregúntale si está de acuerdo para confirmar su pedido.`,
+      remitente: 'cliente', // Lo ponemos como cliente para que la IA responda, o podemos poner un rol temporal si es soportado
+      adjuntos: imagen_contrapropuesta ? [imagen_contrapropuesta] : []
+    });
+    await mensajeInterno.save();
+
+    // Disparar a Esperanza asíncronamente
+    // No usamos await aquí para no bloquear la respuesta HTTP rápida del dashboard
+    procesarMensajeIA(cita.numero_telefono, mensajeInterno.contenido, mensajeInterno.adjuntos)
+      .then(async (respuestaEsperanza) => {
+        // Guardar la respuesta de la IA en BD
+        const msgRespuesta = new Mensaje({
+          numero_telefono: cita.numero_telefono,
+          nombre_cliente: cita.nombre_cliente,
+          contenido: respuestaEsperanza,
+          remitente: 'asistente'
+        });
+        await msgRespuesta.save();
+
+        // Enviar WhatsApp (si es número real) o notificar web
+        if (!cita.numero_telefono.startsWith('web_')) {
+          await enviarMensajeWhatsApp(cita.numero_telefono, respuestaEsperanza);
+        }
+      })
+      .catch(err => {
+        console.error('Error al procesar mensaje IA tras feedback:', err);
+      });
+
+    res.json({ ok: true, mensaje: 'Feedback enviado a Esperanza y al cliente' });
+  } catch (error) {
+    console.error('Error en feedback maestro:', error);
+    res.status(500).json({ error: 'Error interno' });
   }
 });
 

@@ -2,6 +2,7 @@ import express from 'express';
 import Mensaje from '../models/Mensaje.js';
 import Cliente from '../models/Cliente.js';
 import { protegerRuta } from '../middleware/auth.js';
+import { enviarMensajeWhatsApp } from '../services/twilio.js';
 
 const router = express.Router();
 
@@ -87,6 +88,12 @@ router.post('/enviar-manual', protegerRuta, async (req, res) => {
       return res.status(400).json({ error: 'Teléfono y contenido son requeridos' });
     }
 
+    // Si es un número real, enviar vía WhatsApp real (OpenWA)
+    const esTelefonoReal = !numero_telefono.startsWith('web_');
+    if (esTelefonoReal) {
+      await enviarMensajeWhatsApp(numero_telefono, contenido);
+    }
+
     const mensaje = new Mensaje({
       numero_telefono,
       nombre_cliente: 'Dashboard Admin',
@@ -99,7 +106,7 @@ router.post('/enviar-manual', protegerRuta, async (req, res) => {
     res.status(201).json({ ok: true, mensaje });
   } catch (error) {
     console.error('Error al enviar mensaje manual:', error);
-    res.status(500).json({ error: 'Error al registrar respuesta manual' });
+    res.status(500).json({ error: error.message || 'Error al enviar mensaje manual' });
   }
 });
 

@@ -500,9 +500,9 @@ export default function TabEjecuciones() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <LayoutGrid className="w-4 h-4 text-primary" /> Ejecuciones por Equipo
+            <LayoutGrid className="w-4 h-4 text-primary" /> Producción por Equipo
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada Team.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada pastelero.</p>
         </div>
         
         {/* Toggle Vistas */}
@@ -528,7 +528,7 @@ export default function TabEjecuciones() {
 
       {/* Team Selector - Independent Calendars */}
       <div className="bg-dark-card/20 p-3 rounded-2xl border border-gray-850 flex items-center gap-3">
-        <span className="text-[10px] font-bold uppercase text-gray-500">Equipo de Trabajo:</span>
+        <span className="text-[10px] font-bold uppercase text-gray-500">Pastelero / Equipo:</span>
         <div className="flex gap-1.5 overflow-x-auto custom-scrollbar">
           <button
             onClick={() => setTeamSeleccionado('Todos')}
@@ -536,7 +536,7 @@ export default function TabEjecuciones() {
               teamSeleccionado === 'Todos' ? 'bg-primary text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
             }`}
           >
-            Todos los Equipos
+            Todos los Pasteleros
           </button>
           {equipos.map(eq => (
             <button
@@ -586,7 +586,7 @@ export default function TabEjecuciones() {
                   <div key={equipoName} className="border border-gray-850 rounded-2xl bg-gray-950/20 overflow-hidden">
                     <div className="bg-gray-900 border-b border-gray-850 p-4 flex justify-between items-center">
                       <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                        <Wrench className="w-4 h-4 text-primary" /> Team: {equipoName}
+                        <Wrench className="w-4 h-4 text-primary" /> Pastelero: {equipoName}
                       </h4>
                       <span className="text-[10px] font-bold px-2 py-1 bg-gray-800 rounded text-gray-400">
                         Horario Base: 08:00 - 18:00
@@ -641,7 +641,7 @@ export default function TabEjecuciones() {
                       
                       {tareasEquipo.length === 0 && (
                         <div className="w-full text-center py-6 text-[10px] font-bold uppercase tracking-widest text-gray-600">
-                          Sin trabajos pendientes para {diaSeleccionado === 'Todo' ? 'esta semana' : 'este día'}
+                          Sin pedidos pendientes para {diaSeleccionado === 'Todo' ? 'esta semana' : 'este día'}
                         </div>
                       )}
                     </div>
@@ -674,7 +674,7 @@ export default function TabEjecuciones() {
 
               <div className="flex justify-between items-center px-2">
                 <h4 className="text-white text-xs font-bold uppercase tracking-wider">
-                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los Equipos' : `Team: ${teamSeleccionado}`})
+                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los Pasteleros' : `Pastelero: ${teamSeleccionado}`})
                 </h4>
                 <div className="flex gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
                   <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div> En Curso</span>

@@ -7,7 +7,8 @@ const MensajeSchema = new Schema({
   contenido:       { type: String, required: true },
   remitente:       { type: String, enum: ['cliente', 'asistente'], required: true },
   cita_generada:   { type: Schema.Types.ObjectId, ref: 'Cita' },  // poblado si el mensaje creó una cita
-  procesado:       { type: Boolean, default: false }
+  procesado:       { type: Boolean, default: false },
+  adjuntos:        [{ type: String }]
 }, { timestamps: { createdAt: 'recibido_en', updatedAt: false } });
 
 export default mongoose.models.Mensaje || mongoose.model('Mensaje', MensajeSchema);

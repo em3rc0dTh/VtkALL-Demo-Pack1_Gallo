@@ -3,10 +3,10 @@
 import { Award, CheckCircle2, Users, Wrench } from 'lucide-react';
 
 export default function SobreNosotros({ taller = {}, conf = {} }) {
-  const caracteristicas = [
-    { icono: Wrench,       titulo: 'Técnicos Certificados',    desc: 'Profesionales capacitados en mecánica general y electrónica automotriz de alta gama.' },
-    { icono: CheckCircle2, titulo: 'Garantía por Escrito',      desc: 'Todos nuestros trabajos tienen garantía documentada de repuestos y mano de obra.' },
-    { icono: Users,        titulo: 'Equipamiento de Fábrica',   desc: 'Escáneres y herramientas de diagnóstico originales homologadas para tu marca.' },
+  const caracteristicas = conf.caracteristicas || [
+    { icono: Wrench,       titulo: 'Reposteros Certificados',    desc: 'Profesionales capacitados en pastelería fina y diseño de tortas.' },
+    { icono: CheckCircle2, titulo: 'Garantía de Sabor',      desc: 'Todos nuestros productos están hechos con ingredientes de la mejor calidad.' },
+    { icono: Users,        titulo: 'Diseños Exclusivos',   desc: 'Creamos pasteles únicos y personalizados para cada cliente.' },
   ];
 
   return (
@@ -18,13 +18,28 @@ export default function SobreNosotros({ taller = {}, conf = {} }) {
       <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
-          {/* Left: Image */}
+          {/* Left: Image or Video */}
           <div className="reveal-left relative h-[220px] sm:h-[320px] lg:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
-            <img
-              src="/images/sobre_nosotros.png"
-              alt="Equipo del taller"
-              className="w-full h-full object-cover"
-            />
+            {(() => {
+              const urlMedia = conf.imagenURL || "/images/sobre_nosotros.png";
+              const isVideo = /\.(mp4|webm|ogg)($|\?)/i.test(urlMedia) || urlMedia.includes('/videos/') || urlMedia.startsWith('data:video/');
+              return isVideo ? (
+                <video
+                  src={urlMedia}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={urlMedia}
+                  alt="Equipo del taller"
+                  className="w-full h-full object-cover"
+                />
+              );
+            })()}
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent" />
 
@@ -62,7 +77,7 @@ export default function SobreNosotros({ taller = {}, conf = {} }) {
 
             <p className="text-[#54595F] font-light leading-relaxed mb-5 lg:mb-10 text-xs sm:text-sm">
               {conf.sobreNosotros || taller.sobre_nosotros ||
-                'En Gallo Autos contamos con más de una década de trayectoria brindando servicios mecánicos integrales de alta calidad. Disponemos de tecnología de diagnóstico computarizado avanzada, cabinas de pintura al horno y un equipo de profesionales apasionados por el cuidado de tu vehículo.'}
+                'En Bate y Late contamos con trayectoria brindando postres de alta calidad. Disponemos de las mejores recetas, ingredientes de primera y un equipo de reposteros apasionados por endulzar tus momentos.'}
             </p>
 
             {/* Feature list: 3-col grid on mobile (compact), stacked on lg) */}
@@ -75,7 +90,7 @@ export default function SobreNosotros({ taller = {}, conf = {} }) {
                     className={`reveal delay-${idx + 1} flex gap-3 p-3 lg:p-4 rounded-2xl bg-white border border-primary/8 card-lift`}
                   >
                     <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
-                      <Icono className="w-5 h-5 text-primary" />
+                      {Icono && typeof Icono !== 'string' ? <Icono className="w-5 h-5 text-primary" /> : <span className="text-xl">{item.icono || '✨'}</span>}
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-navy mb-0.5">{item.titulo}</h4>

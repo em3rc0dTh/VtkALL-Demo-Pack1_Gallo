@@ -233,7 +233,7 @@ export default function TabMensajes() {
               
               {activeCliente?.vehiculos?.length > 0 && (
                 <div className="text-[10px] bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-gray-400">
-                  Vehículo: <span className="text-white font-bold">{activeCliente.vehiculos[0].marca} {activeCliente.vehiculos[0].modelo}</span>
+                  Pedido: <span className="text-white font-bold">{activeCliente.vehiculos[0].marca} {activeCliente.vehiculos[0].modelo}</span>
                 </div>
               )}
             </div>

@@ -56,8 +56,8 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Nueva Categoría de Servicio',
       html: `
-        <input id="swal-input1" class="swal2-input" placeholder="Nombre (Ej: Planchado)">
-        <input id="swal-input2" class="swal2-input" placeholder="Icono (Ej: 🚗)">
+        <input id="swal-input1" class="swal2-input" placeholder="Nombre (Ej: Tortas Clásicas)">
+        <input id="swal-input2" class="swal2-input" placeholder="Icono (Ej: 🍰)">
       `,
       focusConfirm: false,
       showCancelButton: true,
@@ -66,7 +66,7 @@ export default function TabServicios() {
       preConfirm: () => {
         return {
           nombre: document.getElementById('swal-input1').value,
-          icono: document.getElementById('swal-input2').value || '🔧'
+          icono: document.getElementById('swal-input2').value || '🍰'
         }
       }
     });
@@ -86,8 +86,8 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Editar Categoría de Servicio',
       html: `
-        <input id="swal-edit1" class="swal2-input" value="${servicio.nombre}" placeholder="Nombre (Ej: Planchado)">
-        <input id="swal-edit2" class="swal2-input" value="${servicio.icono || ''}" placeholder="Icono (Ej: 🚗)">
+        <input id="swal-edit1" class="swal2-input" value="${servicio.nombre}" placeholder="Nombre (Ej: Tortas Clásicas)">
+        <input id="swal-edit2" class="swal2-input" value="${servicio.icono || ''}" placeholder="Icono (Ej: 🍰)">
         <textarea id="swal-edit3" class="swal2-textarea" placeholder="Descripción de la categoría">${servicio.descripcion || ''}</textarea>
       `,
       focusConfirm: false,
@@ -118,7 +118,7 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Nuevo Producto / Variante',
       html: `
-        <input id="swal-p1" class="swal2-input" placeholder="Nombre (Ej: Planchado Básico)">
+        <input id="swal-p1" class="swal2-input" placeholder="Nombre (Ej: Torta de Chocolate - 12 porciones)">
         <input id="swal-p2" type="number" class="swal2-input" placeholder="Precio (Ej: 150)">
         <input id="swal-p3" type="number" class="swal2-input" placeholder="Duración en minutos (Ej: 120)">
       `,
@@ -203,9 +203,9 @@ export default function TabServicios() {
       <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <Box className="w-4 h-4 text-primary" /> Catálogo de Servicios y Productos
+            <Box className="w-4 h-4 text-primary" /> Catálogo de Postres y Variantes
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Servicios) y sus variantes/paquetes específicos (Productos).</p>
+          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Postres) y sus variantes/tamaños específicos (Porciones, Sabores).</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleCrearServicio} className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">
@@ -242,7 +242,7 @@ export default function TabServicios() {
                   {s.team_asignado && (
                     <div className="flex items-center gap-2 text-[10px] text-gray-400 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
                       <Users className="w-3.5 h-3.5 text-blue-400" />
-                      Implementa: <span className="font-bold text-white">{s.team_asignado.nombre}</span>
+                      Prepara: <span className="font-bold text-white">{s.team_asignado.nombre}</span>
                     </div>
                   )}
                 

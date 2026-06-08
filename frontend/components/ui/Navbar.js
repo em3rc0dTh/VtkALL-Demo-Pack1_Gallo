@@ -22,10 +22,19 @@ export default function Navbar({ taller = {} }) {
     return bloque ? bloque.activo : true; // Si no existe (default) lo asumimos true
   };
 
+  const customItems = bloques
+    .filter(b => b.activo && b.tipo === 'EmbedBlock')
+    .map(b => ({
+      name: b.conf?.nombreNavbar || 'Extra',
+      href: `#${b.conf?.idSeccion || b.id}`,
+      visible: true
+    }));
+
   const menuItems = [
     { name: 'Inicio', href: '#inicio', visible: isActive('HeroBlock') },
     { name: 'Servicios', href: '#servicios', visible: isActive('ServicesBlock') },
     { name: 'Nosotros', href: '#nosotros', visible: isActive('SobreNosotrosBlock') },
+    ...customItems,
     { name: 'Contacto', href: '#contacto', visible: isActive('ContactoBlock') },
   ].filter(item => item.visible);
   // MÁS TAMAÑO A LOS BOTONES DE NAVEGACIÓN
@@ -44,8 +53,8 @@ export default function Navbar({ taller = {} }) {
               : 'shadow-sm ring-1 ring-primary/20'
           }`}>
             <img
-              src="/images/turagua.jpg"
-              alt="Turagua"
+              src="/images/bateylate.png"
+              alt="Bateylate"
               className="w-full h-full object-contain"
             />
           </div>

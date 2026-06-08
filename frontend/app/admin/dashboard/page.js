@@ -12,7 +12,8 @@ import TabServicios from '../../../components/dashboard/TabServicios.js';
 import TabConstructor from '../../../components/dashboard/TabConstructor.js';
 import TabMensajes from '../../../components/dashboard/TabMensajes.js';
 import TabConfiguracion from '../../../components/dashboard/TabConfiguracion.js';
-import { Wrench, Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, LayoutTemplate, Activity } from 'lucide-react';
+import TabBandejaPastelero from '../../../components/dashboard/TabBandejaPastelero.js';
+import { Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, LayoutTemplate, Activity, Inbox, Cake } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../lib/api.js';
 
@@ -75,12 +76,13 @@ export default function DashboardPage() {
   }
 
   const navItems = [
-    { id: 'evaluaciones', label: '1. Evaluaciones', icon: Calendar },
-    { id: 'ejecuciones', label: '2. Ejecuciones', icon: Activity },
+    { id: 'bandeja_pastelero', label: 'Bandeja de Pedidos', icon: Inbox },
+    { id: 'evaluaciones', label: '1. Cotizaciones', icon: Calendar },
+    { id: 'ejecuciones', label: '2. Producción', icon: Activity },
     { id: 'clientes', label: 'Leads y Clientes', icon: Users },
     { id: 'team', label: 'Staff y Equipos', icon: Shield },
     { id: 'constructor', label: 'Constructor Landing', icon: LayoutTemplate },
-    { id: 'servicios', label: 'Catálogo de Servicios', icon: Briefcase },
+    { id: 'servicios', label: 'Catálogo de Postres', icon: Briefcase },
     { id: 'mensajes', label: 'Chats Logs', icon: MessageSquare },
     { id: 'configuracion', label: 'Ajustes Generales', icon: Settings },
   ];
@@ -95,7 +97,7 @@ export default function DashboardPage() {
           <div className="p-6 border-b border-gray-850">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="p-2 bg-primary/10 rounded-lg text-primary border border-primary/20">
-                <Wrench className="w-5 h-5 animate-pulse" />
+                <Cake className="w-5 h-5 animate-pulse" />
               </div>
               <span className="text-lg font-bold tracking-tight text-white">
                 {taller.nombre_taller ? (
@@ -177,12 +179,13 @@ export default function DashboardPage() {
             </h2>
           </div>
           <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
-            Consola Taller | v1.0.0
+            Consola Pastelería | v1.0.0
           </div>
         </header>
 
         {/* Contenedor dinámico */}
         <div className="flex-1 p-8 overflow-y-auto relative z-10">
+          {activeTab === 'bandeja_pastelero' && <TabBandejaPastelero />}
           {activeTab === 'evaluaciones' && <TabEvaluaciones />}
           {activeTab === 'ejecuciones' && <TabEjecuciones />}
           {activeTab === 'clientes' && <TabClientes />}

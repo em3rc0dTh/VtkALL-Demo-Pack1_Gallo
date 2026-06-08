@@ -2,15 +2,15 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const TallerSchema = new Schema({
-  nombre_taller:   { type: String, required: true, default: 'MecánicaPro' },
-  slogan:          { type: String, default: 'Tu vehículo en las mejores manos' },
-  direccion:       { type: String, default: 'Av. Juan B. Justo 4500, Palermo, CABA' },
-  telefono:        { type: String, default: '+54 11 4789-3210' },
-  whatsapp:        { type: String, default: '5491147893210' },  // número para el deep link de WhatsApp
-  email:           { type: String, default: 'contacto@mecanicapro.com' },
+  nombre_taller:   { type: String, required: true, default: 'Bate y Late' },
+  slogan:          { type: String, default: 'Endulzamos con amor 💕' },
+  direccion:       { type: String, default: 'San Miguel, Lima' },
+  telefono:        { type: String, default: '955479450' },
+  whatsapp:        { type: String, default: '51955479450' },  // número para el deep link de WhatsApp
+  email:           { type: String, default: 'pedidos@bateylate.com' },
   horarios: {
-    lunes_viernes: { type: String, default: '08:00 - 18:00' },
-    sabado:        { type: String, default: '09:00 - 13:00' },
+    lunes_viernes: { type: String, default: '10:00 - 19:00' },
+    sabado:        { type: String, default: '10:00 - 16:00' },
     domingo:       { type: String, default: 'Cerrado' }
   },
   servicios: [{
@@ -18,27 +18,31 @@ const TallerSchema = new Schema({
     descripcion:         String,
     duracion_minutos:    { type: Number, default: 60 },
     precio_base:         Number,
-    icono:               { type: String, default: '🔧' },
+    icono:               { type: String, default: '🎂' },
     activo:              { type: Boolean, default: true }
   }],
-  sobre_nosotros:      { type: String, default: 'En MecánicaPro contamos con más de 10 años de trayectoria brindando servicios mecánicos integrales de alta calidad. Contamos con tecnología de diagnóstico computarizado avanzada y un equipo de profesionales apasionados por el cuidado de tu automóvil.' },
-  anos_experiencia:    { type: Number, default: 10 },
-  clientes_atendidos:  { type: Number, default: 500 },
-  autos_reparados:     { type: Number, default: 2000 },
+  sobre_nosotros:      { type: String, default: 'En Bate y Late creamos tortas personalizadas y postres deliciosos para cada ocasión. Nos apasiona el detalle y el sabor, utilizando siempre ingredientes de la mejor calidad.' },
+  anos_experiencia:    { type: Number, default: 5 },
+  clientes_atendidos:  { type: Number, default: 1500 },
+  autos_reparados:     { type: Number, default: 3000 }, // Legacy stat - maybe change later
   galeria:             [{ type: String }],  // URLs de imágenes
   redes_sociales: {
-    instagram: { type: String, default: 'https://instagram.com/mecanicapro' },
-    facebook:  { type: String, default: 'https://facebook.com/mecanicapro' },
-    tiktok:    { type: String, default: 'https://tiktok.com/@mecanicapro' }
+    instagram: { type: String, default: 'https://instagram.com/bateylate_of' },
+    facebook:  { type: String, default: 'https://facebook.com/' },
+    tiktok:    { type: String, default: 'https://tiktok.com/' }
   },
   config_agente: {
-    nombre_agente:       { type: String, default: 'Max' },
-    mensaje_bienvenida:  { type: String, default: '¡Hola! 👋 Soy Max, el asistente de {nombre_taller}. ¿En qué te puedo ayudar hoy?' },
-    avatar_url:          { type: String, default: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=200' },
+    nombre_agente:       { type: String, default: 'Esperanza' },
+    mensaje_bienvenida:  { type: String, default: '¡Hola! 💕 Soy Esperanza, de {nombre_taller}. ¿En qué te puedo ayudar hoy? ✨' },
+    avatar_url:          { type: String, default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200' },
+  },
+  campos_dinamicos_reserva: { 
+    type: [String], 
+    default: ["Temática o Diseño", "Tipo de masa", "Sabor del relleno", "Cantidad de porciones", "Ejemplo/Referencia visual (opcional)"] 
   },
   config_citas: {
-    hora_inicio:     { type: String, default: '11:00' },
-    hora_fin:        { type: String, default: '13:00' },
+    hora_inicio:     { type: String, default: '10:00' },
+    hora_fin:        { type: String, default: '19:00' },
     dias_permitidos: { type: [Number], default: [1, 2, 3, 4, 5, 6] } // 1=Lunes, 6=Sábado
   },
   webhook_url: { type: String, default: 'http://localhost:4000/api/webhook/whatsapp' },
@@ -55,26 +59,26 @@ const TallerSchema = new Schema({
     }],
     default: [
       {
-        titulo: 'Cambio de Aceite + Diagnóstico Gratis',
-        descripcion: 'Agenda tu cambio de aceite con nosotros este mes y recibe un escaneo computarizado de sensores OBD-II completamente gratis.',
+        titulo: 'Promo del Mes: Box Degustación',
+        descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
         etiqueta: 'PROMO DEL MES',
-        mensaje_chat: 'Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis',
+        mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
         color_fondo: 'primary',
         activo: true
       },
       {
-        titulo: 'Especial Black Friday: 20% OFF',
-        descripcion: 'Consigue un acabado impecable de fábrica con un 20% de descuento en trabajos completos de planchado y pintura automotriz al horno.',
-        etiqueta: 'EDICIÓN LIMITADA',
-        mensaje_chat: 'Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura',
+        titulo: 'Especial Eventos: 15% OFF',
+        descripcion: 'Reserva la mesa de dulces para tu evento con un mes de anticipación y obtén 15% de descuento.',
+        etiqueta: 'ESPECIAL EVENTOS',
+        mensaje_chat: 'Hola, quiero el descuento del 15% para mi evento',
         color_fondo: 'navy',
         activo: true
       }
     ]
   },
   tema_global: {
-    color:  { type: String, default: '#00aeef' },
-    nombre: { type: String, default: 'Azul Eléctrico (Default)' }
+    color:  { type: String, default: '#f36c84' },
+    nombre: { type: String, default: 'Rosa Pastel (Bate y Late)' }
   },
   constructor_bloques: { type: [Schema.Types.Mixed], default: [] }
 }, { timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' } });

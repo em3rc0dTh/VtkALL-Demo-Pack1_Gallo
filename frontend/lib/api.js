@@ -64,6 +64,11 @@ export const api = {
   crearCita: (data) => request('/citas', { method: 'POST', body: data }),
   actualizarCita: (id, data) => request(`/citas/${id}`, { method: 'PUT', body: data }),
   eliminarCita: (id) => request(`/citas/${id}`, { method: 'DELETE' }),
+  enviarFeedbackMaestro: (id, data) => request(`/citas/${id}/feedback-maestro`, { method: 'POST', body: data }),
+  
+  // Temporal Workflow
+  temporalStart: (data) => request('/temporal/start', { method: 'POST', body: data }),
+  temporalBakerQuote: (data) => request('/temporal/baker-quote', { method: 'POST', body: data }),
 
   // Clientes
   getClientes: (busqueda = '', pagina = 1, limite = 20) => {
@@ -82,12 +87,13 @@ export const api = {
   enviarMensajeManual: (numero_telefono, contenido) => request('/mensajes/enviar-manual', { method: 'POST', body: { numero_telefono, contenido } }),
   
   // Simulador de WhatsApp webhook
-  enviarMensajeSimulado: (numeroTelefono, contenido) => {
+  enviarMensajeSimulado: (numeroTelefono, contenido, adjuntos = []) => {
     return request('/webhook/whatsapp', {
       method: 'POST',
       body: {
         from: `whatsapp:${numeroTelefono}`,
-        body: contenido
+        body: contenido,
+        adjuntos: adjuntos
       }
     });
   },

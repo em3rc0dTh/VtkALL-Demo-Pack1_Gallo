@@ -28,6 +28,7 @@ import trabajadoresRoutes from './routes/trabajadores.js';
 import disponibilidadRoutes from './routes/disponibilidad.js';
 import configuracionRoutes from './routes/configuracion.js';
 import uploadRoutes from './routes/upload.js';
+import temporalRoutes from './routes/temporal.js';
 import path from 'path';
 
 
@@ -39,8 +40,8 @@ app.use(cors({
   origin: 'http://localhost:3000', // Next.js port
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Servir archivos estáticos de uploads
@@ -59,6 +60,7 @@ app.use('/api/trabajadores', trabajadoresRoutes);
 app.use('/api/disponibilidad', disponibilidadRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/temporal', temporalRoutes);
 
 // Endpoint de Diagnóstico
 app.get('/health', (req, res) => {
@@ -73,36 +75,36 @@ const inicializarDatos = async () => {
     if (!tallerExistente) {
       console.log('🌱 Creando configuración inicial del taller para Perú...');
       const nuevoTaller = new Taller({
-        nombre_taller: 'MecánicaPro',
-        slogan: 'Tu vehículo en las mejores manos',
-        direccion: 'Av. Javier Prado Este 2465, San Borja, Lima',
-        telefono: '+51 1 617-6800',
-        whatsapp: '51999888777',
-        email: 'contacto@mecanicapro.com',
-        sobre_nosotros: 'En MecánicaPro contamos con más de 10 años de trayectoria brindando servicios mecánicos integrales de alta calidad. Contamos con tecnología de diagnóstico computarizado avanzada y un equipo de profesionales apasionados por el cuidado de tu automóvil.',
-        anos_experiencia: 12,
-        clientes_atendidos: 840,
-        autos_reparados: 2500,
+        nombre_taller: 'Bate y Late',
+        slogan: 'Endulzamos con amor 💕',
+        direccion: 'San Miguel, Lima',
+        telefono: '955479450',
+        whatsapp: '51955479450',
+        email: 'pedidos@bateylate.com',
+        sobre_nosotros: 'En Bate y Late creamos tortas personalizadas y postres deliciosos para cada ocasión. Nos apasiona el detalle y el sabor, utilizando siempre ingredientes de la mejor calidad.',
+        anos_experiencia: 5,
+        clientes_atendidos: 1500,
+        autos_reparados: 3000,
         config_agente: {
-          nombre_agente: 'Max',
-          mensaje_bienvenida: '¡Hola! 👋 Soy Max, del equipo de MecánicaPro. ¿En qué te puedo ayudar hoy?'
+          nombre_agente: 'Esperanza',
+          mensaje_bienvenida: '¡Hola! 💕 Soy Esperanza, de Bate y Late. ¿En qué te puedo ayudar hoy? ✨'
         },
         tema_global: {
-          color: '#00aeef',
-          nombre: 'Azul Eléctrico (Default)'
+          color: '#ff8da1',
+          nombre: 'Rosa Pastel'
         },
         constructor_bloques: [
           { 
             id: 1, tipo: 'HeroBlock', titulo: 'Sección Principal (Hero)', activo: true, 
-            conf: { tituloPrincipal: 'Precisión de Alto Rendimiento.', subtitulo: 'El cuidado de alta fidelidad que tu vehículo merece, asistido las 24 horas por nuestro equipo de reservas.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
+            conf: { tituloPrincipal: 'El toque dulce para tus momentos especiales.', subtitulo: 'Tortas, postres y box temáticos hechos con amor y a tu medida.', tipoFondo: 'Video', overlayOpacidad: '40', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'COTIZAR AHORA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
           },
           { 
             id: 2, tipo: 'StatsBlock', titulo: 'Estadísticas del Negocio', activo: false, 
-            conf: { estilo: 'Tarjetas Oscuras', columnas: '3', stat1_valor: '+12', stat1_label: 'Años Experiencia', stat2_valor: '+840', stat2_label: 'Clientes Felices', stat3_valor: '+2500', stat3_label: 'Autos Reparados' } 
+            conf: { estilo: 'Tarjetas Oscuras', columnas: '3', stat1_valor: '+5', stat1_label: 'Años Experiencia', stat2_valor: '+1500', stat2_label: 'Clientes Felices', stat3_valor: '+3000', stat3_label: 'Postres Entregados' } 
           },
           { 
             id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
-            conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Soluciones integrales para cada necesidad de tu vehículo.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false } 
+            conf: { tituloSeccion: 'Nuestros Productos', subtitulo: 'Opciones dulces para cada ocasión especial.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: false, mostrarBotonAgendar: false } 
           },
           {
             id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
@@ -120,19 +122,19 @@ const inicializarDatos = async () => {
         console.log('🌱 Inicializando promociones por defecto para taller existente...');
         tallerExistente.promociones = [
           {
-            titulo: 'Cambio de Aceite + Diagnóstico Gratis',
-            descripcion: 'Agenda tu cambio de aceite con nosotros este mes y recibe un escaneo computarizado de sensores OBD-II completamente gratis.',
+            titulo: 'Catálogo Día de la Madre',
+            descripcion: 'Descubre nuestros postres especiales para mamá. Mini tortas, cupcakes y alfajores personalizados.',
             etiqueta: 'PROMO DEL MES',
-            mensaje_chat: 'Hola, me interesa la Promo del Mes: Cambio de Aceite + Diagnóstico Gratis',
+            mensaje_chat: 'Hola Esperanza, me interesa el Catálogo Día de la Madre 💕',
             color_fondo: 'primary',
             activo: true
           },
           {
-            titulo: 'Especial Black Friday: 20% OFF',
-            descripcion: 'Consigue un acabado impecable de fábrica con un 20% de descuento en trabajos completos de planchado y pintura automotriz al horno.',
+            titulo: 'Plan Navideño de Girlies',
+            descripcion: 'Arma tu box navideño con tus amigas. Incluye galletas decoradas y minipanetones.',
             etiqueta: 'EDICIÓN LIMITADA',
-            mensaje_chat: 'Hola, quiero reservar con el 20% de descuento del Especial Black Friday de Planchado y Pintura',
-            color_fondo: 'navy',
+            mensaje_chat: 'Hola! Quiero información sobre el Plan Navideño de Girlies ✨',
+            color_fondo: 'secondary',
             activo: true
           }
         ];
@@ -176,27 +178,26 @@ const inicializarDatos = async () => {
 
     // 1.5 Seed Teams y Trabajadores
     const countTeams = await Team.countDocuments();
-    let teamMecanica, teamPlanchado;
+    let teamPasteleria, teamAtencion;
     if (countTeams === 0) {
       console.log('🌱 Creando Teams y Trabajadores iniciales...');
-      teamMecanica = await Team.create({ nombre: 'Mecánica General', horario_referencial: 'Lun-Sáb 08:00 - 18:00 (Slots 30 min)', capacidad: 2 });
-      teamPlanchado = await Team.create({ nombre: 'Planchado y Pintura', horario_referencial: 'Lun-Vie 09:00 - 17:00 (Slots 60 min)', capacidad: 1 });
-      await Team.create({ nombre: 'Atención al Cliente', horario_referencial: 'Lun-Sáb 08:00 - 18:00 (Continúo)', capacidad: 1 });
+      teamPasteleria = await Team.create({ nombre: 'Pastelería', horario_referencial: 'Lun-Sáb 10:00 - 19:00 (Slots 60 min)', capacidad: 2 });
+      teamAtencion = await Team.create({ nombre: 'Atención al Cliente', horario_referencial: 'Lun-Sáb 10:00 - 19:00 (Continúo)', capacidad: 1 });
 
-      await Trabajador.create({ nombre: 'Carlos Mendoza', rol: 'Experto Evaluador', contrato: 'Planilla', team: teamMecanica._id });
-      await Trabajador.create({ nombre: 'Luis Flores', rol: 'Especialista', contrato: 'Recibo por Honorarios', team: teamPlanchado._id });
+      await Trabajador.create({ nombre: 'Ana Pastelera', rol: 'Pastelera Principal', contrato: 'Planilla', team: teamPasteleria._id });
+      await Trabajador.create({ nombre: 'María Ventas', rol: 'Atención', contrato: 'Recibo por Honorarios', team: teamAtencion._id });
     }
 
     // 1.6 Seed Servicios y Productos
     const countServicios = await Servicio.countDocuments();
-    if (countServicios === 0 && teamMecanica && teamPlanchado) {
+    if (countServicios === 0 && teamPasteleria && teamAtencion) {
       console.log('🌱 Creando Servicios y Productos iniciales...');
-      const s1 = await Servicio.create({ nombre: 'Planchado y Pintura', descripcion: 'Reparación de carrocería, abolladuras y pintura al horno.', icono: '🚗', team_asignado: teamPlanchado._id });
-      await Producto.create({ nombre: 'Planchado Básico (Masilla)', precio: 150, duracion_minutos: 120, servicio_padre: s1._id });
-      await Producto.create({ nombre: 'Planchado Especial', precio: 300, duracion_minutos: 240, servicio_padre: s1._id });
+      const s1 = await Servicio.create({ nombre: 'Tortas Personalizadas', descripcion: 'Tortas temáticas con fondant o buttercream.', icono: '🎂', team_asignado: teamPasteleria._id });
+      await Producto.create({ nombre: 'Mini Torta', precio: 50, duracion_minutos: 60, servicio_padre: s1._id });
+      await Producto.create({ nombre: 'Torta Kpop', precio: 120, duracion_minutos: 120, servicio_padre: s1._id });
       
-      const s2 = await Servicio.create({ nombre: 'Mantenimiento Preventivo', descripcion: 'Afinamiento, cambio de aceite y revisión de niveles.', icono: '🔧', team_asignado: teamMecanica._id });
-      await Producto.create({ nombre: 'Afinamiento Menor', precio: 120, duracion_minutos: 60, servicio_padre: s2._id });
+      const s2 = await Servicio.create({ nombre: 'Box Sorpresa', descripcion: 'Desayunos y boxes de dulces para regalar.', icono: '🎁', team_asignado: teamAtencion._id });
+      await Producto.create({ nombre: 'Box Girlies', precio: 80, duracion_minutos: 30, servicio_padre: s2._id });
     }
 
     // 2. Seed Usuario Administrador

@@ -11,7 +11,9 @@ import Contacto from '../components/landing/Contacto.js';
 import Testimonios from '../components/landing/Testimonios.js';
 import CTA from '../components/landing/CTA.js';
 import ChatAsistente from '../components/landing/ChatAsistente.js';
+import EmbedBlock from '../components/landing/EmbedBlock.js';
 import { api } from '../lib/api.js';
+import Galeria from '@/components/landing/Galeria.js';
 
 export default function Home() {
   const [taller, setTaller] = useState({});
@@ -19,8 +21,7 @@ export default function Home() {
   const [triggerOpenMessage, setTriggerOpenMessage] = useState('');
   const [openChat, setOpenChat] = useState(false);
 
-  // ─── Activate scroll reveal for all .reveal elements ───
-  useScrollReveal([taller]);
+  // Activate scroll reveal after data is loaded (moved down)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,6 +42,11 @@ export default function Home() {
     }
   }, []);
 
+  const [cargando, setCargando] = useState(true);
+
+  // ─── Activate scroll reveal for all .reveal elements ───
+  useScrollReveal([cargando, taller]);
+
   useEffect(() => {
     async function cargarDatos() {
       try {
@@ -54,6 +60,8 @@ export default function Home() {
         if (serv) setServicios(serv);
       } catch {
         console.warn('No se pudieron cargar los servicios de la API (usando datos por defecto)');
+      } finally {
+        setCargando(false);
       }
     }
     cargarDatos();
@@ -61,7 +69,7 @@ export default function Home() {
 
   useEffect(() => {
     if (taller?.nombre_taller) {
-      document.title = `${taller.nombre_taller} — ${taller.slogan || 'Tu vehículo en las mejores manos'}`;
+      document.title = `${taller.nombre_taller} — ${taller.slogan || 'Endulzamos tus mejores momentos'}`;
     }
     if (taller?.tema_global?.color) {
       document.documentElement.style.setProperty('--primary', taller.tema_global.color);
@@ -70,7 +78,12 @@ export default function Home() {
         '#ef4444': '#dc2626',
         '#10b981': '#059669',
         '#f97316': '#ea580c',
-        '#8b5cf6': '#7c3aed'
+        '#8b5cf6': '#7c3aed',
+        '#f36c84': '#e65c74',
+        '#7db053': '#6a9c42',
+        '#ffb6c1': '#f5a3af',
+        '#d8e8ee': '#c3dbe4',
+        '#5eaeb9': '#4d9da8'
       };
       const hoverVal = hoverColors[taller.tema_global.color] || taller.tema_global.color;
       document.documentElement.style.setProperty('--primary-hover', hoverVal);
@@ -93,6 +106,14 @@ export default function Home() {
     { id: 'us-default', tipo: 'SobreNosotrosBlock', conf: {} },
     { id: 'contact-default', tipo: 'ContactoBlock', conf: {} }
   ];
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-solid rounded-full animate-spin" style={{ borderColor: 'var(--primary, #f36c84)', borderTopColor: 'transparent' }}></div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-white text-navy overflow-x-hidden">
@@ -166,6 +187,9 @@ export default function Home() {
             case 'TestimonialsBlock':
               sectionEl = <Testimonios conf={bloque.conf} />;
               break;
+            case 'EmbedBlock':
+              sectionEl = <EmbedBlock conf={bloque.conf} />;
+              break;
             case 'CTABlock':
               sectionEl = <CTA conf={bloque.conf} onOpenChat={handleOpenChat} />;
               break;
@@ -175,6 +199,7 @@ export default function Home() {
 
           return <div key={bloque.id || index}>{sectionEl}</div>;
         })}
+        {/* <Galeria taller={taller} /> */}
       </main>
 
       <ChatAsistente

@@ -193,6 +193,22 @@ export default function TabCitas() {
             </div>
           </div>
           <p className="text-xs text-gray-400 mt-2">Cliente: <span className="font-semibold text-gray-300">{slot.cliente}</span></p>
+          {slot.citaOriginal?.detalles_reserva && Object.keys(slot.citaOriginal.detalles_reserva).length > 0 && (
+            <div className="mt-2 text-[10px] bg-gray-800/50 p-2 rounded-lg border border-gray-700/50">
+              {Object.entries(slot.citaOriginal.detalles_reserva).map(([key, value]) => (
+                <div key={key}><span className="text-gray-400 capitalize">{key.replace(/_/g, ' ')}:</span> <span className="text-gray-200">{value}</span></div>
+              ))}
+            </div>
+          )}
+          {slot.citaOriginal?.imagenes && slot.citaOriginal.imagenes.length > 0 && (
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+              {slot.citaOriginal.imagenes.map((img, idx) => (
+                <a key={idx} href={img} target="_blank" rel="noreferrer" className="shrink-0">
+                  <img src={img} alt="Ref" className="w-12 h-12 object-cover rounded-lg shadow-sm border border-gray-700 hover:scale-105 transition-transform" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

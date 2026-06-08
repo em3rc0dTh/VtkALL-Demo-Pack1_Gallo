@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { MessageSquare } from 'lucide-react';
 
 export default function CTA({ conf = {}, onOpenChat }) {
-  const mensaje = conf.mensaje || '¿Listo para llevar tu vehículo al siguiente nivel?';
+  const mensaje = conf.mensaje || '¿Listo para endulzar tu evento?';
   const subtitulo = conf.subtitulo || 'Reserva tu cita hoy mismo con nuestro asistente de atención las 24 horas.';
   const textoBoton = conf.textoBoton || 'AGENDAR CITA AHORA';
   const colorFondo = conf.colorFondo || 'Degradado Primario'; // Degradado Primario, Oscuro, Gris Claro

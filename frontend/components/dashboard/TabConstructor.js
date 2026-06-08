@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, Clock, Tag, XCircle, Users, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move } from 'lucide-react';
+import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, Clock, Tag, XCircle, Users, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move, Code } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { api } from '../../lib/api.js';
+import EmbedBlockEditor from './EmbedBlockEditor';
 
 export default function TabConstructor() {
   const [previewMode, setPreviewMode] = useState('desktop'); 
@@ -13,16 +14,16 @@ export default function TabConstructor() {
 
   // Paleta de temas para toda la app
   const [temaGlobal, setTemaGlobal] = useState({
-    color: '#00aeef',
-    nombre: 'Azul Eléctrico (Default)'
+    color: '#f36c84',
+    nombre: 'Rosa Pastel (Bate y Late)'
   });
 
   const paletas = [
-    { nombre: 'Azul Eléctrico (Default)', hex: '#00aeef', hover: '#008fcc' },
-    { nombre: 'Rojo Racing', hex: '#ef4444', hover: '#dc2626' },
-    { nombre: 'Verde Eco', hex: '#10b981', hover: '#059669' },
-    { nombre: 'Naranja Fuego', hex: '#f97316', hover: '#ea580c' },
-    { nombre: 'Púrpura Neón', hex: '#8b5cf6', hover: '#7c3aed' },
+    { nombre: 'Rosa Pastel (Bate y Late)', hex: '#f36c84', hover: '#e65c74' },
+    { nombre: 'Verde Matcha', hex: '#7db053', hover: '#6a9c42' },
+    { nombre: 'Rosa Claro', hex: '#ffb6c1', hover: '#f5a3af' },
+    { nombre: 'Celeste Nube', hex: '#d8e8ee', hover: '#c3dbe4' },
+    { nombre: 'Aqua Dulce', hex: '#5eaeb9', hover: '#4d9da8' },
   ];
 
   // Aplicar tema dinámicamente al CSS root de la app real
@@ -41,7 +42,7 @@ export default function TabConstructor() {
   const [bloques, setBloques] = useState([
     { 
       id: 1, tipo: 'HeroBlock', titulo: 'Sección Principal (Hero)', activo: true, 
-      conf: { tituloPrincipal: 'Tu vehículo en las mejores manos', subtitulo: 'Expertos en mecánica automotriz con diagnóstico avanzado.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
+      conf: { tituloPrincipal: 'Postres y tortas en las mejores manos', subtitulo: 'Expertos en repostería creativa y diseños personalizados.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
     },
     { 
       id: 2, tipo: 'StatsBlock', titulo: 'Estadísticas del Negocio', activo: true, 
@@ -49,7 +50,7 @@ export default function TabConstructor() {
     },
     { 
       id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
-      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Soluciones para cada necesidad de tu vehículo.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
+      conf: { tituloSeccion: 'Nuestros Postres', subtitulo: 'Endulzamos cada momento especial.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
     },
     {
       id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
@@ -69,8 +70,8 @@ export default function TabConstructor() {
   const promoCanvasRef = useRef(null);
 
   const defaultPromosForCanvas = [
-    { titulo: 'Cambio de Aceite + Diagnóstico Gratis', etiqueta: 'PROMO DEL MES', color_fondo: 'primary' },
-    { titulo: 'Edición Limitada: 20% OFF', etiqueta: 'EDICIÓN LIMITADA', color_fondo: 'navy' },
+    { titulo: 'Promo del Mes: Box Degustación', etiqueta: 'PROMO DEL MES', color_fondo: 'primary' },
+    { titulo: 'Especial Eventos: 15% OFF', etiqueta: 'ESPECIAL EVENTOS', color_fondo: 'navy' },
   ];
   // ────────────────────────────────────────────────────────────────────────────
 
@@ -87,7 +88,12 @@ export default function TabConstructor() {
               '#ef4444': '#dc2626',
               '#10b981': '#059669',
               '#f97316': '#ea580c',
-              '#8b5cf6': '#7c3aed'
+              '#8b5cf6': '#7c3aed',
+              '#f36c84': '#e65c74',
+              '#7db053': '#6a9c42',
+              '#ffb6c1': '#f5a3af',
+              '#d8e8ee': '#c3dbe4',
+              '#5eaeb9': '#4d9da8'
             };
             const hoverVal = hoverColors[config.tema_global.color] || config.tema_global.color;
             document.documentElement.style.setProperty('--primary-hover', hoverVal);
@@ -242,13 +248,23 @@ export default function TabConstructor() {
         nuevoBloque.titulo = 'Nuevas Estadísticas';
         nuevoBloque.conf = { estilo: 'Tarjetas Oscuras', columnas: '3', animacion: 'Fade In', stat1_valor: '1', stat1_label: 'Dato 1', stat2_valor: '2', stat2_label: 'Dato 2', stat3_valor: '3', stat3_label: 'Dato 3' };
         break;
+      case 'EmbedBlock':
+        nuevoBloque.titulo = 'Bloque de Código (Embed)';
+        nuevoBloque.conf = { 
+          nombreNavbar: 'Extra',
+          idSeccion: 'seccion_custom_' + Date.now(),
+          colorFondo: '#ffffff',
+          paddingY: 'py-16',
+          htmlContent: ''
+        };
+        break;
       case 'ServicesBlock':
         nuevoBloque.titulo = 'Nuevo Catálogo';
         nuevoBloque.conf = { tituloSeccion: 'Más Servicios', subtitulo: 'Descripción breve.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true };
         break;
       case 'TestimonialsBlock':
-        nuevoBloque.titulo = 'Nuevos Testimonios';
-        nuevoBloque.conf = { tituloSeccion: 'Clientes Satisfechos', subtitulo: 'Reseñas reales.', layout: 'Grid 3x3', estiloTarjeta: 'Borde Neón (Cyberpunk)', mostrarAvatares: true, mostrarEstrellas: true, mostrarEmpresa: false, fondoSeccion: 'Oscuro Estándar' };
+        nuevoBloque.titulo = 'Testimonios y Reseñas';
+        nuevoBloque.conf = { colorFondo: 'Gris Claro', padding: 'Medio' };
         break;
       case 'CTABlock':
         nuevoBloque.titulo = 'Nuevo CTA';
@@ -273,7 +289,7 @@ export default function TabConstructor() {
 
   // Componentes de Previsualización simulada (Adaptables)
   const PreviewBlocks = {
-    HeroBlock: ({ conf }) => (
+    HeroBlock: ({ conf = {} }) => (
       <div className={`w-full ${previewMode === 'desktop' ? 'h-72' : 'h-48'} bg-gray-900 rounded-xl flex flex-col ${conf.alineacion === 'Centro' ? 'items-center text-center' : conf.alineacion === 'Izquierda' ? 'items-start text-left pl-10' : conf.alineacion === 'Derecha' ? 'items-end text-right pr-10' : 'items-start text-left pl-10'} justify-center border border-gray-800 mb-4 transition-all duration-500 ease-out relative overflow-hidden group hover:border-gray-600`}>
         {conf.tipoFondo === 'Video' && <div className="absolute inset-0 bg-blue-900 transition-all duration-300" style={{ opacity: conf.overlayOpacidad / 100 }}></div>}
         {conf.tipoFondo === 'Color' && <div className="absolute inset-0 bg-gray-800 transition-all duration-300"></div>}
@@ -283,7 +299,7 @@ export default function TabConstructor() {
         <div className={`mt-6 px-6 py-2.5 ${previewMode === 'desktop' ? 'text-[11px]' : 'text-[9px]'} font-black tracking-wider rounded-lg relative z-10 transition-all duration-300 hover:scale-105 shadow-xl ${conf.estiloBoton === 'Solid (Relleno)' ? 'bg-[var(--primary)] text-white shadow-[0_0_15px_var(--primary)]' : 'border border-[var(--primary)] text-[var(--primary)] bg-transparent'}`}>{conf.textoBoton}</div>
       </div>
     ),
-    StatsBlock: ({ conf }) => (
+    StatsBlock: ({ conf = {} }) => (
       <div className="w-full flex gap-4 mb-4 transition-all duration-500 ease-in-out px-4">
         <div className={`flex-1 ${previewMode === 'desktop' ? 'h-24' : 'h-16'} ${conf.estilo === 'Claro' ? 'bg-gray-200' : conf.estilo === 'Sin Borde' ? 'bg-transparent border-0' : 'bg-gray-900/80 backdrop-blur-md border border-gray-800 shadow-xl'} rounded-xl flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.4)]`}>
           <span className={`${previewMode === 'desktop' ? 'text-2xl' : 'text-sm'} font-black ${conf.estilo === 'Claro' ? 'text-gray-900' : 'text-white'}`}>{conf.stat1_valor}</span>
@@ -299,7 +315,7 @@ export default function TabConstructor() {
         </div>
       </div>
     ),
-    ServicesBlock: ({ conf }) => {
+    ServicesBlock: ({ conf = {} }) => {
       const nombreAgente = 'Max';
       const listado = [
         { nombre: "Mecánica Preventiva y Correctiva", descripcion: "Soporte multimarca premium, afinamiento y scanner.", duracion_minutos: 90, precio_base: 120, icono: "🔧" },
@@ -530,7 +546,7 @@ export default function TabConstructor() {
         </div>
       );
     },
-    TestimonialsBlock: ({ conf }) => (
+    TestimonialsBlock: ({ conf = {} }) => (
       <div className={`w-full ${conf.fondoSeccion === 'Acentuado' ? 'bg-gradient-to-br from-gray-900 to-[var(--primary)]/10' : 'bg-transparent'} rounded-xl flex flex-col py-6 px-4 mb-4 transition-all duration-500 relative overflow-hidden`}>
         {conf.fondoSeccion === 'Acentuado' && <div className="absolute -top-10 -right-10 w-48 h-48 bg-[var(--primary)]/20 rounded-full blur-3xl"></div>}
         <div className="text-center mb-6 relative z-10">
@@ -556,21 +572,56 @@ export default function TabConstructor() {
         </div>
       </div>
     ),
-    CTABlock: ({ conf }) => (
+    CTABlock: ({ conf = {} }) => (
       <div className={`w-full ${previewMode === 'desktop' ? 'h-40' : 'h-24'} ${conf.colorFondo === 'Degradado Primario' ? 'bg-gradient-to-r from-[var(--secondary)] via-[var(--primary)] to-indigo-600' : 'bg-gray-900 border border-gray-800'} ${conf.esquinas === 'Redondeadas (xl)' ? 'rounded-3xl' : conf.esquinas === 'Píldora' ? 'rounded-full' : 'rounded-lg'} flex flex-col items-center justify-center mb-4 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_10px_30px_var(--primary)]`}>
         <span className={`${previewMode === 'desktop' ? 'text-2xl' : 'text-xs'} font-black text-white relative z-10 shadow-black/50 drop-shadow-md`}>{conf.mensaje}</span>
         <span className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[7px]'} text-blue-200 mt-2 relative z-10 max-w-[80%] text-center`}>{conf.subtitulo}</span>
         <div className={`mt-5 px-6 py-2.5 bg-white text-[var(--primary)] ${previewMode === 'desktop' ? 'text-[11px]' : 'text-[8px]'} font-black tracking-widest rounded-full relative z-10 shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer ${conf.animarBoton ? 'animate-pulse' : ''}`}>{conf.textoBoton}</div>
       </div>
     ),
-    SobreNosotrosBlock: () => (
-      <div className="w-full h-24 bg-gray-900/50 rounded-xl flex flex-col items-center justify-center border border-gray-800 mb-4 opacity-80 select-none">
-        <span className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[9px]'} font-bold text-white uppercase tracking-widest flex items-center gap-2`}><Users className="w-4 h-4 text-[var(--primary)]" /> Sección Sobre Nosotros</span>
+    SobreNosotrosBlock: ({ conf = {} }) => (
+      <div className={`w-full ${previewMode === 'desktop' ? 'h-40' : 'h-32'} bg-gray-900/40 rounded-xl flex items-center border border-gray-800 mb-4 p-4 gap-4 overflow-hidden transition-all duration-300 hover:border-gray-600`}>
+        <div className={`shrink-0 ${previewMode === 'desktop' ? 'w-1/3 h-full' : 'w-1/2 h-full'} bg-gray-800 rounded-lg overflow-hidden relative shadow-inner`}>
+          <div className="absolute inset-0 bg-[var(--primary)]/10 mix-blend-overlay z-10"></div>
+          {conf.imagenURL ? (
+            /\.(mp4|webm|ogg)($|\?)/i.test(conf.imagenURL) || conf.imagenURL.includes('/videos/') ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-500"><MonitorPlay className="w-6 h-6" /></div>
+            ) : (
+              <img src={conf.imagenURL} className="w-full h-full object-cover opacity-80" alt="Preview" />
+            )
+          ) : (
+             <div className="w-full h-full bg-gray-800 flex items-center justify-center"><ImageIcon className="w-6 h-6 text-gray-600" /></div>
+          )}
+        </div>
+        <div className="flex-1 flex flex-col justify-center min-w-0">
+          <span className="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest truncate block">{conf.tituloSeccion || 'Sobre Nosotros'}</span>
+          <h3 className={`${previewMode === 'desktop' ? 'text-sm' : 'text-[10px]'} font-black text-white leading-tight mt-1 truncate`}>
+            {conf.tituloPrincipal || 'Compromiso con la'} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-blue-400">{conf.tituloGradiente || 'Calidad'}</span>
+          </h3>
+          <div className="mt-3 space-y-1.5">
+            {(conf.caracteristicas || [{icono:'✨', titulo:'Característica 1'}, {icono:'🏆', titulo:'Característica 2'}]).slice(0, 2).map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                 <span className="text-[10px] bg-gray-800 w-4 h-4 rounded flex items-center justify-center">{c.icono || '✨'}</span>
+                 <span className="text-[9px] text-gray-400 truncate">{c.titulo || 'Característica'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     ),
-    ContactoBlock: () => (
-      <div className="w-full h-24 bg-gray-900/50 rounded-xl flex flex-col items-center justify-center border border-gray-800 mb-4 opacity-80 select-none">
-        <span className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[9px]'} font-bold text-white uppercase tracking-widest flex items-center gap-2`}><Smartphone className="w-4 h-4 text-[var(--primary)]" /> Contacto y Horarios</span>
+    ContactoBlock: ({ conf = {} }) => (
+      <div className={`w-full ${previewMode === 'desktop' ? 'h-32' : 'h-24'} bg-gray-900/40 rounded-xl flex flex-col items-center justify-center border border-gray-800 mb-4 p-4 text-center transition-all duration-300 hover:border-gray-600`}>
+         <span className="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest">{conf.subtituloSeccion || 'Contacto & Atención'}</span>
+         <h3 className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[9px]'} font-black text-white mt-1`}>{conf.tituloSeccion || '¿Tienes Consultas? Escríbenos'}</h3>
+         <div className="flex gap-3 mt-4 opacity-50">
+            <div className="h-6 w-20 bg-gray-800 rounded flex items-center justify-center gap-1"><Smartphone className="w-3 h-3 text-gray-500" /> <div className="w-8 h-1 bg-gray-600 rounded"></div></div>
+            <div className="h-6 w-24 bg-gray-800 rounded flex items-center justify-center gap-1"><LayoutGrid className="w-3 h-3 text-gray-500" /> <div className="w-10 h-1 bg-gray-600 rounded"></div></div>
+         </div>
+      </div>
+    ),
+    EmbedBlock: ({ conf = {} }) => (
+      <div className="w-full bg-gray-900/40 rounded-xl flex items-center justify-center border border-gray-800 mb-4 py-8 px-4 text-center opacity-80 select-none">
+        <span className="text-xs font-bold text-[var(--primary)] uppercase tracking-widest flex items-center gap-2"><Code className="w-4 h-4" /> Bloque de Código (Embed)</span>
       </div>
     ),
   };
@@ -683,6 +734,12 @@ export default function TabConstructor() {
                   <div className="p-6 bg-gray-900 border border-gray-800 border-t-0 rounded-b-2xl shadow-2xl relative z-0">
                     
                     {/* CONTENIDO DEL FORMULARIO DEPENDIENDO DEL TIPO */}
+
+                    {bloque.tipo === 'EmbedBlock' && (
+                      <div className="mt-4 border-t border-gray-800 pt-6">
+                        <EmbedBlockEditor bloque={bloque} onChange={(campo, valor) => handleConfigChange(bloque.id, campo, valor)} />
+                      </div>
+                    )}
 
                     {/* ── HERO BLOCK ──────────────────────────────────────────────────── */}
                     {bloque.tipo === 'HeroBlock' && (
@@ -939,6 +996,42 @@ export default function TabConstructor() {
                           <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
                           <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                         </div>
+
+                        {/* Configuración de Pasos de Reserva */}
+                        <div className="mt-6 pt-6 border-t border-gray-800">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">Sección: ¿Cómo Reservar?</span>
+                          
+                          <div className="space-y-4">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400">Título de Sección Reserva</label>
+                              <input type="text" value={bloque.conf.reservaTitulo || ''} placeholder="¿Cómo Reservar tu Box?" onChange={e => handleConfigChange(bloque.id, 'reservaTitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-xs text-white focus:border-[var(--primary)] outline-none" />
+                            </div>
+
+                            {/* Paso 1 */}
+                            <div className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
+                              <span className="text-[10px] text-[var(--primary)] font-bold">Paso 1</span>
+                              <input type="text" value={bloque.conf.paso1Titulo || ''} placeholder="Elige Especialidad" onChange={e => handleConfigChange(bloque.id, 'paso1Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
+                              <textarea rows={2} value={bloque.conf.paso1Desc || ''} placeholder="Haz clic en cualquier tarjeta..." onChange={e => handleConfigChange(bloque.id, 'paso1Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
+                              <input type="text" value={bloque.conf.paso1Mobile || ''} placeholder="Texto Corto Mobile (Ej: Elige Servicio)" onChange={e => handleConfigChange(bloque.id, 'paso1Mobile', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-white p-2 outline-none" />
+                            </div>
+
+                            {/* Paso 2 */}
+                            <div className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
+                              <span className="text-[10px] text-[var(--primary)] font-bold">Paso 2</span>
+                              <input type="text" value={bloque.conf.paso2Titulo || ''} placeholder="Esperanza Coordina tu Cita" onChange={e => handleConfigChange(bloque.id, 'paso2Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
+                              <textarea rows={2} value={bloque.conf.paso2Desc || ''} placeholder="Atención al cliente consulta la agenda..." onChange={e => handleConfigChange(bloque.id, 'paso2Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
+                              <input type="text" value={bloque.conf.paso2Mobile || ''} placeholder="Texto Corto Mobile (Ej: Esperanza Coordina)" onChange={e => handleConfigChange(bloque.id, 'paso2Mobile', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-white p-2 outline-none" />
+                            </div>
+
+                            {/* Paso 3 */}
+                            <div className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
+                              <span className="text-[10px] text-[var(--primary)] font-bold">Paso 3</span>
+                              <input type="text" value={bloque.conf.paso3Titulo || ''} placeholder="¡Listo! Box Reservado" onChange={e => handleConfigChange(bloque.id, 'paso3Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
+                              <textarea rows={2} value={bloque.conf.paso3Desc || ''} placeholder="La cita queda agendada al instante..." onChange={e => handleConfigChange(bloque.id, 'paso3Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
+                              <input type="text" value={bloque.conf.paso3Mobile || ''} placeholder="Texto Corto Mobile (Ej: Box Reservado)" onChange={e => handleConfigChange(bloque.id, 'paso3Mobile', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-white p-2 outline-none" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -967,6 +1060,47 @@ export default function TabConstructor() {
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400">Descripción Sobre Nosotros</label>
                           <textarea rows={3} value={bloque.conf.sobreNosotros || ''} onChange={e => handleConfigChange(bloque.id, 'sobreNosotros', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all resize-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400">URL Imagen o Video de la Sección</label>
+                          <input type="text" value={bloque.conf.imagenURL || ''} placeholder="/images/sobre_nosotros.png o /videos/video.mp4" onChange={e => handleConfigChange(bloque.id, 'imagenURL', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all font-mono" />
+                        </div>
+
+                        {/* Características Dinámicas */}
+                        <div className="mt-6 pt-6 border-t border-gray-800">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">Características Destacadas</span>
+                          <div className="space-y-4">
+                            {[0, 1, 2].map((idx) => {
+                              const caracteristicas = bloque.conf.caracteristicas || [
+                                { icono: '✨', titulo: 'Reposteros Certificados', desc: 'Profesionales capacitados en pastelería fina y diseño de tortas.' },
+                                { icono: '🏆', titulo: 'Garantía de Sabor', desc: 'Todos nuestros productos están hechos con ingredientes de la mejor calidad.' },
+                                { icono: '🎨', titulo: 'Diseños Exclusivos', desc: 'Creamos pasteles únicos y personalizados para cada cliente.' },
+                              ];
+                              const item = caracteristicas[idx];
+                              return (
+                                <div key={idx} className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
+                                  <span className="text-[10px] text-[var(--primary)] font-bold">Característica {idx + 1}</span>
+                                  <div className="flex gap-2">
+                                    <input type="text" value={item.icono || ''} placeholder="Icono (Emoji)" onChange={e => {
+                                      const newCar = [...caracteristicas];
+                                      newCar[idx].icono = e.target.value;
+                                      handleConfigChange(bloque.id, 'caracteristicas', newCar);
+                                    }} className="w-16 bg-gray-900 border border-gray-800 rounded text-xs text-center text-white p-2 font-bold outline-none" />
+                                    <input type="text" value={item.titulo || ''} placeholder="Título" onChange={e => {
+                                      const newCar = [...caracteristicas];
+                                      newCar[idx].titulo = e.target.value;
+                                      handleConfigChange(bloque.id, 'caracteristicas', newCar);
+                                    }} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
+                                  </div>
+                                  <textarea rows={2} value={item.desc || ''} placeholder="Descripción..." onChange={e => {
+                                    const newCar = [...caracteristicas];
+                                    newCar[idx].desc = e.target.value;
+                                    handleConfigChange(bloque.id, 'caracteristicas', newCar);
+                                  }} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1041,7 +1175,7 @@ export default function TabConstructor() {
                           </label>
                           <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
                             <input type="checkbox" checked={bloque.conf.mostrarEmpresa !== false} onChange={e => handleConfigChange(bloque.id, 'mostrarEmpresa', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
-                            Mostrar Vehículos
+                            Mostrar Detalles Adicionales
                           </label>
                         </div>
                       </div>
@@ -1164,7 +1298,7 @@ export default function TabConstructor() {
                 <div className={`w-full ${previewMode === 'desktop' ? 'h-16 px-8' : 'h-14 px-5'} bg-black/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30 flex items-center justify-between`}>
                   <span className={`${previewMode === 'desktop' ? 'text-lg' : 'text-xs'} font-black text-white italic tracking-tighter`}>MECÁNICA<span className="text-[var(--primary)]">PRO</span></span>
                   {previewMode === 'desktop' ? (
-                    <div className="flex gap-6 text-[11px] font-bold text-gray-300">
+                    <div className="flex gap-6 text-[111px] font-bold text-gray-300">
                       <span className="hover:text-[var(--primary)] cursor-pointer transition-colors">Inicio</span>
                       <span className="hover:text-[var(--primary)] cursor-pointer transition-colors">Servicios</span>
                       <span className="bg-[var(--primary)] px-4 py-1.5 rounded-md text-white shadow-[0_0_10px_var(--primary)]">Agendar</span>
@@ -1286,6 +1420,15 @@ export default function TabConstructor() {
                 <p className="text-[10px] text-gray-500">Muestra la historia, trayectoria y equipo del taller.</p>
               </div>
 
+              <div onClick={() => agregarBloqueNuevo('EmbedBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all md:col-span-2">
+                <div className="w-full h-20 bg-gray-800 rounded-lg mb-3 flex items-center justify-center group-hover:bg-[var(--primary)]/10 transition-colors relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[size:10px_10px]" style={{ backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)' }}></div>
+                  <Code className="w-8 h-8 text-[var(--primary)] relative z-10" />
+                </div>
+                <h4 className="text-sm font-bold text-white mb-1">Código Libre (Embed)</h4>
+                <p className="text-[10px] text-gray-500">Pega HTML, Iframes, diseños de Canva o videos de YouTube directamente en tu página.</p>
+              </div>
+
               <div onClick={() => agregarBloqueNuevo('ContactoBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
                 <div className="w-full h-20 bg-gray-800 rounded-lg mb-3 flex items-center justify-center group-hover:bg-[var(--primary)]/10 transition-colors">
                   <Smartphone className="w-8 h-8 text-gray-600 group-hover:text-[var(--primary)]" />
@@ -1293,6 +1436,7 @@ export default function TabConstructor() {
                 <h4 className="text-sm font-bold text-white mb-1">Contacto y Horarios</h4>
                 <p className="text-[10px] text-gray-500">Formulario de cita al instante, horarios y datos de contacto.</p>
               </div>
+
             </div>
           </div>
         </div>

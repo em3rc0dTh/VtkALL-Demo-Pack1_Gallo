@@ -57,7 +57,7 @@ export default function TabClientes() {
   const [errorEdit, setErrorEdit] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  // Vehículo temp form
+  // Detalles Adicionales temp form
   const [vMarca, setVMarca] = useState('');
   const [vModelo, setVModelo] = useState('');
   const [vAnio, setVAnio] = useState('');
@@ -344,7 +344,7 @@ export default function TabClientes() {
         Swal.fire({
           icon: 'error',
           title: 'Placa duplicada',
-          text: `La placa "${patenteLimpia}" ya existe en la lista de vehículos de este cliente.`,
+          text: `La placa "${patenteLimpia}" ya existe en la lista de detalles adicionales de este cliente.`,
           background: '#111827',
           color: '#fff',
           confirmButtonColor: '#3b82f6'
@@ -481,8 +481,8 @@ export default function TabClientes() {
             className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
           >
             <option value="todos">Todos (Leads y Clientes)</option>
-            <option value="con_vehiculo">Solo Clientes (Con Vehículo)</option>
-            <option value="sin_vehiculo">Solo Leads (Sin Vehículo)</option>
+            <option value="con_vehiculo">Solo Clientes (Con Detalles Adicionales)</option>
+            <option value="sin_vehiculo">Solo Leads (Sin Detalles Adicionales)</option>
           </select>
           <select 
             value={filtroDni} 
@@ -517,7 +517,7 @@ export default function TabClientes() {
                 <tr>
                   <th className="px-6 py-4">Cliente</th>
                   <th className="px-6 py-4">Celular</th>
-                  <th className="px-6 py-4">Vehículos</th>
+                  <th className="px-6 py-4">Detalles Adicionales</th>
                   <th className="px-6 py-4">Total Gastado</th>
                   <th className="px-6 py-4">Deuda / Crédito</th>
                   <th className="px-6 py-4">Total Citas</th>
@@ -715,9 +715,9 @@ export default function TabClientes() {
 
             </div>
 
-            {/* Listado de Vehículos */}
+            {/* Listado de Detalles Adicionales */}
             <div className="mb-8">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4">Vehículos Vinculados</h4>
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4">Detalles Adicionales Vinculados</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {clienteDetalle.vehiculos && clienteDetalle.vehiculos.map((v, i) => (
                   <div key={i} className="p-4 rounded-2xl bg-gray-900/60 border border-gray-850 flex flex-col gap-3">
@@ -779,7 +779,7 @@ export default function TabClientes() {
                   </div>
                 ))}
                 {(!clienteDetalle.vehiculos || clienteDetalle.vehiculos.length === 0) && (
-                  <p className="text-xs text-gray-500 col-span-2">Este cliente no posee vehículos registrados.</p>
+                  <p className="text-xs text-gray-500 col-span-2">Este cliente no posee detalles adicionales registrados.</p>
                 )}
               </div>
             </div>
@@ -787,7 +787,7 @@ export default function TabClientes() {
             {/* Historial Clínico y Notificaciones */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Timeline Historial Médico del Vehículo */}
+              {/* Timeline Historial Médico del Detalles Adicionales */}
               <div className="lg:col-span-2">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
                   <Wrench className="w-4 h-4 text-primary" /> Historial Clínico (Reparaciones)
@@ -901,7 +901,7 @@ export default function TabClientes() {
                         <div>
                           <h5 className="text-xs font-bold text-yellow-500">Próximo Mantenimiento Recomendado ({v.marca} {v.modelo} - {v.patente})</h5>
                           <p className="text-[10px] text-gray-400 mt-1">
-                            {pm.kilometraje ? `El vehículo alcanzará los ${pm.kilometraje.toLocaleString()} km aprox.` : ''}
+                            {pm.kilometraje ? `El detalles adicionales alcanzará los ${pm.kilometraje.toLocaleString()} km aprox.` : ''}
                             {pm.fecha_estimada ? ` en ${pm.fecha_estimada}.` : ''}
                             {pm.sugerencia ? ` Se sugiere programar: ${pm.sugerencia}` : ''}
                           </p>
@@ -945,7 +945,7 @@ export default function TabClientes() {
                             <div className="text-gray-400 mt-1 flex flex-col gap-0.5">
                               <span>Fecha: <b className="text-gray-300">{new Date(cita.fecha_cita).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })} - {new Date(cita.fecha_cita).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true })}</b></span>
                               {cita.vehiculo && (cita.vehiculo.marca || cita.vehiculo.modelo) && (
-                                <span>Vehículo: <b className="text-gray-300">{cita.vehiculo.marca} {cita.vehiculo.modelo} ({cita.vehiculo.patente || 'S/P'})</b></span>
+                                <span>Detalles Adicionales: <b className="text-gray-300">{cita.vehiculo.marca} {cita.vehiculo.modelo} ({cita.vehiculo.patente || 'S/P'})</b></span>
                               )}
                             </div>
                           </div>
@@ -1121,9 +1121,9 @@ export default function TabClientes() {
                 />
               </div>
 
-              {/* Edición de Vehículos */}
+              {/* Edición de Detalles Adicionales */}
               <div className="p-4 rounded-2xl bg-gray-950/40 border border-gray-850 space-y-3">
-                <span className="block text-[10px] font-bold text-gray-400 uppercase">Gestionar Vehículos</span>
+                <span className="block text-[10px] font-bold text-gray-400 uppercase">Gestionar Detalles Adicionales</span>
                 
                 {/* Listado actual */}
                 <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
@@ -1140,7 +1140,7 @@ export default function TabClientes() {
                     </div>
                   ))}
                   {editVehiculos.length === 0 && (
-                    <p className="text-[10px] text-gray-500 italic">No hay vehículos agregados.</p>
+                    <p className="text-[10px] text-gray-500 italic">No hay detalles adicionales agregados.</p>
                   )}
                 </div>
 
@@ -1181,7 +1181,7 @@ export default function TabClientes() {
                   onClick={handleAddVehiculoEdit}
                   className="w-full py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-semibold hover:bg-primary hover:text-white transition-all cursor-pointer"
                 >
-                  Agregar Vehículo
+                  Agregar Detalles Adicionales
                 </button>
               </div>
 
@@ -1217,7 +1217,7 @@ export default function TabClientes() {
                   <Wrench className="w-5 h-5 text-primary" /> Registrar Reparación
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  Vehículo: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+                  Detalles Adicionales: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
                 </p>
               </div>
               <button 
@@ -1380,7 +1380,7 @@ export default function TabClientes() {
                   <Calendar className="w-5 h-5 text-yellow-500" /> Planificar Mantenimiento
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  Vehículo: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+                  Detalles Adicionales: {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
                 </p>
               </div>
               <button 

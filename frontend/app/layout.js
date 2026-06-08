@@ -9,8 +9,8 @@ export async function generateMetadata() {
     if (res.ok) {
       const config = await res.json();
       return {
-        title: `${config.nombre_taller || 'MecánicaPro'} — Sistema Inteligente`,
-        description: `${config.slogan || 'Tu vehículo en las mejores manos'}. Agenda tu cita de forma automatizada las 24/7.`,
+        title: `${config.nombre_taller || 'Bate y Late'} — Pastelería Creativa`,
+        description: `${config.slogan || 'Endulzamos con amor'}. Cotiza y agenda tu pedido 24/7.`,
       };
     }
   } catch (error) {
@@ -18,8 +18,8 @@ export async function generateMetadata() {
   }
 
   return {
-    title: 'MecánicaPro — Sistema Inteligente',
-    description: 'Servicio mecánico integral asistido por inteligencia artificial. Agenda tu cita de forma automatizada las 24/7.',
+    title: 'Bate y Late — Pastelería Creativa',
+    description: 'Tortas personalizadas y postres deliciosos para cada ocasión. Cotiza y agenda de forma automatizada 24/7.',
   };
 }
 
@@ -28,6 +28,7 @@ export default function RootLayout({ children }) {
     <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
                 if (color) {
                   document.documentElement.style.setProperty('--primary', color);
                   const hoverColors = {
+                    '#ff8da1': '#ff748e',
                     '#00aeef': '#008fcc',
                     '#ef4444': '#dc2626',
                     '#10b981': '#059669',
@@ -46,9 +48,10 @@ export default function RootLayout({ children }) {
                   document.documentElement.style.setProperty('--color-primary', color);
                 }
               } catch (e) {}
-            `,
+            `
           }}
         />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
       <body className="antialiased">
         <AuthProvider>

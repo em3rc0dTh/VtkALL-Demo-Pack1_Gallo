@@ -114,7 +114,7 @@ export default function Testimonios({ conf = {} }) {
                 )}
                 {/* Review Text */}
                 <p className="text-sm font-light leading-relaxed italic mb-6">
-                  "{item.texto}"
+                  &quot;{item.texto}&quot;
                 </p>
               </div>
 

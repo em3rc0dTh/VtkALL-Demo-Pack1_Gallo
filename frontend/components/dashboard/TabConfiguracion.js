@@ -611,8 +611,35 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               </div>
 
               {promociones.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs italic">
-                  No hay promociones configuradas. Se mostrarán las dos por defecto en el Hero.
+                <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-300 rounded-2xl">
+                  <div className="text-gray-400 text-xs italic mb-4">
+                    No hay promociones configuradas. Se están mostrando las dos promociones por defecto de pastelería en tu Hero.
+                  </div>
+                  <button
+                    onClick={() => {
+                      setPromociones([
+                        {
+                          titulo: 'Promo del Mes: Box Degustación',
+                          descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
+                          etiqueta: 'PROMO DEL MES',
+                          mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
+                          color_fondo: 'primary',
+                          activo: true
+                        },
+                        {
+                          titulo: 'Especial Eventos: 15% OFF',
+                          descripcion: 'Reserva la mesa de dulces para tu evento con un mes de anticipación y obtén 15% de descuento.',
+                          etiqueta: 'ESPECIAL EVENTOS',
+                          mensaje_chat: 'Hola, quiero el descuento del 15% para mi evento',
+                          color_fondo: 'navy',
+                          activo: true
+                        }
+                      ]);
+                    }}
+                    className="px-4 py-2 bg-white border border-gray-200 text-[var(--primary)] text-xs font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-all cursor-pointer"
+                  >
+                    Importar promociones por defecto para editarlas
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-6">

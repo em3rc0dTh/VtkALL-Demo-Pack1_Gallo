@@ -163,7 +163,7 @@ export default function Contacto({ taller = {}, onOpenChat, conf = {} }) {
 
               <button
                 onClick={() => onOpenChat(`Hola ${nombreAgente}, me gustaría agendar una cita`)}
-                className="w-full flex items-center justify-center gap-3 py-4 mt-6 rounded-2xl text-xs font-bold text-white bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-btn-secondary hover:shadow-btn-secondary-hover hover:scale-[1.02] active:scale-[0.98] cursor-pointer uppercase tracking-wider"
+                className="w-full flex items-center justify-center gap-3 py-4 mt-6 rounded-2xl text-xs font-bold text-primary bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-btn-secondary hover:shadow-btn-secondary-hover hover:scale-[1.02] active:scale-[0.98] cursor-pointer uppercase tracking-wider"
               >
                 <MessageSquare className="w-5 h-5 fill-current" /> AGENDAR AHORA
               </button>
@@ -179,13 +179,13 @@ export default function Contacto({ taller = {}, onOpenChat, conf = {} }) {
         <p className="text-center sm:text-left">
           &copy; {anio} <span className="font-semibold text-navy">{nombreTaller}</span>. Powered by Vertical. Todos los derechos reservados.
         </p>
-        <div className="flex gap-4">
+        {/* <div className="flex gap-4">
           <a href="#servicios" className="hover:text-primary transition-colors">Servicios</a>
           <span>•</span>
           <a href="#galeria" className="hover:text-primary transition-colors">Galería</a>
           <span>•</span>
           <a href="#nosotros" className="hover:text-primary transition-colors">Nosotros</a>
-        </div>
+        </div> */}
       </div>
     </section>
   );

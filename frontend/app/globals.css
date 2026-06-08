@@ -48,36 +48,36 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  /* Main electric blue from logo */
-  --primary: #00aeef;
-  --primary-hover: #008fcc;
+  /* Main pastel pink */
+  --primary: #ff8da1;
+  --primary-hover: #ff748e;
 
-  /* Dark background / automotive style */
-  --secondary: #0b0b0d;
-  --secondary-hover: #1a1a1f;
+  /* Secondary sweet color (buttercream) */
+  --secondary: #fff5e1;
+  --secondary-hover: #ffe8b5;
 
-  /* Deep dark gray-blue */
-  --navy: #111827;
+  /* Deep dark brownish-gray for text */
+  --navy: #4a3b3c;
 
-  /* Soft metallic background */
-  --lavender: #e8edf2;
+  /* Soft pink background */
+  --lavender: #ffe4e8;
 
   /* Clean white */
-  --white: #f9fafb;
+  --white: #ffffff;
 
-  /* Neutral gray */
-  --gray: #5f6368;
+  /* Neutral warm gray */
+  --gray: #8a7a7b;
 
-  /* Accent cyan from borders */
-  --cyan: #27d3ff;
+  /* Accent peach */
+  --cyan: #ffb88c;
 
   /* Special Background Colors */
-  --dark-bg: #070b13;
-  --dark-aside: #0b0f19;
-  --dark-panel: #0d1222;
-  --dark-card: #111827;
-  --light-bg: #f4f5ff;
-  --light-panel: #f9fafb;
+  --dark-bg: #2d2425;
+  --dark-aside: #382c2d;
+  --dark-panel: #423536;
+  --dark-card: #4a3b3c;
+  --light-bg: #fffbfb;
+  --light-panel: #ffffff;
 
   /* Third party / Social (WhatsApp) */
   --whatsapp-green: #25d366;
@@ -276,6 +276,18 @@ body {
 }
 .animate-float {
   animation: float 4s ease-in-out infinite;
+}
+
+@keyframes bounce-soft {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+  }
+}
+.animate-bounce-soft {
+  animation: bounce-soft 3s ease-in-out infinite;
 }
 
 /* ─── Marquee ─── */

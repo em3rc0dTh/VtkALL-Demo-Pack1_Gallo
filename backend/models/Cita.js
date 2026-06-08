@@ -5,12 +5,7 @@ const CitaSchema = new Schema({
   cliente:         { type: Schema.Types.ObjectId, ref: 'Cliente' },
   numero_telefono: { type: String, required: true, index: true },
   nombre_cliente:  String,   // desnormalizado para queries rápidas
-  vehiculo: {
-    marca:   String,
-    modelo:  String,
-    anio:    Number,
-    patente: String
-  },
+  detalles_reserva: { type: Schema.Types.Mixed, default: {} },
   servicio:                 { type: String, required: true }, // Mantenido para retrocompatibilidad o nombre del servicio/producto
   producto_id:              { type: Schema.Types.ObjectId, ref: 'Producto' }, // Referencia opcional al paquete específico
   tipo_cita: { 
@@ -24,7 +19,7 @@ const CitaSchema = new Schema({
   duracion_estimada_minutos:{ type: Number, default: 60 },
   estado: {
     type:    String,
-    enum:    ['pendiente', 'validada', 'pendiente_confirmacion', 'confirmada', 'evaluacion_en_curso', 'completada', 'cancelada'],
+    enum:    ['pendiente', 'revision_maestro', 'esperando_cliente', 'validada', 'pendiente_confirmacion', 'confirmada', 'evaluacion_en_curso', 'completada', 'cancelada'],
     default: 'pendiente',
     index:   true
   },
