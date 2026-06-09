@@ -17,5 +17,5 @@ sed -i 's/localhost:4000/backend:4000/g' frontend/components/dashboard/TabConfig
 sed -i 's/localhost:27017/mongo:27017/g' backend/config/database.js 2>/dev/null || true
 
 # Levantar todo limpiamente
-sudo docker compose down
-sudo docker compose up -d --build
+sudo docker compose -f docker-compose.prod.yml down
+sudo docker compose -f docker-compose.prod.yml up -d --build

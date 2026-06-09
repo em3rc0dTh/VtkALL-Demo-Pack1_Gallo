@@ -76,9 +76,9 @@ export default function Navbar({ taller = {} }) {
               : 'shadow-sm ring-1 ring-primary/20'
           }`}>
             <img
-              src="/images/bateylate.png"
-              alt="Bateylate"
-              className="w-24 h-24 mt-4 "
+              src="/images/turagua.jpg"
+              alt="Turagua"
+              className="w-full h-full "
             />
           </div>
           {/* <div className="hidden md:block max-w-0 opacity-0 overflow-hidden group-hover:max-w-[200px] group-hover:opacity-100 group-hover:ml-3 transition-all duration-500 ease-in-out whitespace-nowrap"></div> */}

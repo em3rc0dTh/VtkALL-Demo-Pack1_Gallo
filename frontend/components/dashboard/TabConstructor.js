@@ -19,11 +19,40 @@ export default function TabConstructor() {
   });
 
   const paletas = [
+    // Colores originales
     { nombre: 'Rosa Pastel (Bate y Late)', hex: '#f36c84', hover: '#e65c74' },
     { nombre: 'Verde Matcha', hex: '#7db053', hover: '#6a9c42' },
     { nombre: 'Rosa Claro', hex: '#ffb6c1', hover: '#f5a3af' },
     { nombre: 'Celeste Nube', hex: '#d8e8ee', hover: '#c3dbe4' },
     { nombre: 'Aqua Dulce', hex: '#5eaeb9', hover: '#4d9da8' },
+    { nombre: 'Azul Eléctrico', hex: '#008fcc', hover: '#006699' },
+    // Colores adicionales profesionales
+    { nombre: 'Rojo Deportivo', hex: '#e63946', hover: '#d62828' },
+    { nombre: 'Azul Profesional', hex: '#1d3557', hover: '#14263d' },
+    { nombre: 'Azul Claro Moderno', hex: '#00b4d8', hover: '#0093b8' },
+    { nombre: 'Morado Elegante', hex: '#7209b7', hover: '#5a0fa0' },
+    { nombre: 'Naranja Energético', hex: '#fb5607', hover: '#e54602' },
+    
+    // Colores vibrantes
+    { nombre: 'Cian Moderno', hex: '#06aed5', hover: '#0593c1' },
+    { nombre: 'Púrpura Vibrante', hex: '#b5179e', hover: '#9d1186' },
+    { nombre: 'Rosa Magenta', hex: '#ff006e', hover: '#e60054' },
+    { nombre: 'Turquesa Tropical', hex: '#1dd1a1', hover: '#16a085' },
+    { nombre: 'Índigo Profundo', hex: '#4338ca', hover: '#3a31b3' },
+    
+    // Colores sofisticados
+    { nombre: 'Esmeralda', hex: '#06a77d', hover: '#058566' },
+    { nombre: 'Oro Premium', hex: '#d4a574', hover: '#c1945a' },
+    { nombre: 'Gris Moderno', hex: '#6c757d', hover: '#5c636a' },
+    { nombre: 'Teal Oscuro', hex: '#0d3b66', hover: '#082747' },
+    { nombre: 'Coral Suave', hex: '#ff6b6b', hover: '#f55555' },
+    
+    // Colores adicionales
+    { nombre: 'Verde Bosque', hex: '#2d6a4f', hover: '#1f4d38' },
+    { nombre: 'Azul Marino', hex: '#264653', hover: '#1a3140' },
+    { nombre: 'Rojo Vino', hex: '#8a0c1a', hover: '#6b0916' },
+    { nombre: 'Verde Lima', hex: '#9eff66', hover: '#8fef55' },
+    { nombre: 'Platino Claro', hex: '#c0c0c0', hover: '#a8a8a8' },
   ];
 
   // Aplicar tema dinámicamente al CSS root de la app real
@@ -93,7 +122,27 @@ export default function TabConstructor() {
               '#7db053': '#6a9c42',
               '#ffb6c1': '#f5a3af',
               '#d8e8ee': '#c3dbe4',
-              '#5eaeb9': '#4d9da8'
+              '#5eaeb9': '#4d9da8',
+              '#e63946': '#d62828',
+              '#1d3557': '#14263d',
+              '#00b4d8': '#0093b8',
+              '#7209b7': '#5a0fa0',
+              '#fb5607': '#e54602',
+              '#06aed5': '#0593c1',
+              '#b5179e': '#9d1186',
+              '#ff006e': '#e60054',
+              '#1dd1a1': '#16a085',
+              '#4338ca': '#3a31b3',
+              '#06a77d': '#058566',
+              '#d4a574': '#c1945a',
+              '#6c757d': '#5c636a',
+              '#0d3b66': '#082747',
+              '#ff6b6b': '#f55555',
+              '#2d6a4f': '#1f4d38',
+              '#264653': '#1a3140',
+              '#8a0c1a': '#6b0916',
+              '#9eff66': '#8fef55',
+              '#c0c0c0': '#a8a8a8'
             };
             const hoverVal = hoverColors[config.tema_global.color] || config.tema_global.color;
             document.documentElement.style.setProperty('--primary-hover', hoverVal);
@@ -1336,30 +1385,30 @@ export default function TabConstructor() {
       {/* MODAL: AJUSTES GLOBALES (TEMAS) */}
       {modalGlobalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative">
+          <div className="w-full max-w-lg rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative">
             <button onClick={() => setModalGlobalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white">
               <XCircle className="w-6 h-6" />
             </button>
             <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Palette className="w-5 h-5 text-[var(--primary)]"/> Color Global del Tema</h2>
             <p className="text-xs text-gray-400 mb-6">Cambia la identidad visual de toda la aplicación y la landing page al instante.</p>
             
-            <div className="space-y-3">
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
               {paletas.map(paleta => (
                 <div 
                   key={paleta.hex} 
                   onClick={() => cambiarTema(paleta)}
-                  className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all hover:bg-gray-900 ${temaGlobal.color === paleta.hex ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-gray-800'}`}
+                  className={`p-3 overflow-scroll-y rounded-lg border flex items-center justify-between cursor-pointer transition-all hover:bg-gray-900 ${temaGlobal.color === paleta.hex ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-gray-800'}`}
                 >
-                  <span className="text-sm font-bold text-white flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full border-2 border-white/20 shadow-[0_0_10px_currentColor]" style={{ backgroundColor: paleta.hex, color: paleta.hex }}></div>
+                  <span className="text-xs font-bold text-white flex items-center gap-2.5">
+                    <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow-[0_0_10px_currentColor]" style={{ backgroundColor: paleta.hex, color: paleta.hex }}></div>
                     {paleta.nombre}
                   </span>
-                  {temaGlobal.color === paleta.hex && <span className="text-[10px] font-black uppercase text-[var(--primary)]">Activo</span>}
+                  {temaGlobal.color === paleta.hex && <span className="text-[9px] font-black uppercase text-[var(--primary)]">✓ Activo</span>}
                 </div>
               ))}
             </div>
             
-            <button onClick={() => setModalGlobalOpen(false)} className="w-full mt-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs border border-gray-800">
+            <button onClick={() => setModalGlobalOpen(false)} className="w-full mt-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs border border-gray-800 transition-all">
               Cerrar y Ver Cambios
             </button>
           </div>
