@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. BASES DE DATOS (Mongo para la app, Postgres para Temporal)
+  # ==========================================
+  mongo:
+    image: mongo:latest
+    container_name: ${PROJECT_NAME}-mongo
+    command: mongod --quiet --logpath /dev/null
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    ports:
+      - "${MONGO_PORT}:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - mecanica-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: ${PROJECT_NAME}-mongo-express
+    restart: always
+    ports:
+      - "${MONGO_EXPRESS_PORT}:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongo
+    networks:
+      - mecanica-network
+
+  temporal-postgresql:
+    image: postgres:13
+    container_name: ${PROJECT_NAME}-postgresql
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - temporal-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mecanica-network
+    restart: always
+
+  # ==========================================
+  # 2. SERVICIOS TEMPORAL & OPENWA
+  # ==========================================
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: ${PROJECT_NAME}-temporal
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+    ports:
+      - "${TEMPORAL_PORT}:7233"
+    networks:
+      - mecanica-network
+    restart: always
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: ${PROJECT_NAME}-temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:${FRONTEND_PORT}
+    ports:
+      - "${TEMPORAL_UI_PORT}:8080"
+    networks:
+      - mecanica-network
+    restart: always
+
+  openwa:
+    build:
+      context: ./openwa
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}-openwa
+    ports:
+      - "${OPENWA_PORT}:2785"
+    networks:
+      - mecanica-network
+    restart: always
+
+  # ==========================================
+  # 3. APP MECÁNICA (Backend y Frontend)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}-backend
+    ports:
+      - "${BACKEND_PORT}:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - PORT=4000
+      - TEMPORAL_ADDRESS=temporal:7233
+      - OPENWA_URL=http://openwa:2785
+      - MONGODB_URI=mongodb://admin:admin@mongo:27017/${PROJECT_NAME}?authSource=admin
+    depends_on:
+      - openwa
+      - temporal
+      - mongo
+    networks:
+      - mecanica-network
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}-frontend
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - mecanica-network
+    restart: always
+
+networks:
+  mecanica-network:
+    driver: bridge
+
+volumes:
+  temporal-db:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local

@@ -1,0 +1,8 @@
+{
+  "event": "message",
+  "payload": {
+    "fromMe": false,
+    "from": "51933075200@c.us",
+    "body": "Sí"
+  }
+}
