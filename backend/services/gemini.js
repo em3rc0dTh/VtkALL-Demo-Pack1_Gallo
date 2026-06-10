@@ -228,7 +228,7 @@ export const ejecutarTool = async (nombre, args) => {
           descripcion_trabajo: descripcion_trabajo || '',
           detalles_reserva: parsedDetalles,
           fecha_cita: fechaCitaDate,
-          estado: 'revision_maestro', // Pendiente de validación del pastelero
+          estado: 'pendiente', // Pendiente de validación
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
           precio_estimado: 0,
           tipo_cita: tipo_cita || 'Evaluación Presencial',
