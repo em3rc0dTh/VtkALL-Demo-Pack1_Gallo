@@ -13,7 +13,7 @@ const router = express.Router();
 // GET /api/citas
 router.get('/', protegerRuta, async (req, res) => {
   try {
-    const { fecha, estado, pagina = 1, limite = 20 } = req.query;
+    const { fecha, estado, pagina = 1, limite = 1000 } = req.query;
     const query = {};
 
     if (fecha) {
@@ -34,7 +34,7 @@ router.get('/', protegerRuta, async (req, res) => {
       .populate('experto_asignado', 'nombre rol')
       .populate('producto_id', 'nombre precio')
       .populate('team_asignado', 'nombre')
-      .sort({ fecha_cita: 1 })
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(parseInt(limite));
 
