@@ -376,7 +376,7 @@ router.put('/:id', protegerRuta, async (req, res) => {
         const mensaje = `Hola ${cita.nombre_cliente}, te contactamos de ${nombreTaller}. Tu solicitud de cita para ${cita.servicio} el día ${fechaFormateada} ha sido validada. ¿Confirmas tu asistencia? Por favor, responde SÍ para confirmar o NO para cancelar. 🔧`;
         
         // Enviar WhatsApp real
-        await enviarMensajeWhatsApp(cita.numero_telefono, mensaje);
+        await enviarMensajeWhatsApp(cita.numero_telefono, mensaje, cita.cliente);
         
         // Guardar en el historial
         const msgHistorial = new Mensaje({
@@ -472,7 +472,7 @@ router.post('/:id/feedback-maestro', protegerRuta, async (req, res) => {
 
         // Enviar WhatsApp (si es número real) o notificar web
         if (!cita.numero_telefono.startsWith('web_')) {
-          await enviarMensajeWhatsApp(cita.numero_telefono, respuestaEsperanza);
+          await enviarMensajeWhatsApp(cita.numero_telefono, respuestaEsperanza, cita.cliente);
         }
       })
       .catch(err => {

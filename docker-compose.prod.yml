@@ -12,8 +12,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
-    ports:
-      - "${MONGO_PORT}:27017"
+#    ports:
+ #     - "${MONGO_PORT}:27017"
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
@@ -100,6 +100,15 @@ services:
       - mecanica-network
     restart: always
 
+  openwa-dashboard:
+    build:
+      context: ./openwa/dashboard
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}-openwa-dashboard
+    networks:
+      - mecanica-network
+    restart: always
+
   # ==========================================
   # 3. APP MECÁNICA (Backend y Frontend)
   # ==========================================
@@ -113,7 +122,7 @@ services:
     environment:
       - PORT=4000
       - TEMPORAL_ADDRESS=temporal:7233
-      - OPENWA_URL=http://openwa:2785
+      - OPENWA_API_URL=http://openwa:2785/api
       - MONGODB_URI=mongodb://admin:admin@mongo:27017/${PROJECT_NAME}?authSource=admin
     depends_on:
       - openwa

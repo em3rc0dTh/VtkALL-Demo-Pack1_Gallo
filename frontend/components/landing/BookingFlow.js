@@ -36,6 +36,9 @@ export default function BookingFlow({
   const [formServicio, setFormServicio] = useState(initialServicio);
   const [formProductoId, setFormProductoId] = useState('');
   const [formDetallesExtra, setFormDetallesExtra] = useState('');
+  const [formMarca, setFormMarca] = useState('');
+  const [formModelo, setFormModelo] = useState('');
+  const [formPatente, setFormPatente] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
@@ -171,6 +174,9 @@ export default function BookingFlow({
         producto_id: formProductoId || undefined,
         evaluation_type: modality, // This is the new typification field
         fecha_cita: fechaHoraCita,
+        vehiculo_marca: formMarca,
+        vehiculo_modelo: formModelo,
+        vehiculo_patente: formPatente,
         detalles_extra: JSON.stringify({ info_reserva: formDetallesExtra }),
         imagenes: uploadedImages // Send uploaded images
       };
@@ -226,7 +232,7 @@ export default function BookingFlow({
           <h3 className="text-base font-bold text-navy flex items-center gap-2">
             Agendar Evaluación
           </h3>
-          <p className="text-[11px] text-[#7A7A7A] mt-0.5">Sigue los pasos para reservar tu cita con el experto.</p>
+          <p className="text-[11px] text-[#7A7A7A] mt-0.5">Sigue los pasos para reservar tu cita con nuestros especialistas.</p>
         </div>
         {!isEmbedded && onClose && (
           <button onClick={onClose} className="text-gray hover:text-navy transition-colors">
@@ -257,14 +263,14 @@ export default function BookingFlow({
             <ModalityCard 
               id="PRESENCIAL" 
               icon={MapPin} 
-              title="Cotización Presencial (Ideal)" 
-              description="Visítanos en la tienda para diseñar y conversar detalladamente sobre tu pedido." 
+              title="Evaluación Presencial (Ideal)" 
+              description="Visítanos en el taller para una revisión exhaustiva y precisa de tu vehículo." 
             />
             <ModalityCard 
               id="VIRTUAL_FOTOS" 
               icon={Camera} 
-              title="Cotización con Fotos" 
-              description="Sube fotos de referencia aquí y nos contactaremos contigo con una cotización lista." 
+              title="Evaluación con Fotos" 
+              description="Sube fotos de la zona afectada y nos contactaremos contigo con un pre-diagnóstico." 
             />
             <ModalityCard 
               id="LLAMADA_CIEGAS" 
@@ -424,14 +430,48 @@ export default function BookingFlow({
                 />
               </div>
 
+              {/* Información del Vehículo */}
+              <div className="col-span-1 sm:col-span-2 border-t border-gray-150 pt-4 mt-2">
+                <span className="block text-[10px] font-bold text-[#54595F] uppercase mb-3">Información del Vehículo</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Marca *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: Toyota"
+                      value={formMarca} onChange={(e) => setFormMarca(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Modelo *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: Yaris"
+                      value={formModelo} onChange={(e) => setFormModelo(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Placa (Patente) *</label>
+                    <input
+                      type="text" required
+                      placeholder="Ej: ABC-123"
+                      value={formPatente} onChange={(e) => setFormPatente(e.target.value)}
+                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary uppercase"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Información Adicional */}
               <div className="col-span-1 sm:col-span-2 border-t border-gray-150 pt-4 mt-2">
-                <span className="block text-[10px] font-bold text-[#54595F] uppercase mb-3">Detalles Adicionales del Pedido</span>
+                <span className="block text-[10px] font-bold text-[#54595F] uppercase mb-3">Detalles de la Falla o Servicio</span>
                 <div>
-                  <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Escribe aquí especificaciones (ej: sabor, temática, porciones)</label>
+                  <label className="block text-[9px] font-bold text-[#7A7A7A] uppercase mb-1">Describe el problema o lo que necesitas (ej: ruido al frenar, mantenimiento 50k, etc.)</label>
                   <textarea
                     rows={3}
-                    placeholder="Quiero una torta de chocolate con temática de Spiderman para 20 personas..."
+                    placeholder="Siento una vibración en el volante al ir a más de 80km/h y necesito..."
                     value={formDetallesExtra} onChange={(e) => setFormDetallesExtra(e.target.value)}
                     className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
@@ -486,10 +526,10 @@ export default function BookingFlow({
               {modality === 'VIRTUAL_FOTOS' && (
                 <div className="col-span-1 sm:col-span-2 border-t border-gray-150 pt-4 mt-2">
                   <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
-                    Subir Imágenes de Referencia (Recomendado)
+                    Subir Fotos del Vehículo / Daño (Recomendado)
                   </label>
                   <p className="text-[10px] text-gray-500 mb-3">
-                    Sube fotos de inspiración o referencia para tu pedido (ej: diseño de la torta, colores, temática).
+                    Sube fotos de la zona a reparar (ej: faro roto, abolladura, llanta) para que el experto tenga una referencia.
                   </p>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -38,10 +38,20 @@ router.post('/whatsapp', rateLimiter('telefono', 15, 60000), async (req, res) =>
         if (payload.from && payload.from.endsWith('@lid')) {
           try {
             // 1. Intentar buscar primero en nuestra base de datos local el mapeo de LID
-            const clientWithLid = await Cliente.findOne({ whatsapp_lid: payload.from });
-            if (clientWithLid) {
-              console.log(`ℹ️ [OpenWA Webhook] LID ${payload.from} resuelto vía DB local a teléfono: ${clientWithLid.numero_telefono}`);
-              numeroTelefono = clientWithLid.numero_telefono;
+            // Puede haber más de un cliente con este LID si se creó uno "sucio" con numero = LID.
+            const clientsWithLid = await Cliente.find({ 
+              $or: [
+                { whatsapp_lid: payload.from },
+                { whatsapp_lids: payload.from }
+              ] 
+            });
+            
+            if (clientsWithLid && clientsWithLid.length > 0) {
+              // Ordenar por longitud del numero_telefono ascendente (los reales son de 9-12 digitos, los LID son 14+)
+              clientsWithLid.sort((a, b) => a.numero_telefono.length - b.numero_telefono.length);
+              const bestClient = clientsWithLid[0];
+              console.log(`ℹ️ [OpenWA Webhook] LID ${payload.from} resuelto vía DB local a teléfono: ${bestClient.numero_telefono}`);
+              numeroTelefono = bestClient.numero_telefono;
             } else {
               // 2. Si no está en DB, hacer fallback consultando a la API de OpenWA
               const openwaUrl = process.env.OPENWA_API_URL;
@@ -84,7 +94,8 @@ router.post('/whatsapp', rateLimiter('telefono', 15, 60000), async (req, res) =>
           }
         }
 
-        await procesarMensajeCompleto(numeroTelefono, mensajeContenido, res, false, true);
+        const isLid = payload.from && payload.from.endsWith('@lid');
+        await procesarMensajeCompleto(numeroTelefono, mensajeContenido, res, false, true, [], isLid ? payload.from : null);
         return;
       }
     }
@@ -117,7 +128,7 @@ const procesarSimulacionInterna = async (from, body, res, adjuntos = []) => {
   await procesarMensajeCompleto(numeroTelefono, mensajeContenido, res, false, false, adjuntos);
 };
 
-const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, esXML, enviarProactivo = false, adjuntos = []) => {
+const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, esXML, enviarProactivo = false, adjuntos = [], originalLid = null) => {
   try {
     // Normalizar número de teléfono (quitar caracteres no numéricos y prefijo 51 de país si existe para la búsqueda)
     const numeroLimpio = numeroTelefono.replace(/[^0-9]/g, '');
@@ -127,23 +138,40 @@ const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, es
     }
 
     // 1. Buscar cliente usando coincidencia flexible (exacto, peruano local, con prefijo o LID)
-    let cliente = await Cliente.findOne({
+    const clienteQuery = {
       $or: [
-        { whatsapp_lid: numeroTelefono },
-        { whatsapp_lid: numeroTelefono.includes('@') ? numeroTelefono : numeroTelefono + '@lid' },
         { numero_telefono: numeroTelefono },
         { numero_telefono: numeroPeruano },
         { numero_telefono: '51' + numeroPeruano }
       ]
-    });
+    };
+    // Solo agregar búsqueda por LID si tenemos un LID real
+    if (originalLid) {
+      // Buscar en el array whatsapp_lids (nuevo) y en whatsapp_lid (legacy)
+      clienteQuery.$or.unshift({ whatsapp_lids: originalLid });
+      clienteQuery.$or.unshift({ whatsapp_lid: originalLid });
+    }
+    let cliente = await Cliente.findOne(clienteQuery);
     
     if (!cliente) {
       cliente = new Cliente({
-        numero_telefono: numeroPeruano, // Usar formato local peruano de 9 dígitos por defecto
+        numero_telefono: numeroPeruano,
         nombre: '',
+        whatsapp_lids: originalLid ? [originalLid] : [],
+        whatsapp_lid: originalLid || undefined,
         vehiculos: []
       });
       await cliente.save();
+    } else if (originalLid) {
+      // Agregar LID al array si no está ya (nunca sobreescribir)
+      const needsUpdate = !cliente.whatsapp_lids?.includes(originalLid);
+      if (needsUpdate) {
+        await Cliente.findByIdAndUpdate(cliente._id, {
+          $addToSet: { whatsapp_lids: originalLid }
+        });
+        if (!cliente.whatsapp_lids) cliente.whatsapp_lids = [];
+        cliente.whatsapp_lids.push(originalLid);
+      }
     }
 
     // Usar el número oficial del cliente para todo el flujo interno y chatbot
@@ -172,9 +200,12 @@ const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, es
       const nombreAgente = tallerInfo?.config_agente?.nombre_agente || 'Esperanza';
 
       if (esConfirmacion || esCancelacion) {
-        // Buscar todas las citas activas para este número que tengan recordatorio enviado y confirmación pendiente
+        // Buscar todas las citas activas para este cliente que tengan recordatorio enviado y confirmación pendiente
         const citasRecordatorio = await Cita.find({
-          numero_telefono: { $in: [telefonoProcesamiento, numeroPeruano, '51' + numeroPeruano] },
+          $or: [
+            { cliente: cliente._id },
+            { numero_telefono: { $in: [telefonoProcesamiento, numeroPeruano, '51' + numeroPeruano, '+51' + numeroPeruano, '+' + telefonoProcesamiento] } }
+          ],
           recordatorio_enviado: true,
           estado_confirmacion: 'pendiente',
           estado: { $in: ['confirmada', 'pendiente_confirmacion'] }
@@ -269,7 +300,7 @@ const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, es
     // 5. Devolver la respuesta en el formato correspondiente
     if (enviarProactivo) {
       try {
-        await enviarMensajeWhatsApp(telefonoFinal, respuestaFinalIA);
+        await enviarMensajeWhatsApp(telefonoFinal, respuestaFinalIA, clienteFinal._id, originalLid);
       } catch (sendErr) {
         console.error('Error al enviar respuesta proactiva por WhatsApp (OpenWA):', sendErr);
       }

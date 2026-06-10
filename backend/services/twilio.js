@@ -22,7 +22,7 @@ export const crearRespuestaTwiML = (mensaje) => {
  * Envía un mensaje de WhatsApp proactivo al cliente.
  * Si las credenciales son de prueba (mock) o no están configuradas, simula el envío en la consola.
  */
-export const enviarMensajeWhatsApp = async (numero_telefono, mensaje) => {
+export const enviarMensajeWhatsApp = async (numero_telefono, mensaje, clienteId = null, originalLid = null) => {
   const openwaUrl = process.env.OPENWA_API_URL;
   const openwaKey = process.env.OPENWA_API_KEY;
   const openwaSession = process.env.OPENWA_SESSION_NAME || 'mecanica-bot';
@@ -35,24 +35,14 @@ export const enviarMensajeWhatsApp = async (numero_telefono, mensaje) => {
         numeroLimpio = '51' + numeroLimpio;
       }
 
-      // 1. Intentar resolver si el cliente ya tiene un whatsapp_lid guardado en la DB
       let resolvedChatId = `${numeroLimpio}@c.us`;
-      try {
-        const clientObj = await Cliente.findOne({
-          $or: [
-            { whatsapp_lid: numero_telefono },
-            { numero_telefono: numero_telefono },
-            { numero_telefono: numeroLimpio },
-            { numero_telefono: numeroLimpio.substring(2) }
-          ]
-        });
-        if (clientObj && clientObj.whatsapp_lid) {
-          resolvedChatId = clientObj.whatsapp_lid;
-          console.log(`ℹ️ [OpenWA] Usando LID guardado para enviar mensaje: ${resolvedChatId}`);
-        }
-      } catch (dbErr) {
-        console.warn(`⚠️ [OpenWA] No se pudo consultar el LID del cliente en la DB:`, dbErr.message);
+      if (originalLid) {
+        resolvedChatId = originalLid;
+      } else if (numeroLimpio.length > 13) {
+        // Fallback: Si el número es inusualmente largo (15 dígitos), es altamente probable que sea un LID
+        resolvedChatId = `${numeroLimpio}@lid`;
       }
+
       
       // Resolve the database session UUID from the configured session name
       let resolvedSessionId = openwaSession;
@@ -102,20 +92,40 @@ export const enviarMensajeWhatsApp = async (numero_telefono, mensaje) => {
         if (parts.length >= 2 && parts[1].endsWith('@lid')) {
           const resolvedLid = parts[1];
           try {
-            const updated = await Cliente.findOneAndUpdate(
-              {
-                $or: [
-                  { whatsapp_lid: resolvedLid },
-                  { numero_telefono: numero_telefono },
-                  { numero_telefono: numeroLimpio },
-                  { numero_telefono: numeroLimpio.substring(2) }
-                ]
-              },
-              { $set: { whatsapp_lid: resolvedLid } },
-              { new: true }
-            );
+            let updated = null;
+            if (clienteId) {
+              // Si tenemos el ID del cliente directamente, usarlo para asegurar el match correcto
+              updated = await Cliente.findByIdAndUpdate(
+                clienteId,
+                {
+                  $addToSet: { whatsapp_lids: resolvedLid },
+                  $set: { whatsapp_lid: resolvedLid }  // backward compat
+                },
+                { new: true }
+              );
+            }
+            if (!updated) {
+              updated = await Cliente.findOneAndUpdate(
+                {
+                  $or: [
+                    { whatsapp_lids: resolvedLid },
+                    { whatsapp_lid: resolvedLid },
+                    { numero_telefono: numero_telefono },
+                    { numero_telefono: numeroLimpio },
+                    { numero_telefono: numeroLimpio.substring(2) }
+                  ]
+                },
+                {
+                  $addToSet: { whatsapp_lids: resolvedLid },
+                  $set: { whatsapp_lid: resolvedLid }  // backward compat
+                },
+                { new: true }
+              );
+            }
             if (updated) {
               console.log(`✅ [OpenWA] Guardado mapeo LID ${resolvedLid} para cliente ${updated.nombre || updated.numero_telefono}`);
+            } else {
+              console.warn(`⚠️ [OpenWA] No se encontró cliente para guardar LID ${resolvedLid} (teléfono: ${numero_telefono})`);
             }
           } catch (saveErr) {
             console.error('Error al guardar el mapping LID en la DB:', saveErr);
