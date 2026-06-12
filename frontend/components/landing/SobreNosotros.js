@@ -4,9 +4,9 @@ import { Award, CheckCircle2, Users, Wrench } from 'lucide-react';
 
 export default function SobreNosotros({ taller = {}, conf = {} }) {
   const caracteristicas = conf.caracteristicas || [
-    { icono: Wrench,       titulo: 'Reposteros Certificados',    desc: 'Profesionales capacitados en pastelería fina y diseño de tortas.' },
-    { icono: CheckCircle2, titulo: 'Garantía de Sabor',      desc: 'Todos nuestros productos están hechos con ingredientes de la mejor calidad.' },
-    { icono: Users,        titulo: 'Diseños Exclusivos',   desc: 'Creamos pasteles únicos y personalizados para cada cliente.' },
+    { icono: Wrench,       titulo: 'Mecánicos Certificados',    desc: 'Profesionales capacitados en mecánica general y electrónica automotriz.' },
+    { icono: CheckCircle2, titulo: 'Calidad de Repuestos',      desc: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
+    { icono: Users,        titulo: 'Mecánica Especializada',   desc: 'Brindamos atención personalizada y garantizada para cada vehículo.' },
   ];
 
   return (

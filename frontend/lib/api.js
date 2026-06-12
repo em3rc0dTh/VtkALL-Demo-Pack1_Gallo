@@ -135,7 +135,12 @@ export const api = {
   agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
   actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
   subirImagenGeneral: (formData) => {
-    return fetch('/api/upload/general', {
+    // Para uploads grandes (videos), bypass proxy Next.js para evitar límite de size
+    const uploadUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? 'http://localhost:4000/api/upload/general'
+      : '/api/upload/general';
+
+    return fetch(uploadUrl, {
       method: 'POST',
       body: formData,
       credentials: 'include',

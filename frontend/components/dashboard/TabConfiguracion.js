@@ -270,13 +270,36 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
                       URL Video/Imagen de Fondo (solo soporte)
                     </label>
-                    <input
-                      type="text"
-                      value={urlFondo}
-                      onChange={(e) => setUrlFondo(e.target.value)}
-                      placeholder="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
-                    />
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={urlFondo}
+                        onChange={(e) => setUrlFondo(e.target.value)}
+                        placeholder="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
+                        className="flex-1 bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                      />
+                      <label className="cursor-pointer bg-navy hover:bg-[#1a2333] text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center transition-all">
+                        <input type="file" className="hidden" accept="image/*,video/mp4,video/webm" onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append('imagen', file);
+                          setGuardando(true);
+                          api.subirImagenGeneral(formData).then(data => {
+                            setUrlFondo(data.imageUrl);
+                            setMensajeOk('Archivo subido correctamente. Recuerda Guardar Cambios.');
+                            setTimeout(() => setMensajeOk(''), 5000);
+                          }).catch(err => {
+                            setMensajeError(err.message || 'Error al subir archivo.');
+                            setTimeout(() => setMensajeError(''), 5000);
+                          }).finally(() => {
+                            setGuardando(false);
+                            e.target.value = '';
+                          });
+                        }} />
+                        Subir Archivo
+                      </label>
+                    </div>
                   </div>
                 )}
 

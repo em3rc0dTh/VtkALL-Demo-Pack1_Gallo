@@ -23,17 +23,17 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm'];
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Formato no permitido. Solo se permiten imágenes (JPG, PNG, WEBP)'), false);
+    cb(new Error('Formato no permitido. Solo se permiten imágenes y videos (JPG, PNG, WEBP, GIF, MP4, WEBM)'), false);
   }
 };
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB (NEG-1.3 DDoS)
+  limits: { fileSize: 50 * 1024 * 1024 }, // Max 50MB para videos
   fileFilter: fileFilter
 });
 

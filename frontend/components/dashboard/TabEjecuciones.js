@@ -502,7 +502,7 @@ export default function TabEjecuciones() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
             <LayoutGrid className="w-4 h-4 text-primary" /> Producción por Equipo
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada pastelero.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada mecánico.</p>
         </div>
         
         {/* Toggle Vistas */}
@@ -528,7 +528,7 @@ export default function TabEjecuciones() {
 
       {/* Team Selector - Independent Calendars */}
       <div className="bg-dark-card/20 p-3 rounded-2xl border border-gray-850 flex items-center gap-3">
-        <span className="text-[10px] font-bold uppercase text-gray-500">Pastelero / Equipo:</span>
+        <span className="text-[10px] font-bold uppercase text-gray-500">Mecánico / Equipo:</span>
         <div className="flex gap-1.5 overflow-x-auto custom-scrollbar">
           <button
             onClick={() => setTeamSeleccionado('Todos')}
@@ -536,7 +536,7 @@ export default function TabEjecuciones() {
               teamSeleccionado === 'Todos' ? 'bg-primary text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
             }`}
           >
-            Todos los Pasteleros
+            Todos los Mecánicos
           </button>
           {equipos.map(eq => (
             <button
@@ -586,7 +586,7 @@ export default function TabEjecuciones() {
                   <div key={equipoName} className="border border-gray-850 rounded-2xl bg-gray-950/20 overflow-hidden">
                     <div className="bg-gray-900 border-b border-gray-850 p-4 flex justify-between items-center">
                       <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                        <Wrench className="w-4 h-4 text-primary" /> Pastelero: {equipoName}
+                        <Wrench className="w-4 h-4 text-primary" /> Mecánico: {equipoName}
                       </h4>
                       <span className="text-[10px] font-bold px-2 py-1 bg-gray-800 rounded text-gray-400">
                         Horario Base: 08:00 - 18:00
@@ -674,7 +674,7 @@ export default function TabEjecuciones() {
 
               <div className="flex justify-between items-center px-2">
                 <h4 className="text-white text-xs font-bold uppercase tracking-wider">
-                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los Pasteleros' : `Pastelero: ${teamSeleccionado}`})
+                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los Mecánicos' : `Mecánico: ${teamSeleccionado}`})
                 </h4>
                 <div className="flex gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
                   <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div> En Curso</span>

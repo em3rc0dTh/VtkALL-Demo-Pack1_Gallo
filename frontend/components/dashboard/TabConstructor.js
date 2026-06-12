@@ -14,8 +14,10 @@ export default function TabConstructor() {
 
   // Paleta de temas para toda la app
   const [temaGlobal, setTemaGlobal] = useState({
-    color: '#f36c84',
-    nombre: 'Rosa Pastel (Bate y Late)'
+    color: '#ef4444',
+    color_secundario: '#00d1ff',
+    color_fondo: '#0f172a',
+    nombre: 'Turagua Bot'
   });
 
   const paletas = [
@@ -57,14 +59,32 @@ export default function TabConstructor() {
 
   // Aplicar tema dinámicamente al CSS root de la app real
   const cambiarTema = (paleta) => {
-    setTemaGlobal({ color: paleta.hex, nombre: paleta.nombre });
+    setTemaGlobal(prev => ({ ...prev, color: paleta.hex, nombre: paleta.nombre }));
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--primary', paleta.hex);
-      document.documentElement.style.setProperty('--primary-hover', paleta.hover);
+      document.documentElement.style.setProperty('--primary-hover', paleta.hover || paleta.hex);
       document.documentElement.style.setProperty('--color-primary', paleta.hex);
-      try {
-        localStorage.setItem('tema-color', paleta.hex);
-      } catch (e) {}
+      try { localStorage.setItem('tema-color', paleta.hex); } catch (e) {}
+    }
+  };
+
+  const cambiarColorSecundario = (color) => {
+    setTemaGlobal(prev => ({ ...prev, color_secundario: color }));
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--secondary', color);
+      document.documentElement.style.setProperty('--color-secondary', color);
+      document.documentElement.style.setProperty('--cyan', color);
+      document.documentElement.style.setProperty('--yellow', color);
+      try { localStorage.setItem('tema-color-secundario', color); } catch (e) {}
+    }
+  };
+
+  const cambiarColorFondo = (color) => {
+    setTemaGlobal(prev => ({ ...prev, color_fondo: color }));
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--dark-bg', color);
+      document.documentElement.style.setProperty('--lavender', color);
+      try { localStorage.setItem('tema-color-fondo', color); } catch (e) {}
     }
   };
 
@@ -147,9 +167,41 @@ export default function TabConstructor() {
             const hoverVal = hoverColors[config.tema_global.color] || config.tema_global.color;
             document.documentElement.style.setProperty('--primary-hover', hoverVal);
             document.documentElement.style.setProperty('--color-primary', config.tema_global.color);
+            if (config.tema_global.color_secundario) cambiarColorSecundario(config.tema_global.color_secundario);
+            if (config.tema_global.color_fondo) cambiarColorFondo(config.tema_global.color_fondo);
           }
           if (config.constructor_bloques && config.constructor_bloques.length > 0) {
-            setBloques(config.constructor_bloques);
+            const bloquesLlenos = config.constructor_bloques.map(b => {
+              const conf = b.conf || {};
+              if (b.tipo === 'SobreNosotrosBlock') {
+                return {
+                  ...b,
+                  conf: {
+                    ...conf,
+                    tituloSeccion: conf.tituloSeccion || 'Sobre Nosotros',
+                    anosExperiencia: conf.anosExperiencia || config.anos_experiencia || '',
+                    tituloPrincipal: conf.tituloPrincipal || config.nombre_taller || '',
+                    tituloGradiente: conf.tituloGradiente || 'Calidad',
+                    sobreNosotros: conf.sobreNosotros || config.sobre_nosotros || ''
+                  }
+                };
+              }
+              if (b.tipo === 'ContactoBlock') {
+                return {
+                  ...b,
+                  conf: {
+                    ...conf,
+                    etiquetaSeccion: conf.etiquetaSeccion || 'Ubicación y',
+                    tituloSeccion: conf.tituloSeccion || 'Contacto',
+                    telefono: conf.telefono || config.telefono || '',
+                    email: conf.email || config.email || '',
+                    direccion: conf.direccion || config.direccion || ''
+                  }
+                };
+              }
+              return b;
+            });
+            setBloques(bloquesLlenos);
           }
           if (config.promociones && config.promociones.length > 0) {
             setTallerPromos(config.promociones.filter(p => p.activo !== false));
@@ -206,7 +258,10 @@ export default function TabConstructor() {
       };
       const response = await api.actualizarConfiguracion(payload);
       if (response && response.taller && response.taller.tema_global) {
-        cambiarTema(response.taller.tema_global);
+        setTemaGlobal(response.taller.tema_global);
+        if (response.taller.tema_global.color) cambiarTema({ hex: response.taller.tema_global.color, nombre: response.taller.tema_global.nombre || 'Personalizado' });
+        if (response.taller.tema_global.color_secundario) cambiarColorSecundario(response.taller.tema_global.color_secundario);
+        if (response.taller.tema_global.color_fondo) cambiarColorFondo(response.taller.tema_global.color_fondo);
       }
       Swal.fire({
         title: '¡Guardado!',
@@ -654,6 +709,7 @@ export default function TabConstructor() {
                  <span className="text-[9px] text-gray-400 truncate">{c.titulo || 'Característica'}</span>
               </div>
             ))}
+
           </div>
         </div>
       </div>
@@ -683,7 +739,7 @@ export default function TabConstructor() {
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/5 to-transparent pointer-events-none"></div>
         <div className="relative z-10">
           <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-            <LayoutTemplate className="w-4 h-4 text-[var(--primary)]" /> Constructor tipo WordPress
+            <LayoutTemplate className="w-4 h-4 text-[var(--primary)]" /> Constructor Visual
           </h3>
           <p className="text-[10px] text-gray-400 mt-1 font-medium">Arquitectura libre. Agrega, elimina, edita y cambia el color de toda la App.</p>
         </div>
@@ -1112,7 +1168,28 @@ export default function TabConstructor() {
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400">URL Imagen o Video de la Sección</label>
-                          <input type="text" value={bloque.conf.imagenURL || ''} placeholder="/images/sobre_nosotros.png o /videos/video.mp4" onChange={e => handleConfigChange(bloque.id, 'imagenURL', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all font-mono" />
+                          <div className="flex gap-2 items-center">
+                            <input type="text" value={bloque.conf.imagenURL || ''} placeholder="/images/sobre_nosotros.png o /videos/video.mp4" onChange={e => handleConfigChange(bloque.id, 'imagenURL', e.target.value)} className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all font-mono" />
+                            <label className="cursor-pointer bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-300 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center transition-all">
+                              <input type="file" className="hidden" accept="image/*,video/mp4,video/webm" onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                const formData = new FormData();
+                                formData.append('imagen', file);
+                                setGuardando(true);
+                                api.subirImagenGeneral(formData).then(data => {
+                                  handleConfigChange(bloque.id, 'imagenURL', data.imageUrl);
+                                  Swal.fire({ title: '¡Subido!', text: 'El archivo se subió correctamente', icon: 'success', background: '#111827', color: '#fff', timer: 1500, showConfirmButton: false });
+                                }).catch(err => {
+                                  Swal.fire({ title: 'Error', text: err.message || 'Error al subir', icon: 'error', background: '#111827', color: '#fff' });
+                                }).finally(() => {
+                                  setGuardando(false);
+                                  e.target.value = '';
+                                });
+                              }} />
+                              Subir Archivo
+                            </label>
+                          </div>
                         </div>
 
                         {/* Características Dinámicas */}
@@ -1121,9 +1198,9 @@ export default function TabConstructor() {
                           <div className="space-y-4">
                             {[0, 1, 2].map((idx) => {
                               const caracteristicas = bloque.conf.caracteristicas || [
-                                { icono: '✨', titulo: 'Reposteros Certificados', desc: 'Profesionales capacitados en pastelería fina y diseño de tortas.' },
-                                { icono: '🏆', titulo: 'Garantía de Sabor', desc: 'Todos nuestros productos están hechos con ingredientes de la mejor calidad.' },
-                                { icono: '🎨', titulo: 'Diseños Exclusivos', desc: 'Creamos pasteles únicos y personalizados para cada cliente.' },
+                                { icono: '✨', titulo: 'Mecánicos Certificados', desc: 'Profesionales capacitados en mecánica general y electrónica automotriz.' },
+                                { icono: '🏆', titulo: 'Calidad de Repuestos', desc: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
+                                { icono: '🎨', titulo: 'Mecánica Especializada', desc: 'Brindamos atención personalizada y garantizada para cada vehículo.' },
                               ];
                               const item = caracteristicas[idx];
                               return (
@@ -1408,6 +1485,35 @@ export default function TabConstructor() {
               ))}
             </div>
             
+            <div className="mt-6 border-t border-gray-800 pt-6">
+              <h3 className="text-sm font-bold text-white mb-4">Colores Avanzados</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-gray-500 mb-2">Secundario (Degradados)</label>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="color" 
+                      value={temaGlobal.color_secundario || '#00d1ff'} 
+                      onChange={(e) => cambiarColorSecundario(e.target.value)}
+                      className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-xs text-gray-400 uppercase font-mono">{temaGlobal.color_secundario || '#00d1ff'}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-gray-500 mb-2">Fondo General</label>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="color" 
+                      value={temaGlobal.color_fondo || '#0f172a'} 
+                      onChange={(e) => cambiarColorFondo(e.target.value)}
+                      className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-xs text-gray-400 uppercase font-mono">{temaGlobal.color_fondo || '#0f172a'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <button onClick={() => setModalGlobalOpen(false)} className="w-full mt-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs border border-gray-800 transition-all">
               Cerrar y Ver Cambios
             </button>

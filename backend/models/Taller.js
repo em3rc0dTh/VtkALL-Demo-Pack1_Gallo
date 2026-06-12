@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const TallerSchema = new Schema({
-  nombre_taller:   { type: String, required: true, default: 'Bate y Late' },
+  nombre_taller:   { type: String, required: true, default: 'Turagua' },
   slogan:          { type: String, default: 'Endulzamos con amor 💕' },
   direccion:       { type: String, default: 'San Miguel, Lima' },
   telefono:        { type: String, default: '955479450' },
   whatsapp:        { type: String, default: '51955479450' },  // número para el deep link de WhatsApp
-  email:           { type: String, default: 'pedidos@bateylate.com' },
+  email:           { type: String, default: 'citas@turagua.thradex.com' },
   horarios: {
     lunes_viernes: { type: String, default: '10:00 - 19:00' },
     sabado:        { type: String, default: '10:00 - 16:00' },
@@ -21,13 +21,13 @@ const TallerSchema = new Schema({
     icono:               { type: String, default: '🎂' },
     activo:              { type: Boolean, default: true }
   }],
-  sobre_nosotros:      { type: String, default: 'En Bate y Late creamos tortas personalizadas y postres deliciosos para cada ocasión. Nos apasiona el detalle y el sabor, utilizando siempre ingredientes de la mejor calidad.' },
+  sobre_nosotros:      { type: String, default: 'En Turagua brindamos servicio automotriz integral y especializado. Nos apasiona el detalle y el rendimiento, utilizando siempre repuestos de la mejor calidad.' },
   anos_experiencia:    { type: Number, default: 5 },
   clientes_atendidos:  { type: Number, default: 1500 },
   autos_reparados:     { type: Number, default: 3000 }, // Legacy stat - maybe change later
   galeria:             [{ type: String }],  // URLs de imágenes
   redes_sociales: {
-    instagram: { type: String, default: 'https://instagram.com/bateylate_of' },
+    instagram: { type: String, default: 'https://instagram.com/turagua' },
     facebook:  { type: String, default: 'https://facebook.com/' },
     tiktok:    { type: String, default: 'https://tiktok.com/' }
   },
@@ -35,6 +35,7 @@ const TallerSchema = new Schema({
     nombre_agente:       { type: String, default: 'Esperanza' },
     mensaje_bienvenida:  { type: String, default: '¡Hola! 💕 Soy Esperanza, de {nombre_taller}. ¿En qué te puedo ayudar hoy? ✨' },
     avatar_url:          { type: String, default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200' },
+    instrucciones_base:  { type: String, default: '' }
   },
   campos_dinamicos_reserva: { 
     type: [String], 
@@ -60,7 +61,7 @@ const TallerSchema = new Schema({
     default: [
       {
         titulo: 'Promo del Mes: Box Degustación',
-        descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
+        descripcion: 'Realiza tu mantenimiento preventivo con revisión de 15 puntos clave gratis.',
         etiqueta: 'PROMO DEL MES',
         mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
         color_fondo: 'primary',
@@ -78,7 +79,9 @@ const TallerSchema = new Schema({
   },
   tema_global: {
     color:  { type: String, default: '#f36c84' },
-    nombre: { type: String, default: 'Rosa Pastel (Bate y Late)' }
+    color_secundario: { type: String, default: '#00d1ff' },
+    color_fondo: { type: String, default: '#2d2425' },
+    nombre: { type: String, default: 'Turagua Bot' }
   },
   constructor_bloques: { type: [Schema.Types.Mixed], default: [] }
 }, { timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' } });

@@ -203,9 +203,9 @@ export default function TabServicios() {
       <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <Box className="w-4 h-4 text-primary" /> Catálogo de Postres y Variantes
+            <Box className="w-4 h-4 text-primary" /> Catálogo de Servicios y Variantes
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Postres) y sus variantes/tamaños específicos (Porciones, Sabores).</p>
+          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Servicios) y sus variantes/tamaños específicos (Kilometraje, Aceite).</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleCrearServicio} className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">

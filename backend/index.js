@@ -75,32 +75,34 @@ const inicializarDatos = async () => {
     if (!tallerExistente) {
       console.log('🌱 Creando configuración inicial del taller para Perú...');
       const nuevoTaller = new Taller({
-        nombre_taller: 'Bate y Late',
+        nombre_taller: 'Turagua',
         slogan: 'Endulzamos con amor 💕',
         direccion: 'San Miguel, Lima',
         telefono: '955479450',
         whatsapp: '51955479450',
         email: 'pedidos@bateylate.com',
-        sobre_nosotros: 'En Bate y Late creamos tortas personalizadas y postres deliciosos para cada ocasión. Nos apasiona el detalle y el sabor, utilizando siempre ingredientes de la mejor calidad.',
+        sobre_nosotros: 'En Turagua brindamos servicio automotriz integral y especializado. Nos apasiona el detalle y el rendimiento, utilizando siempre repuestos de la mejor calidad.',
         anos_experiencia: 5,
         clientes_atendidos: 1500,
         autos_reparados: 3000,
         config_agente: {
           nombre_agente: 'Esperanza',
-          mensaje_bienvenida: '¡Hola! 💕 Soy Esperanza, de Bate y Late. ¿En qué te puedo ayudar hoy? ✨'
+          mensaje_bienvenida: '¡Hola! 🚗 Soy Turagua Bot. ¿En qué te puedo ayudar hoy con tu vehículo? ✨'
         },
         tema_global: {
-          color: '#ff8da1',
-          nombre: 'Rosa Pastel'
+          color: '#ef4444',
+          color_secundario: '#00d1ff',
+          color_fondo: '#0f172a',
+          nombre: 'Turagua Bot'
         },
         constructor_bloques: [
           { 
             id: 1, tipo: 'HeroBlock', titulo: 'Sección Principal (Hero)', activo: true, 
-            conf: { tituloPrincipal: 'El toque dulce para tus momentos especiales.', subtitulo: 'Tortas, postres y box temáticos hechos con amor y a tu medida.', tipoFondo: 'Video', overlayOpacidad: '40', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'COTIZAR AHORA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
+            conf: { tituloPrincipal: 'Tu vehículo en manos expertas.', subtitulo: 'Mantenimientos, reparaciones y servicios automotrices a tu medida.', tipoFondo: 'Video', overlayOpacidad: '40', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'COTIZAR AHORA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
           },
           { 
             id: 2, tipo: 'StatsBlock', titulo: 'Estadísticas del Negocio', activo: false, 
-            conf: { estilo: 'Tarjetas Oscuras', columnas: '3', stat1_valor: '+5', stat1_label: 'Años Experiencia', stat2_valor: '+1500', stat2_label: 'Clientes Felices', stat3_valor: '+3000', stat3_label: 'Postres Entregados' } 
+            conf: { estilo: 'Tarjetas Oscuras', columnas: '3', stat1_valor: '+10', stat1_label: 'Años Experiencia', stat2_valor: '+5000', stat2_label: 'Clientes Felices', stat3_valor: '+8000', stat3_label: 'Autos Reparados' } 
           },
           { 
             id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 

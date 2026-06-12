@@ -18,8 +18,8 @@ export async function generateMetadata() {
   }
 
   return {
-    title: 'Bate y Late — Pastelería Creativa',
-    description: 'Tortas personalizadas y postres deliciosos para cada ocasión. Cotiza y agenda de forma automatizada 24/7.',
+    title: 'Turagua — Servicio Automotriz',
+    description: 'Mantenimiento y reparación garantizada para tu vehículo. Agenda tu cita 24/7.',
   };
 }
 
@@ -46,6 +46,18 @@ export default function RootLayout({ children }) {
                   const hoverVal = hoverColors[color] || color;
                   document.documentElement.style.setProperty('--primary-hover', hoverVal);
                   document.documentElement.style.setProperty('--color-primary', color);
+                }
+                const colorSecundario = localStorage.getItem('tema-color-secundario');
+                if (colorSecundario) {
+                  document.documentElement.style.setProperty('--secondary', colorSecundario);
+                  document.documentElement.style.setProperty('--color-secondary', colorSecundario);
+                  document.documentElement.style.setProperty('--cyan', colorSecundario);
+                  document.documentElement.style.setProperty('--yellow', colorSecundario);
+                }
+                const colorFondo = localStorage.getItem('tema-color-fondo');
+                if (colorFondo) {
+                  document.documentElement.style.setProperty('--dark-bg', colorFondo);
+                  document.documentElement.style.setProperty('--lavender', colorFondo);
                 }
               } catch (e) {}
             `

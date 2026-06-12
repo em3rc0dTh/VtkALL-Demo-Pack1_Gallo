@@ -342,7 +342,7 @@ export default function TabEvaluaciones() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
             <CalendarRange className="w-4 h-4 text-primary" /> Cotizaciones y Filtro de Leads
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Valida intenciones de pedido, espera confirmación y envía cotizaciones para empezar a hornear.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Valida intenciones de servicio, espera confirmación y envía cotizaciones para empezar a trabajar.</p>
         </div>
         
         {/* Toggle Vistas y Botón Nuevo Ingreso */}

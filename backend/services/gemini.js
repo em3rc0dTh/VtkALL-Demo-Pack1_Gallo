@@ -750,6 +750,40 @@ const llamarCompletionsConFallback = async (openaiClient, params) => {
   throw ultimoError || new Error("Todos los modelos fallaron en llamarCompletionsConFallback");
 };
 
+// FALLBACK A OLLAMA (Capa 2 de Seguridad)
+const llamarOllamaFallback = async (systemPrompt, historial, mensajeUsuario) => {
+  try {
+    console.log("🤖 [Ollama Fallback] Intentando contactar al contenedor Ollama local...");
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...historial.map(m => ({ 
+        role: m.role, 
+        content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
+      })),
+      { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
+    ];
+
+    const ollamaUrl = process.env.OLLAMA_URL || "http://172.17.0.1:11434";
+    const response = await fetch(`${ollamaUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "qwen2.5:0.5b",
+        messages: messages,
+        stream: false
+      })
+    });
+
+    if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+    const data = await response.json();
+    console.log("✅ [Ollama Fallback] Respuesta generada con éxito");
+    return data.message.content;
+  } catch (error) {
+    console.warn("⚠️ [Ollama Fallback] Falló:", error.message);
+    throw error;
+  }
+};
+
 // CORE AGENT PROCESSOR
 export const procesarMensajeIA = async (numero_telefono, mensaje_usuario, adjuntos_nuevos = []) => {
   const msgClean = mensaje_usuario.toLowerCase().trim();
@@ -869,7 +903,10 @@ REGLAS IMPORTANTES:
 - Si el cliente está enojado: reconoce el inconveniente, sé empático y ofrece una solución concreta.
 - Si el cliente cancela, usa la tool 'cancelar_cita' con el id correspondiente.
 - Si el cliente confirma su asistencia (a raíz de un recordatorio o pregunta), usa la tool 'confirmar_cita' con el id correspondiente.
-- Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.`;
+- Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.
+
+REGLAS PERSONALIZADAS DEL TALLER:
+${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? taller.config_agente.instrucciones_base : 'Actúa según tu mejor criterio profesional.'}`;
 
   try {
     // 1. Obtener historial de mensajes de DB (últimos 20)
@@ -1011,20 +1048,31 @@ REGLAS IMPORTANTES:
         }
 
         // Fallback genérico si no se reconoce la tool
-        return await agenteSimulado(mensaje_usuario, numero_telefono);
+        try {
+          return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+        } catch (ollamaErr) {
+          return await agenteSimulado(mensaje_usuario, numero_telefono);
+        }
       }
     }
 
     const firstContent = choice.message.content;
     if (!firstContent || firstContent.trim() === '') {
-      console.log('⚠️ Primera llamada a Gemini de retorno vacío o nulo. Usando fallback simulado...');
-      return await agenteSimulado(mensaje_usuario, numero_telefono);
+      console.log('⚠️ Primera llamada a Gemini de retorno vacío o nulo. Intentando Ollama...');
+      try {
+        return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+      } catch (ollamaErr) {
+        return await agenteSimulado(mensaje_usuario, numero_telefono);
+      }
     }
     return firstContent;
   } catch (error) {
     console.error('🔴 Error en llamada a Gemini API:', error);
-    // Si la API falla por cuota o key inválida, hacer fallback al agente simulado
-    console.log('🤖 Reintentando con agente simulado por error en API...');
-    return await agenteSimulado(mensaje_usuario, numero_telefono);
+    try {
+      return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+    } catch (ollamaErr) {
+      console.log('🤖 Reintentando con agente simulado por error en API y Ollama...');
+      return await agenteSimulado(mensaje_usuario, numero_telefono);
+    }
   }
 };
