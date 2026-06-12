@@ -133,10 +133,6 @@ services:
     container_name: ${PROJECT_NAME}-frontend
     ports:
       - "${FRONTEND_PORT}:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
     depends_on:
       - backend
     networks:
