@@ -429,6 +429,12 @@ export default function TabEvaluaciones() {
     }
   };
 
+  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const horasDia = [];
+  for (let i = 8; i <= 18; i++) {
+    horasDia.push(`${i}:00`);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -673,7 +679,15 @@ export default function TabEvaluaciones() {
                     const evalObj = getEvaluationForSlot(dia, hora);
 
                     return (
-                      <div key={dia} className="flex-1 border-r border-gray-850/30 p-1 relative hover:bg-gray-900/30 transition-colors cursor-pointer group">
+                      <div 
+                        key={dia} 
+                        className="flex-1 border-r border-gray-850/30 p-1 relative hover:bg-gray-900/30 transition-colors cursor-pointer group"
+                        onClick={() => {
+                          if (!evalObj) {
+                            setModalNuevoIngreso(true);
+                          }
+                        }}
+                      >
                         {evalObj && (
                           <div className="absolute inset-1 rounded-lg bg-primary/10 border border-primary/30 p-1.5 overflow-hidden flex flex-col justify-center">
                             <span className="text-[9px] font-bold text-white block truncate">{evalObj.cliente}</span>
@@ -681,9 +695,11 @@ export default function TabEvaluaciones() {
                           </div>
                         )}
                         
-                        <div className="hidden group-hover:flex absolute inset-0 items-center justify-center bg-black/40 backdrop-blur-[1px]">
-                          <span className="text-[10px] text-white font-bold bg-gray-900 px-2 py-1 rounded border border-gray-700">+ Agendar</span>
-                        </div>
+                        {!evalObj && (
+                          <div className="hidden group-hover:flex absolute inset-0 items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                            <span className="text-[10px] text-white font-bold bg-gray-900 px-2 py-1 rounded border border-gray-700">+ Agendar</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

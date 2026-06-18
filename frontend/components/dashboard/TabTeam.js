@@ -207,6 +207,48 @@ export default function TabTeam() {
     }
   };
 
+  const handleEditarTrabajador = async (t) => {
+    const teamOptions = equipos.map(eq => `<option value="${eq._id}" ${t.team && t.team._id === eq._id ? 'selected' : ''}>${eq.nombre}</option>`).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Trabajador',
+      html: `
+        <input id="swal-tr1" class="swal2-input" placeholder="Nombre Completo" value="${t.nombre || ''}">
+        <input id="swal-tr2" class="swal2-input" placeholder="Rol (Ej: Especialista)" value="${t.rol || ''}">
+        <select id="swal-tr3" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
+          <option value="Planilla" ${t.contrato === 'Planilla' ? 'selected' : ''}>Planilla</option>
+          <option value="Recibo por Honorarios" ${t.contrato === 'Recibo por Honorarios' ? 'selected' : ''}>Recibo por Honorarios</option>
+        </select>
+        <select id="swal-tr4" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
+          <option value="">-- Seleccionar Team --</option>
+          ${teamOptions}
+        </select>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      background: '#111827',
+      color: '#fff',
+      preConfirm: () => {
+        return {
+          nombre: document.getElementById('swal-tr1').value,
+          rol: document.getElementById('swal-tr2').value,
+          contrato: document.getElementById('swal-tr3').value,
+          team: document.getElementById('swal-tr4').value || null
+        }
+      }
+    });
+
+    if (formValues && formValues.nombre) {
+      try {
+        await api.actualizarTrabajador(t._id, formValues);
+        Swal.fire({ title: 'Actualizado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+        cargarDatos();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  };
+
   const handleEliminarTrabajador = async (id) => {
     const result = await Swal.fire({
       title: '¿Eliminar trabajador?',
@@ -274,7 +316,7 @@ export default function TabTeam() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-1.5">
-                      <button title="Editar" aria-label="Editar Trabajador" className="p-2.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button title="Editar" aria-label="Editar Trabajador" onClick={() => handleEditarTrabajador(t)} className="p-2.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
                       <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-2.5 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                     </td>
                   </tr>
