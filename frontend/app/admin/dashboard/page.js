@@ -9,10 +9,9 @@ import TabEjecuciones from '../../../components/dashboard/TabEjecuciones.js';
 import TabClientes from '../../../components/dashboard/TabClientes.js';
 import TabTeam from '../../../components/dashboard/TabTeam.js';
 import TabServicios from '../../../components/dashboard/TabServicios.js';
-import TabConstructor from '../../../components/dashboard/TabConstructor.js';
 import TabMensajes from '../../../components/dashboard/TabMensajes.js';
 import TabConfiguracion from '../../../components/dashboard/TabConfiguracion.js';
-import { Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, LayoutTemplate, Activity, Wrench } from 'lucide-react';
+import { Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, Activity, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../lib/api.js';
 
@@ -80,7 +79,6 @@ export default function DashboardPage() {
     { id: 'clientes', label: 'Cartera de Clientes', icon: Users },
     { id: 'servicios', label: 'Catálogo de Servicios', icon: Briefcase },
     { id: 'mensajes', label: 'Centro de Mensajes', icon: MessageSquare },
-    { id: 'constructor', label: 'Sitio Web (Constructor)', icon: LayoutTemplate },
     { id: 'team', label: 'Personal y Equipos', icon: Shield },
     { id: 'configuracion', label: 'Ajustes Generales', icon: Settings },
   ];
@@ -194,7 +192,6 @@ export default function DashboardPage() {
           {activeTab === 'ejecuciones' && <TabEjecuciones />}
           {activeTab === 'clientes' && <TabClientes />}
           {activeTab === 'team' && <TabTeam />}
-          {activeTab === 'constructor' && <TabConstructor />}
           {activeTab === 'mensajes' && <TabMensajes />}
           {activeTab === 'servicios' && <TabServicios />}
           {activeTab === 'configuracion' && <TabConfiguracion user={user} onSaveSuccess={(newData) => setTaller(newData)} />}

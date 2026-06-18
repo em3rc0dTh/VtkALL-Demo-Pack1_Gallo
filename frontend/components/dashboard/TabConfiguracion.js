@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
-import { Save, Wrench, Shield, Globe, Image, Settings, Sparkles } from 'lucide-react';
+import TabConstructor from './TabConstructor.js';
+import { Save, Wrench, Shield, Globe, Image, Settings, Sparkles, LayoutTemplate } from 'lucide-react';
 
 export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [loading, setLoading] = useState(true);
@@ -212,13 +213,26 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           >
             <Shield className="w-3.5 h-3.5" /> Webhook y APIs
           </button>
+          {user?.rol?.toLowerCase() === 'soporte' && (
+            <button
+              onClick={() => setSubTab('constructor')}
+              type="button"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                subTab === 'constructor' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+              }`}
+            >
+              <LayoutTemplate className="w-3.5 h-3.5" /> Sitio Web (Constructor)
+            </button>
+          )}
         </div>
       </div>
 
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <form onSubmit={handleGuardar} className="space-y-6">
+        <>
+          {subTab !== 'constructor' && (
+            <form onSubmit={handleGuardar} className="space-y-6">
           
           {mensajeOk && (
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold shadow-sm">
@@ -837,6 +851,12 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           </div>
 
         </form>
+          )}
+
+          {subTab === 'constructor' && (
+            <TabConstructor />
+          )}
+        </>
       )}
 
     </div>
