@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Plus, Search, Edit3, XCircle, Check, MapPin, DollarSign, Clock, MessageCircle, AlertCircle, FileText, Send, UploadCloud, ImageIcon, Camera, Car, Calendar, Wrench, Info, LogOut, CalendarRange, LayoutGrid, Calendar as CalendarIcon, UserPlus
+  Plus, Search, Edit3, XCircle, Check, MapPin, DollarSign, Clock, MessageCircle, AlertCircle, FileText, Send, UploadCloud, ImageIcon, Camera, Car, Calendar, Wrench, Info, LogOut, CalendarRange, LayoutGrid, Calendar as CalendarIcon, UserPlus, CheckCircle
 } from 'lucide-react';
 import OperationalCard from './OperationalCard';
 import { api } from '../../lib/api';
@@ -591,7 +591,7 @@ export default function TabEvaluaciones() {
           <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Autos en planta esperando armado del presupuesto/cotización.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                <Wrench className="w-3.5 h-3.5"/> Intake & Quoting
+                <Wrench className="w-3.5 h-3.5"/> Evaluating & Quoting
               </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
@@ -949,7 +949,7 @@ export default function TabEvaluaciones() {
                     Cancelar
                   </button>
                   <button type="submit" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-btn-primary hover:shadow-btn-primary-hover transition-all">
-                    ENVIAR A PRODUCCIÓN <Send className="w-3 h-3" />
+                    ENVIAR A EJECUCIÓN <Send className="w-3 h-3" />
                   </button>
                 </div>
 

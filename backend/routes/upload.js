@@ -58,11 +58,16 @@ router.post('/vehiculo/:clienteId/:patente', protegerRuta, upload.single('imagen
 
     const imageUrl = `/upload_utils/${req.file.filename}`;
     
+    if (!vehiculo.historial_imagenes) {
+      vehiculo.historial_imagenes = [];
+    }
+
     vehiculo.historial_imagenes.push({
       url: imageUrl,
       descripcion: req.body.descripcion || ''
     });
 
+    cliente.markModified('vehiculos');
     await cliente.save();
 
     res.json({ ok: true, imageUrl, vehiculo });

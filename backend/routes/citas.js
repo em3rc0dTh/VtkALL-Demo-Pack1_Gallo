@@ -5,7 +5,7 @@ import Taller from '../models/Taller.js';
 import { protegerRuta, soloAdmin } from '../middleware/auth.js';
 import { enviarMensajeWhatsApp } from '../services/twilio.js';
 import Mensaje from '../models/Mensaje.js';
-import { formatearFechaHoraEsp } from '../utils/fechas.js';
+import { formatearFechaHoraEsp, recalcularAgendaEquipo } from '../utils/fechas.js';
 import { procesarMensajeIA } from '../services/gemini.js';
 
 const router = express.Router();
@@ -193,9 +193,9 @@ router.put('/:id', protegerRuta, async (req, res) => {
     if (fecha_cita) cita.fecha_cita = new Date(fecha_cita);
     if (descripcion_trabajo !== undefined) cita.descripcion_trabajo = descripcion_trabajo;
     if (tipo_cita) cita.tipo_cita = tipo_cita;
-    if (experto_asignado !== undefined) cita.experto_asignado = experto_asignado;
+    if (experto_asignado !== undefined) cita.experto_asignado = experto_asignado === "" ? null : experto_asignado;
     if (imagenes !== undefined) cita.imagenes = imagenes;
-    if (team_asignado !== undefined) cita.team_asignado = team_asignado || null;
+    if (team_asignado !== undefined) cita.team_asignado = team_asignado === "" ? null : team_asignado;
     if (duracion_estimada_minutos !== undefined) cita.duracion_estimada_minutos = duracion_estimada_minutos;
     if (nombre_cliente !== undefined) cita.nombre_cliente = nombre_cliente;
     if (numero_telefono !== undefined) cita.numero_telefono = numero_telefono;
@@ -206,10 +206,12 @@ router.put('/:id', protegerRuta, async (req, res) => {
       };
       
       if (vehiculoFormateado.patente) {
-        const patenteExistente = await Cliente.findOne({
-          _id: { $ne: cita.cliente },
-          'vehiculos.patente': vehiculoFormateado.patente
-        });
+        const queryCliente = { 'vehiculos.patente': vehiculoFormateado.patente };
+        if (cita.cliente) {
+          queryCliente._id = { $ne: cita.cliente };
+        }
+        
+        const patenteExistente = await Cliente.findOne(queryCliente);
         if (patenteExistente) {
           return res.status(409).json({ error: 'La placa ingresada ya está registrada en el sistema' });
         }
@@ -219,6 +221,7 @@ router.put('/:id', protegerRuta, async (req, res) => {
         ...cita.vehiculo,
         ...vehiculoFormateado
       };
+      cita.markModified('vehiculo');
     }
     const prevEstadoTrabajo = cita.estado_trabajo;
     if (estado_trabajo !== undefined) cita.estado_trabajo = estado_trabajo;
@@ -266,33 +269,30 @@ router.put('/:id', protegerRuta, async (req, res) => {
         let vehiculo = null;
 
         // 1. Intentar buscar por patente exacta
+        const vehiculosCliente = cliente.vehiculos || [];
+        
         if (cita.vehiculo?.patente) {
           const patenteBusqueda = cita.vehiculo.patente.trim().toUpperCase();
-          vehiculo = cliente.vehiculos.find(v => 
+          vehiculo = vehiculosCliente.find(v => 
             v.patente?.trim().toUpperCase() === patenteBusqueda
           );
         }
 
         // 2. Si no se encuentra, intentar buscar por marca y modelo
-        // PERO solo si el vehículo en el perfil del cliente NO tiene patente registrada (está vacía)
-        // para evitar asociar con otro vehículo que tiene una patente diferente.
         if (!vehiculo && cita.vehiculo?.marca && cita.vehiculo?.modelo) {
-          vehiculo = cliente.vehiculos.find(v => 
+          vehiculo = vehiculosCliente.find(v => 
             v.marca?.trim().toLowerCase() === cita.vehiculo.marca?.trim().toLowerCase() && 
             v.modelo?.trim().toLowerCase() === cita.vehiculo.modelo?.trim().toLowerCase() &&
             (!v.patente || v.patente.trim() === '')
           );
-          // Si encontramos coincidencia por marca/modelo y no tenía patente, y la cita sí tiene, le asignamos la patente
           if (vehiculo && cita.vehiculo.patente) {
             vehiculo.patente = cita.vehiculo.patente.trim().toUpperCase();
           }
         }
 
         // 3. Fallback: Si el cliente tiene un solo vehículo registrado, usar ese
-        // PERO solo si el vehículo no tiene patente registrada, o si coincide con la de la cita.
-        // Si tienen patentes distintas registradas (ej. ADX232 vs ADX245), son vehículos distintos.
-        if (!vehiculo && cliente.vehiculos?.length === 1) {
-          const vehiculoUnico = cliente.vehiculos[0];
+        if (!vehiculo && vehiculosCliente.length === 1) {
+          const vehiculoUnico = vehiculosCliente[0];
           const patenteBusqueda = cita.vehiculo?.patente?.trim().toUpperCase();
           const patenteUnica = vehiculoUnico.patente?.trim().toUpperCase();
           
@@ -316,11 +316,11 @@ router.put('/:id', protegerRuta, async (req, res) => {
                 _id: { $ne: cliente._id },
                 'vehiculos.patente': patenteLimpia
               });
-              const yaTienePatente = cliente.vehiculos.some(v => v.patente?.trim().toUpperCase() === patenteLimpia);
+              const yaTienePatente = vehiculosCliente.some(v => v.patente?.trim().toUpperCase() === patenteLimpia);
               if (patenteExistente || yaTienePatente) {
                 safeToPush = false;
                 if (yaTienePatente) {
-                  vehiculo = cliente.vehiculos.find(v => v.patente?.trim().toUpperCase() === patenteLimpia);
+                  vehiculo = vehiculosCliente.find(v => v.patente?.trim().toUpperCase() === patenteLimpia);
                 }
               }
             }
@@ -330,18 +330,20 @@ router.put('/:id', protegerRuta, async (req, res) => {
               marca: cita.vehiculo.marca || '',
               modelo: cita.vehiculo.modelo || '',
               anio: cita.vehiculo.anio || null,
-              patente: cita.vehiculo.patente?.trim().toUpperCase() || ''
+              patente: cita.vehiculo.patente?.trim().toUpperCase() || '',
+              reparaciones: []
             });
             vehiculo = cliente.vehiculos[cliente.vehiculos.length - 1];
           }
         }
 
         // 5. Fallback extremo: Si la cita no tiene datos de vehículo, pero el cliente tiene al menos un vehículo, usar el primero
-        if (!vehiculo && cliente.vehiculos?.length > 0) {
-          vehiculo = cliente.vehiculos[0];
+        if (!vehiculo && vehiculosCliente.length > 0) {
+          vehiculo = vehiculosCliente[0];
         }
 
         if (vehiculo) {
+          if (!vehiculo.reparaciones) vehiculo.reparaciones = [];
           const existingRep = vehiculo.reparaciones.find(r => r.cita_id?.toString() === cita._id.toString());
           if (!existingRep) {
             const nuevaReparacion = {
@@ -399,10 +401,20 @@ router.put('/:id', protegerRuta, async (req, res) => {
     }
 
     await cita.save();
+
+    // Si se modificó la duración o el estado de trabajo y la cita pertenece a un equipo, recalcular agenda en cascada
+    if ((duracion_estimada_minutos !== undefined || estado_trabajo !== undefined) && cita.team_asignado) {
+      try {
+        await recalcularAgendaEquipo(cita.team_asignado, cita._id);
+      } catch (err) {
+        console.error('Error auto-agendando:', err);
+      }
+    }
+
     res.json({ ok: true, cita });
   } catch (error) {
     console.error('Error al actualizar cita:', error);
-    res.status(500).json({ error: 'Error al actualizar la cita' });
+    res.status(500).json({ error: 'Error al actualizar la cita', detalle: error.message, stack: error.stack });
   }
 });
 

@@ -28,7 +28,9 @@ const request = async (endpoint, options = {}) => {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.error || `Error del servidor (status: ${response.status})`;
+      const errorMsg = errorData.error 
+        ? (errorData.detalle ? `${errorData.error}: ${errorData.detalle}` : errorData.error)
+        : `Error del servidor (status: ${response.status})`;
       const error = new Error(errorMsg);
       error.status = response.status;
       throw error;

@@ -147,6 +147,7 @@ const splitCitaEnSegmentos = (c, defaultStartHour, defaultEndHour, diasLaborable
       notas_mecanico: c.notas_mecanico || '',
       descripcion_trabajo: c.descripcion_trabajo || '',
       imagenes: c.imagenes || [],
+      duracionOriginal: c.duracion_estimada_minutos || 60,
       segmentIndex,
       totalSegmentos
     });
@@ -206,8 +207,9 @@ export default function TabEjecuciones() {
   const [error, setError] = useState(null);
 
   const [modalFinalizar, setModalFinalizar] = useState(null);
-  const [precioFinalizacion, setPrecioFinalizacion] = useState(0);
   const [notasFinalizacion, setNotasFinalizacion] = useState('');
+  const [precioFinalizacion, setPrecioFinalizacion] = useState(0);
+  const [horasExtra, setHorasExtra] = useState(0);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subiendoImg, setSubiendoImg] = useState(false);
 
@@ -343,6 +345,7 @@ export default function TabEjecuciones() {
     setNotasFinalizacion(ejec?.notas_mecanico || ejec?.descripcion_trabajo || '');
     setUploadedImages(ejec?.imagenes || []);
     setPrecioFinalizacion(ejec?.precioNumerico || 0);
+    setHorasExtra(0);
   };
 
   const handleUploadImage = async (e) => {
@@ -377,22 +380,29 @@ export default function TabEjecuciones() {
   const handleSubmitFinalizacion = async (e) => {
     e.preventDefault();
     try {
+      const ejec = ejecuciones.find(e => e.originalId === modalFinalizar);
       const payload = {
         estado_trabajo: 'finalizado',
         notas_mecanico: notasFinalizacion,
         imagenes: uploadedImages,
-        precio_final: Number(precioFinalizacion)
+        duracion_estimada_minutos: ejec.duracionOriginal + (horasExtra * 60)
       };
       
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
-        setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
-          ...item, 
-          estado: 'finalizado',
-          notas_mecanico: notasFinalizacion,
-          imagenes: uploadedImages,
-          precioFinal: `S/. ${Number(precioFinalizacion).toFixed(2)}`
-        } : item));
+        if (horasExtra > 0) {
+          // Si cambió la duración, necesitamos recalcular todos los segmentos (puede saltar a otro día)
+          await cargarEjecuciones();
+        } else {
+          setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
+            ...item, 
+            estado: 'finalizado',
+            notas_mecanico: notasFinalizacion,
+            imagenes: uploadedImages,
+            precioFinal: `S/. ${Number(precioFinalizacion).toFixed(2)}`,
+            duracionOriginal: ejec.duracionOriginal + (horasExtra * 60)
+          } : item));
+        }
       }
     } catch (err) {
       console.error('Error al finalizar trabajo:', err);
@@ -404,19 +414,27 @@ export default function TabEjecuciones() {
 
   const handleGuardarProgreso = async () => {
     try {
+      const ejec = ejecuciones.find(e => e.originalId === modalFinalizar);
       const payload = {
         estado_trabajo: 'en_curso',
         notas_mecanico: notasFinalizacion,
-        imagenes: uploadedImages
+        imagenes: uploadedImages,
+        duracion_estimada_minutos: ejec.duracionOriginal + (horasExtra * 60)
       };
       
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
-        setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
-          ...item, 
-          notas_mecanico: notasFinalizacion,
-          imagenes: uploadedImages
-        } : item));
+        if (horasExtra > 0) {
+          // Recalcular segmentos si el tiempo cambió
+          await cargarEjecuciones();
+        } else {
+          setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
+            ...item, 
+            notas_mecanico: notasFinalizacion,
+            imagenes: uploadedImages,
+            duracionOriginal: ejec.duracionOriginal + (horasExtra * 60)
+          } : item));
+        }
         
         Swal.fire({
           icon: 'success',
@@ -660,7 +678,42 @@ export default function TabEjecuciones() {
                                     onClick: () => finalizarTrabajo(e.originalId)
                                   }
                             }
-                            onDoubleClick={() => console.log('View details', e)}
+                            onDoubleClick={() => {
+                              Swal.fire({
+                                title: `<span class="text-xl font-black text-white">Detalles del Trabajo</span>`,
+                                html: `
+                                  <div class="text-left space-y-4 text-sm text-gray-300 mt-4">
+                                    <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
+                                      <h4 class="text-purple-400 font-bold mb-2 flex items-center gap-2">🚗 Vehículo y Cliente</h4>
+                                      <p><b>Cliente:</b> ${e.cliente || 'No registrado'}</p>
+                                      <p><b>Vehículo:</b> ${e.vehiculo?.marca || ''} ${e.vehiculo?.modelo || ''} ${e.vehiculo?.anio || ''}</p>
+                                      <p><b>Placa:</b> <span class="bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded font-mono">${e.vehiculo?.patente || 'S/P'}</span></p>
+                                    </div>
+                                    <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
+                                      <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">🔧 Detalles del Servicio</h4>
+                                      <p><b>Servicio:</b> ${e.servicio}</p>
+                                      <p><b>Responsable:</b> ${e.equipo}</p>
+                                      <p><b>Estado:</b> ${e.estado === 'en_curso' ? 'En Progreso' : 'Pendiente'}</p>
+                                      <p><b>Inicio Programado:</b> ${e.inicio}</p>
+                                      <p><b>Duración Estimada:</b> ${e.tiempoEst}</p>
+                                      <p><b>Monto Facturado:</b> <span class="text-green-400 font-bold">${e.precioFinal}</span></p>
+                                    </div>
+                                    ${e.descripcion_trabajo || e.notas_mecanico ? `
+                                    <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
+                                      <h4 class="text-amber-400 font-bold mb-2 flex items-center gap-2">📝 Notas del Mecánico</h4>
+                                      <p class="italic text-gray-400">${e.descripcion_trabajo || 'Sin descripción'} <br/> ${e.notas_mecanico || ''}</p>
+                                    </div>` : ''}
+                                  </div>
+                                `,
+                                background: '#111827',
+                                confirmButtonColor: '#8b5cf6',
+                                confirmButtonText: 'Cerrar',
+                                customClass: {
+                                  popup: 'border border-gray-800 rounded-2xl',
+                                  title: 'border-b border-gray-800 pb-3'
+                                }
+                              });
+                            }}
                           />
                         );
                       })}
@@ -913,18 +966,39 @@ export default function TabEjecuciones() {
                 />
               </div>
 
-              {/* Precio Final de Facturación */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Cobrado (S/.) *</label>
-                <input 
-                  type="number"
-                  step="0.01"
-                  required
-                  min="0"
-                  value={precioFinalizacion}
-                  onChange={(e) => setPrecioFinalizacion(e.target.value)}
-                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Precio Final de Facturación */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Cobrado (S/.) *</label>
+                  <input 
+                    type="number"
+                    step="0.01"
+                    required
+                    min="0"
+                    value={precioFinalizacion}
+                    onChange={(e) => setPrecioFinalizacion(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
+
+                {/* Agregar Tiempo Extra */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Añadir Tiempo Extra
+                  </label>
+                  <select
+                    value={horasExtra}
+                    onChange={(e) => setHorasExtra(Number(e.target.value))}
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none appearance-none"
+                  >
+                    <option value={0}>Sin tiempo extra (A tiempo)</option>
+                    <option value={1}>+ 1 hora extra</option>
+                    <option value={2}>+ 2 horas extra</option>
+                    <option value={4}>+ 4 horas extra (Medio día)</option>
+                    <option value={8}>+ 8 horas extra (1 Día extra)</option>
+                    <option value={16}>+ 16 horas extra (2 Días extra)</option>
+                  </select>
+                </div>
               </div>
 
               {/* Evidencia Fotográfica */}

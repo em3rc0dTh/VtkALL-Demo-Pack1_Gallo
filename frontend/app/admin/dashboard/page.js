@@ -75,8 +75,8 @@ export default function DashboardPage() {
   }
 
   const navItems = [
-    { id: 'evaluaciones', label: '1. Admisión y Diagnóstico', icon: Calendar },
-    { id: 'ejecuciones', label: '2. Bahías y Ejecución', icon: Activity },
+    { id: 'evaluaciones', label: 'Admisión y Diagnóstico', icon: Calendar },
+    { id: 'ejecuciones', label: 'Bahías y Ejecución', icon: Activity },
     { id: 'clientes', label: 'Cartera de Clientes', icon: Users },
     { id: 'servicios', label: 'Catálogo de Servicios', icon: Briefcase },
     { id: 'mensajes', label: 'Centro de Mensajes', icon: MessageSquare },
