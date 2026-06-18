@@ -56,7 +56,7 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Nueva Categoría de Servicio',
       html: `
-        <input id="swal-input1" class="swal2-input" placeholder="Nombre (Ej: Tortas Clásicas)">
+        <input id="swal-input1" class="swal2-input" placeholder="Nombre (Ej: Mantenimiento Preventivo)">
         <input id="swal-input2" class="swal2-input" placeholder="Icono (Ej: 🍰)">
       `,
       focusConfirm: false,
@@ -86,7 +86,7 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Editar Categoría de Servicio',
       html: `
-        <input id="swal-edit1" class="swal2-input" value="${servicio.nombre}" placeholder="Nombre (Ej: Tortas Clásicas)">
+        <input id="swal-edit1" class="swal2-input" value="${servicio.nombre}" placeholder="Nombre (Ej: Cambio de Aceite)">
         <input id="swal-edit2" class="swal2-input" value="${servicio.icono || ''}" placeholder="Icono (Ej: 🍰)">
         <textarea id="swal-edit3" class="swal2-textarea" placeholder="Descripción de la categoría">${servicio.descripcion || ''}</textarea>
       `,
@@ -118,7 +118,7 @@ export default function TabServicios() {
     const { value: formValues } = await Swal.fire({
       title: 'Nuevo Producto / Variante',
       html: `
-        <input id="swal-p1" class="swal2-input" placeholder="Nombre (Ej: Torta de Chocolate - 12 porciones)">
+        <input id="swal-p1" class="swal2-input" placeholder="Nombre (Ej: Cambio de Aceite Sintético 5W-30)">
         <input id="swal-p2" type="number" class="swal2-input" placeholder="Precio (Ej: 150)">
         <input id="swal-p3" type="number" class="swal2-input" placeholder="Duración en minutos (Ej: 120)">
       `,
@@ -254,7 +254,7 @@ export default function TabServicios() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <div className="w-px h-6 bg-gray-800 mx-1 self-center"></div>
-                  <button className="p-1.5 text-gray-500">
+                  <button title={s.expandido ? "Ocultar servicios" : "Ver servicios"} className="p-2 rounded-full text-gray-400 bg-gray-900 border border-gray-800 hover:text-white hover:bg-gray-800 transition-all shadow-sm">
                     {s.expandido ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                   </button>
                 </div>
@@ -266,8 +266,8 @@ export default function TabServicios() {
               <div className="border-t border-gray-850 bg-gray-900/10 p-4">
                 <div className="flex justify-between items-center mb-3 px-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Productos / Paquetes Disponibles</span>
-                  <button onClick={() => handleCrearProducto(s._id)} className="flex items-center gap-1.5 text-[10px] text-primary hover:text-white font-bold transition-colors cursor-pointer">
-                    <PackagePlus className="w-3.5 h-3.5" /> AÑADIR PRODUCTO A ESTA CATEGORÍA
+                  <button title="Añade un nuevo servicio o variante a esta categoría" onClick={() => handleCrearProducto(s._id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-[10px] text-primary hover:bg-primary/10 hover:border-primary hover:text-white font-bold transition-all cursor-pointer">
+                    <PackagePlus className="w-3.5 h-3.5" /> AÑADIR SERVICIO
                   </button>
                 </div>
                 
@@ -282,8 +282,8 @@ export default function TabServicios() {
                         <span className="text-[10px] text-gray-500">Duración Est: <b className="text-gray-300">{p.duracion_minutos} min</b></span>
                         <span className="text-xs font-black text-green-400">S/. {p.precio.toFixed(2)}</span>
                         <div className="flex gap-1 border-l border-gray-800 pl-4">
-                           <button onClick={() => handleEditarProducto(p)} className="text-gray-500 hover:text-primary transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                           <button onClick={() => handleEliminarProducto(p._id)} className="text-gray-500 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                           <button title="Editar servicio" aria-label="Editar" onClick={() => handleEditarProducto(p)} className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                           <button title="Eliminar servicio" aria-label="Eliminar" onClick={() => handleEliminarProducto(p._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-gray-800 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                     </div>

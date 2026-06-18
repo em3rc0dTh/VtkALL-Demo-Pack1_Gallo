@@ -9,8 +9,8 @@ export async function generateMetadata() {
     if (res.ok) {
       const config = await res.json();
       return {
-        title: `${config.nombre_taller || 'Bate y Late'} — Pastelería Creativa`,
-        description: `${config.slogan || 'Endulzamos con amor'}. Cotiza y agenda tu pedido 24/7.`,
+        title: `${config.nombre_taller || 'Centro Automotriz'} — Especialistas en Motores`,
+        description: `${config.slogan || 'Expertos en cuidado automotriz'}. Cotiza y agenda tu cita 24/7.`,
       };
     }
   } catch (error) {

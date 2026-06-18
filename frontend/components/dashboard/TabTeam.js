@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Plus, Edit3, Trash2, Shield, UserCog, Clock, CalendarDays } from 'lucide-react';
+import { Users, Plus, Edit3, Trash2, Shield, UserCog, Clock, CalendarDays, Wrench } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import { api } from '../../lib/api';
@@ -233,7 +233,7 @@ export default function TabTeam() {
           </h3>
           <p className="text-[10px] text-gray-500 mt-1">Registra a tus técnicos/expertos y define sus intervalos de atención para el motor de reservas.</p>
         </div>
-        <button onClick={handleCrearTrabajador} className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-btn-primary hover:shadow-btn-primary-hover cursor-pointer">
+        <button onClick={handleCrearTrabajador} className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer">
           <Plus className="w-4 h-4" /> AGREGAR TRABAJADOR
         </button>
       </div>
@@ -269,11 +269,13 @@ export default function TabTeam() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-gray-300 font-medium">{t.team ? t.team.nombre : 'Sin Equipo'}</span>
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-900 border border-gray-800 rounded-md text-[10px] text-gray-300 font-bold">
+                        <Wrench className="w-3 h-3 text-primary" /> {t.team ? t.team.nombre : 'Sin Equipo'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-1.5">
-                      <button className="p-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850"><Edit3 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => handleEliminarTrabajador(t._id)} className="p-1.5 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button title="Editar" aria-label="Editar Trabajador" className="p-2.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-2.5 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                     </td>
                   </tr>
                 ))}

@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Wrench, Clock, PlayCircle, CheckCircle, CarFront, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertCircle, XCircle, UploadCloud, Image as ImageIcon } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, Clock, AlertCircle, PlayCircle, CheckCircle, 
+  CarFront, LayoutGrid, AlertTriangle, Search, Info, MapPin, ChevronLeft, ChevronRight, XCircle, UploadCloud, Image as ImageIcon, Wrench, User
+} from 'lucide-react';
+import OperationalCard from './OperationalCard';
 import { api } from '../../lib/api';
 import Swal from 'sweetalert2';
 
@@ -130,10 +134,12 @@ const splitCitaEnSegmentos = (c, defaultStartHour, defaultEndHour, diasLaborable
       dia: diaId,
       fechaCompleta: fechaSegmento,
       cliente: c.nombre_cliente || c.cliente?.nombre || 'Cliente de Dashboard',
+      vehiculo: c.vehiculo || {},
       servicio: c.servicio || 'Servicio General',
       equipo: c.team_asignado?.nombre || 'Mecánica General',
       tiempoEst: tiempoEstLabel,
       precioFinal: `S/. ${(c.precio_final || c.precio_estimado || 0).toFixed(2)}`,
+      precioNumerico: c.precio_final || c.precio_estimado || 0,
       estado: c.estado_trabajo || 'pendiente',
       inicio,
       horaNum: startHour,
@@ -191,6 +197,7 @@ export default function TabEjecuciones() {
   const [fechaPivote, setFechaPivote] = useState(() => obtenerLunesDeLaSemana(new Date()));
   const [diaSeleccionado, setDiaSeleccionado] = useState(obtenerDiaActualId());
   const [teamSeleccionado, setTeamSeleccionado] = useState('Todos');
+  const [busqueda, setBusqueda] = useState('');
   
   const [ejecuciones, setEjecuciones] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -335,8 +342,7 @@ export default function TabEjecuciones() {
     const ejec = ejecuciones.find(e => e.originalId === originalId);
     setNotasFinalizacion(ejec?.notas_mecanico || ejec?.descripcion_trabajo || '');
     setUploadedImages(ejec?.imagenes || []);
-    const originalPrice = parseFloat(ejec?.precioFinal?.replace(/[^0-9.]/g, '')) || 0;
-    setPrecioFinalizacion(originalPrice);
+    setPrecioFinalizacion(ejec?.precioNumerico || 0);
   };
 
   const handleUploadImage = async (e) => {
@@ -493,16 +499,20 @@ export default function TabEjecuciones() {
     horasDia.push(h);
   }
 
-  const ejecucionesSemana = filtrarEjecucionesPorSemana(ejecuciones);
+  const ejecucionesSemana = filtrarEjecucionesPorSemana(ejecuciones).filter(e => 
+    !busqueda || 
+    (e.cliente && e.cliente.toLowerCase().includes(busqueda.toLowerCase())) || 
+    (e.servicio && e.servicio.toLowerCase().includes(busqueda.toLowerCase()))
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <LayoutGrid className="w-4 h-4 text-primary" /> Producción por Equipo
+            <LayoutGrid className="w-4 h-4 text-primary" /> Work Execution Workspace
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada mecánico.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada mecánico (Producción y Bahías).</p>
         </div>
         
         {/* Toggle Vistas */}
@@ -527,28 +537,41 @@ export default function TabEjecuciones() {
       </div>
 
       {/* Team Selector - Independent Calendars */}
-      <div className="bg-dark-card/20 p-3 rounded-2xl border border-gray-850 flex items-center gap-3">
-        <span className="text-[10px] font-bold uppercase text-gray-500">Mecánico / Equipo:</span>
-        <div className="flex gap-1.5 overflow-x-auto custom-scrollbar">
-          <button
-            onClick={() => setTeamSeleccionado('Todos')}
-            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              teamSeleccionado === 'Todos' ? 'bg-primary text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
-            }`}
-          >
-            Todos los Mecánicos
-          </button>
-          {equipos.map(eq => (
+      <div className="bg-dark-card/20 p-3 rounded-2xl border border-gray-850 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <span className="text-[10px] font-bold uppercase text-gray-500 whitespace-nowrap">Mecánico / Equipo:</span>
+          <div className="flex gap-1.5 overflow-x-auto custom-scrollbar w-full">
             <button
-              key={eq}
-              onClick={() => setTeamSeleccionado(eq)}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                teamSeleccionado === eq ? 'bg-primary text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
+              onClick={() => setTeamSeleccionado('Todos')}
+              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                teamSeleccionado === 'Todos' ? 'border-b-2 border-primary text-white bg-gray-800/50 rounded-t-lg' : 'bg-transparent text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-700'
               }`}
             >
-              {eq}
+              Todos los Mecánicos
             </button>
-          ))}
+            {equipos.map(eq => (
+              <button
+                key={eq}
+                onClick={() => setTeamSeleccionado(eq)}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  teamSeleccionado === eq ? 'border-b-2 border-primary text-white bg-gray-800/50 rounded-t-lg' : 'bg-transparent text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-700'
+                }`}
+              >
+                {eq}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Buscador */}
+        <div className="relative w-full md:w-64 shrink-0">
+          <input
+            type="text"
+            placeholder="Buscar por Placa o Modelo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="block w-full px-4 py-2 rounded-xl bg-gray-950 border border-gray-850 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
+          />
         </div>
       </div>
 
@@ -586,7 +609,10 @@ export default function TabEjecuciones() {
                   <div key={equipoName} className="border border-gray-850 rounded-2xl bg-gray-950/20 overflow-hidden">
                     <div className="bg-gray-900 border-b border-gray-850 p-4 flex justify-between items-center">
                       <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                        <Wrench className="w-4 h-4 text-primary" /> Mecánico: {equipoName}
+                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-black border border-primary/30">
+                          {equipoName.substring(0, 2).toUpperCase()}
+                        </div>
+                        {equipoName}
                       </h4>
                       <span className="text-[10px] font-bold px-2 py-1 bg-gray-800 rounded text-gray-400">
                         Horario Base: 08:00 - 18:00
@@ -594,50 +620,50 @@ export default function TabEjecuciones() {
                     </div>
                     
                     <div className="p-4 flex gap-4 overflow-x-auto custom-scrollbar">
-                      {tareasEquipo.map(e => (
-                        <div key={e.id} className="min-w-[280px] p-4 rounded-xl bg-gray-950 border border-gray-800 relative group transition-all hover:border-gray-600">
-                          {e.estado === 'en_curso' && <div className="absolute top-0 left-0 w-full h-1 bg-primary animate-pulse rounded-t-xl"></div>}
-                          {e.estado === 'pendiente' && <div className="absolute top-0 left-0 w-full h-1 bg-gray-600 rounded-t-xl"></div>}
-                          
-                          <div className="flex justify-between items-start mb-2 pt-1">
-                            <div>
-                              <span className="block font-bold text-white text-sm">{e.servicio}</span>
-                              <span className="block text-[10px] text-gray-500 mt-0.5 flex items-center gap-1"><CarFront className="w-3 h-3" /> {e.cliente}</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-400 bg-gray-900 px-2 py-1 rounded">{e.dia}</span>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 mt-4 text-[10px]">
-                            <div className="bg-gray-900 p-2 rounded border border-gray-850">
-                              <span className="block text-gray-500 mb-0.5">INICIO</span>
-                              <span className="font-bold text-gray-300">{e.inicio}</span>
-                            </div>
-                            <div className="bg-gray-900 p-2 rounded border border-gray-850">
-                              <span className="block text-gray-500 mb-0.5">DURACIÓN</span>
-                              <span className="font-bold text-blue-400 flex items-center gap-1"><Clock className="w-3 h-3" /> {e.tiempoEst}</span>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-850">
-                            <span className="font-bold text-emerald-500 text-xs">{e.precioFinal}</span>
-                            {e.estado === 'pendiente' ? (
-                              <button 
-                                onClick={() => iniciarTrabajo(e.originalId)}
-                                className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-white bg-primary/10 hover:bg-primary px-3 py-1.5 rounded transition-all cursor-pointer"
-                              >
-                                <PlayCircle className="w-3.5 h-3.5" /> INICIAR
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => finalizarTrabajo(e.originalId)}
-                                className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-white bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded transition-all cursor-pointer"
-                              >
-                                <CheckCircle className="w-3.5 h-3.5" /> FINALIZAR
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      {tareasEquipo.map(e => {
+                        let bCurrent = 'Waiting Execution';
+                        let bNext = 'Start Work';
+                        if (e.estado === 'en_curso') {
+                          bCurrent = `En Progreso (${e.inicio})`;
+                          bNext = 'Review / Finish';
+                        }
+                        
+                        return (
+                          <OperationalCard
+                            key={e.id}
+                            className="min-w-[280px]"
+                            priority={e.estado === 'en_curso' ? 'high' : 'normal'}
+                            identity={{
+                              marca: e.vehiculo?.marca,
+                              modelo: e.vehiculo?.modelo,
+                              anio: e.vehiculo?.anio,
+                              patente: e.vehiculo?.patente,
+                              cliente: e.cliente
+                            }}
+                            businessState={{
+                              current: bCurrent,
+                              next: bNext
+                            }}
+                            owner={e.equipo}
+                            nextAction={
+                              e.estado === 'pendiente' 
+                                ? {
+                                    label: 'INICIAR',
+                                    icon: PlayCircle,
+                                    primary: true,
+                                    onClick: () => iniciarTrabajo(e.originalId)
+                                  }
+                                : {
+                                    label: 'FINALIZAR',
+                                    icon: CheckCircle,
+                                    primary: true,
+                                    onClick: () => finalizarTrabajo(e.originalId)
+                                  }
+                            }
+                            onDoubleClick={() => console.log('View details', e)}
+                          />
+                        );
+                      })}
                       
                       {tareasEquipo.length === 0 && (
                         <div className="w-full text-center py-6 text-[10px] font-bold uppercase tracking-widest text-gray-600">
@@ -845,6 +871,31 @@ export default function TabEjecuciones() {
                 Registra el avance diario, sube fotos del procedimiento o finaliza el trabajo para la entrega al cliente.
               </p>
             </div>
+
+            {(() => {
+              const ejec = ejecuciones.find(e => e.originalId === modalFinalizar);
+              if (!ejec) return null;
+              return (
+                <div className="bg-gray-950/60 p-4 rounded-2xl border border-gray-800 mb-6 grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Vehículo y Cliente</span>
+                    <p className="text-xs font-bold text-white">{ejec.vehiculo?.marca || 'Auto'} {ejec.vehiculo?.modelo || ''} <span className="text-gray-400 font-mono bg-gray-900 px-1 rounded">({ejec.vehiculo?.patente || 'S/P'})</span></p>
+                    <p className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-2">
+                      <User className="w-3 h-3 text-gray-500" /> {ejec.cliente}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Responsable / Trabajo</span>
+                    <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <Wrench className="w-3.5 h-3.5" /> {ejec.equipo}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-2 truncate" title={ejec.servicio}>
+                      Servicio: <span className="text-gray-300 font-medium">{ejec.servicio}</span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
 
             <form onSubmit={handleSubmitFinalizacion} className="space-y-6">
               

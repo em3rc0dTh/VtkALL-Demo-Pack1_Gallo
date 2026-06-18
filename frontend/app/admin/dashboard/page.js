@@ -75,13 +75,13 @@ export default function DashboardPage() {
   }
 
   const navItems = [
-    { id: 'evaluaciones', label: '1. Evaluaciones', icon: Calendar },
-    { id: 'ejecuciones', label: '2. Ejecuciones', icon: Activity },
-    { id: 'clientes', label: 'Leads y Clientes', icon: Users },
-    { id: 'team', label: 'Staff y Equipos', icon: Shield },
-    { id: 'constructor', label: 'Constructor Landing', icon: LayoutTemplate },
+    { id: 'evaluaciones', label: '1. Admisión y Diagnóstico', icon: Calendar },
+    { id: 'ejecuciones', label: '2. Bahías y Ejecución', icon: Activity },
+    { id: 'clientes', label: 'Cartera de Clientes', icon: Users },
     { id: 'servicios', label: 'Catálogo de Servicios', icon: Briefcase },
-    { id: 'mensajes', label: 'Chats Logs', icon: MessageSquare },
+    { id: 'mensajes', label: 'Centro de Mensajes', icon: MessageSquare },
+    { id: 'constructor', label: 'Sitio Web (Constructor)', icon: LayoutTemplate },
+    { id: 'team', label: 'Personal y Equipos', icon: Shield },
     { id: 'configuracion', label: 'Ajustes Generales', icon: Settings },
   ];
 
@@ -129,13 +129,13 @@ export default function DashboardPage() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold tracking-wide transition-all text-left cursor-pointer ${
                     active 
-                      ? 'bg-primary text-white shadow-btn-primary' 
-                      : 'text-gray-450 hover:bg-gray-900/40 hover:text-white'
+                      ? 'bg-primary text-white shadow-none' 
+                      : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-400'}`} />
+                  <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-500'}`} />
                   {item.label}
                 </button>
               );
@@ -170,14 +170,21 @@ export default function DashboardPage() {
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Header Superior del Viewport */}
-        <header className="h-20 border-b border-gray-850 flex items-center justify-between px-8 bg-dark-aside/30 relative z-10">
-          <div>
-            <h2 className="text-md font-bold text-white uppercase tracking-wider">
+        <header className="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-950/80 relative z-10 backdrop-blur-md">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               {navItems.find(item => item.id === activeTab)?.label}
             </h2>
+            <div className="h-4 w-px bg-gray-800"></div>
+            <span className="console-badge-green">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              OPERATIVO
+            </span>
           </div>
-          <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
-            Consola Administrador | v1.0.0
+          <div className="flex items-center gap-4">
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest bg-gray-900 px-3 py-1.5 rounded-md border border-gray-800 shadow-inner">
+              VERTIKALL OS | v1.0.0
+            </div>
           </div>
         </header>
 

@@ -152,7 +152,7 @@ const marcas = [
           COBERTURA MULTIMARCA DE ALTA GAMA
         </span>
         <h4 className="text-lg font-bold text-navy tracking-tight" style={{ fontFamily: "'Readex Pro', sans-serif" }}>
-          Especialistas en tortas temáticas, de bodas, infantiles y personalizadas
+          Especialistas en reparación de motores, mantenimientos preventivos y diagnósticos computarizados
         </h4>
       </div>
 

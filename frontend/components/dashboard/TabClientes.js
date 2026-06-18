@@ -64,6 +64,7 @@ export default function TabClientes() {
   const [vPatente, setVPatente] = useState('');
 
   // Historial Clínico & Mantenimiento states
+  const [activeHistoryTab, setActiveHistoryTab] = useState('clinico');
   const [mensajesHistorial, setMensajesHistorial] = useState([]);
   const [reparacionVehiculoActivo, setReparacionVehiculoActivo] = useState(null);
   const [modalRepairDetail, setModalRepairDetail] = useState(null);
@@ -468,8 +469,13 @@ export default function TabClientes() {
               className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-950 border border-gray-850 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
             />
           </div>
-          <div className="text-xs text-gray-500 font-medium">
-            Total: {clientesFiltrados.length} listados de {total}
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-gray-500 font-medium">
+              Total: {clientesFiltrados.length} listados de {total}
+            </div>
+            <button className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 border border-gray-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-not-allowed" title="Próximamente">
+              <Clipboard className="w-3.5 h-3.5" /> Descargar CSV
+            </button>
           </div>
         </div>
         
@@ -478,7 +484,7 @@ export default function TabClientes() {
           <select 
             value={filtroTipo} 
             onChange={e => setFiltroTipo(e.target.value)} 
-            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
           >
             <option value="todos">Todos (Leads y Clientes)</option>
             <option value="con_vehiculo">Solo Clientes (Con Detalles Adicionales)</option>
@@ -487,7 +493,7 @@ export default function TabClientes() {
           <select 
             value={filtroDni} 
             onChange={e => setFiltroDni(e.target.value)} 
-            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
           >
             <option value="todos">Cualquier Estado DNI</option>
             <option value="con_dni">Con DNI Registrado</option>
@@ -496,7 +502,7 @@ export default function TabClientes() {
           <select 
             value={filtroOrden} 
             onChange={e => setFiltroOrden(e.target.value)} 
-            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer"
+            className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
           >
             <option value="recientes">Más Recientes (Defecto)</option>
             <option value="citas">Mayor Cantidad de Citas</option>
@@ -784,211 +790,257 @@ export default function TabClientes() {
               </div>
             </div>
 
-            {/* Historial Clínico y Notificaciones */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Timeline Historial Médico del Detalles Adicionales */}
-              <div className="lg:col-span-2">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-primary" /> Historial Clínico (Reparaciones)
-                </h4>
-                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-800 before:to-transparent">
-                  
-                  {(() => {
-                    const obtenerTodasLasReparaciones = () => {
-                      if (!clienteDetalle || !clienteDetalle.vehiculos) return [];
-                      const reps = [];
-                      clienteDetalle.vehiculos.forEach(v => {
-                        if (v.reparaciones && v.reparaciones.length > 0) {
-                          v.reparaciones.forEach(r => {
-                            reps.push({
-                              ...r,
-                              vehiculoMarca: v.marca,
-                              vehiculoModelo: v.modelo,
-                              vehiculoPatente: v.patente
-                            });
-                          });
-                        }
-                      });
-                      return reps.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                    };
-
-                    const todasLasReparaciones = obtenerTodasLasReparaciones();
-
-                    if (todasLasReparaciones.length === 0) {
-                      return (
-                        <div className="text-center py-8 text-xs text-gray-550 bg-gray-900/20 border border-gray-850 rounded-2xl">
-                          No hay reparaciones registradas en el historial clínico.
-                        </div>
-                      );
-                    }
-
-                    return todasLasReparaciones.map((rep, idx) => (
-                      <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-panel bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                          {rep.estado === 'OK' ? <Check className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
-                        </div>
-                        <div 
-                          className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm cursor-zoom-in hover:border-primary/50 transition-all select-none"
-                          onDoubleClick={() => setModalRepairDetail(rep)}
-                          title="Doble clic para ver detalles y fotos de evaluación/ejecución"
-                        >
-                          <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-bold text-white text-xs">{rep.titulo}</h4>
-                            <span className="text-[9px] font-bold text-blue-400">{formatRelativeTime(rep.fecha)}</span>
-                          </div>
-                          <p className="text-[10px] text-gray-400 mb-3">
-                            {rep.vehiculoMarca} {rep.vehiculoModelo} ({rep.vehiculoPatente})
-                            {rep.kilometraje ? ` • ` : ''}
-                            {rep.kilometraje ? <span className="font-mono text-gray-500">{rep.kilometraje.toLocaleString()} km</span> : ''}
-                          </p>
-                          
-                          {rep.piezas_cambiadas && rep.piezas_cambiadas.length > 0 && (
-                            <div className="space-y-2 border-t border-gray-800 pt-3">
-                              <p className="text-[10px] text-gray-300 font-semibold uppercase">Piezas Cambiadas:</p>
-                              <ul className="text-[10px] text-gray-500 list-disc pl-4">
-                                {rep.piezas_cambiadas.map((pieza, pIdx) => (
-                                  <li key={pIdx}>{pieza}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {rep.comentarios && (
-                            <p className="text-[10px] text-gray-500 mt-2 italic bg-gray-950/40 p-2 rounded border border-gray-850/60">
-                              {rep.comentarios}
-                            </p>
-                          )}
-
-                          {(rep.imagen_antes || rep.imagen_despues) && (
-                            <div className="mt-3 flex gap-2">
-                              {rep.imagen_antes && (
-                                <div className="w-16 h-16 rounded-lg bg-gray-800 overflow-hidden border border-gray-700 relative group">
-                                  <img src={rep.imagen_antes} className="w-full h-full object-cover opacity-75" alt="Antes" />
-                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <a href={rep.imagen_antes} target="_blank" rel="noreferrer" className="text-[8px] text-white">Antes</a>
-                                  </div>
-                                </div>
-                              )}
-                              {rep.imagen_despues && (
-                                <div className="w-16 h-16 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative group">
-                                  <img src={rep.imagen_despues} className="w-full h-full object-cover" alt="Después" />
-                                  <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1 rounded-tl">OK</span>
-                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <a href={rep.imagen_despues} target="_blank" rel="noreferrer" className="text-[8px] text-white">Después</a>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ));
-                  })()}
-
-                </div>
-
-                {/* Próximo Mantenimiento Recomendado */}
-                {(() => {
-                  const vehiculosConMant = clienteDetalle.vehiculos?.filter(v => v.proximo_mantenimiento && (v.proximo_mantenimiento.kilometraje || v.proximo_mantenimiento.fecha_estimada || v.proximo_mantenimiento.sugerencia)) || [];
-                  if (vehiculosConMant.length === 0) return null;
-                  
-                  return vehiculosConMant.map((v, i) => {
-                    const pm = v.proximo_mantenimiento;
-                    return (
-                      <div key={i} className="mt-4 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 flex items-start gap-3">
-                        <Calendar className="w-5 h-5 text-yellow-500 mt-0.5" />
-                        <div>
-                          <h5 className="text-xs font-bold text-yellow-500">Próximo Mantenimiento Recomendado ({v.marca} {v.modelo} - {v.patente})</h5>
-                          <p className="text-[10px] text-gray-400 mt-1">
-                            {pm.kilometraje ? `El detalles adicionales alcanzará los ${pm.kilometraje.toLocaleString()} km aprox.` : ''}
-                            {pm.fecha_estimada ? ` en ${pm.fecha_estimada}.` : ''}
-                            {pm.sugerencia ? ` Se sugiere programar: ${pm.sugerencia}` : ''}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
+            {/* Historial Clínico y Notificaciones (TABS) */}
+            <div className="mt-8">
+              <div className="flex gap-4 border-b border-gray-850 mb-6 overflow-x-auto custom-scrollbar">
+                <button
+                  onClick={() => setActiveHistoryTab('clinico')}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeHistoryTab === 'clinico' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-white border-b-2 border-transparent'
+                  }`}
+                >
+                  Historial Clínico
+                </button>
+                <button
+                  onClick={() => setActiveHistoryTab('evaluaciones')}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeHistoryTab === 'evaluaciones' ? 'border-b-2 border-emerald-500 text-emerald-500' : 'text-gray-500 hover:text-white border-b-2 border-transparent'
+                  }`}
+                >
+                  Evaluaciones
+                </button>
+                <button
+                  onClick={() => setActiveHistoryTab('notificaciones')}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeHistoryTab === 'notificaciones' ? 'border-b-2 border-purple-500 text-purple-500' : 'text-gray-500 hover:text-white border-b-2 border-transparent'
+                  }`}
+                >
+                  Notificaciones
+                </button>
               </div>
 
-              {/* Registro de Citas y Notificaciones WhatsApp */}
-              <div className="space-y-6">
-                
-                {/* Historial de Citas */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-blue-400" /> Historial de Citas
-                  </h4>
-                  <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[250px] overflow-y-auto custom-scrollbar">
-                    {citasHistorial && citasHistorial.length > 0 ? (
-                      citasHistorial.map((cita, idx) => {
-                        const esCancelada = cita.estado === 'cancelada';
-                        const esCompletada = cita.estado === 'completada';
-                        const esConfirmada = cita.estado === 'confirmada';
-                        
+              <div className="bg-dark-card/20 border border-gray-850 rounded-2xl p-6">
+                {activeHistoryTab === 'clinico' && (
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
+                      <Wrench className="w-4 h-4 text-primary" /> Reparaciones (Línea de Tiempo)
+                    </h4>
+                    
+                    {(() => {
+                      const obtenerTodasLasReparaciones = () => {
+                        if (!clienteDetalle || !clienteDetalle.vehiculos) return [];
+                        const reps = [];
+                        clienteDetalle.vehiculos.forEach(v => {
+                          if (v.reparaciones && v.reparaciones.length > 0) {
+                            v.reparaciones.forEach(r => {
+                              reps.push({
+                                ...r,
+                                vehiculoMarca: v.marca,
+                                vehiculoModelo: v.modelo,
+                                vehiculoPatente: v.patente
+                              });
+                            });
+                          }
+                        });
+                        return reps.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                      };
+
+                      const todasLasReparaciones = obtenerTodasLasReparaciones();
+
+                      if (todasLasReparaciones.length === 0) {
                         return (
-                          <div key={idx} className={`p-2.5 rounded-xl bg-gray-900 border text-[10px] ${
-                            esCancelada ? 'border-red-500/20' : esCompletada ? 'border-emerald-500/20' : 'border-gray-800'
-                          }`}>
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="font-bold text-white">{cita.servicio}</span>
-                              <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold uppercase tracking-wider ${
-                                esCancelada ? 'bg-red-500/10 text-red-500 border border-red-500/25' :
-                                esCompletada ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/25' :
-                                esConfirmada ? 'bg-blue-500/10 text-blue-400 border border-blue-500/25' :
-                                'bg-gray-850 text-gray-400 border border-gray-800'
-                              }`}>
-                                {cita.estado}
+                          <div className="text-center py-8 text-xs text-gray-550">
+                            No hay reparaciones registradas en el historial clínico.
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-6 px-2 snap-x">
+                          {todasLasReparaciones.map((rep, idx) => (
+                            <div key={idx} className="min-w-[300px] max-w-[350px] relative flex flex-col group snap-start">
+                              {/* Connector line */}
+                              {idx < todasLasReparaciones.length - 1 && (
+                                <div className="absolute top-5 left-10 w-full h-0.5 bg-gray-800 z-0"></div>
+                              )}
+                              
+                              <div className="flex items-center gap-4 mb-4 z-10 relative">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-primary text-white shadow shrink-0">
+                                  {rep.estado === 'OK' ? <Check className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
+                                </div>
+                                <span className="text-[10px] font-bold text-blue-400 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
+                                  {formatRelativeTime(rep.fecha)}
+                                </span>
+                              </div>
+                              
+                              <div 
+                                className="p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm cursor-zoom-in hover:border-primary/50 transition-all select-none flex-1"
+                                onDoubleClick={() => setModalRepairDetail(rep)}
+                                title="Doble clic para ver detalles y fotos de evaluación/ejecución"
+                              >
+                                <h4 className="font-bold text-white text-xs mb-1">{rep.titulo}</h4>
+                                <p className="text-[10px] text-gray-400 mb-3">
+                                  {rep.vehiculoMarca} {rep.vehiculoModelo} ({rep.vehiculoPatente})
+                                  {rep.kilometraje ? ` • ` : ''}
+                                  {rep.kilometraje ? <span className="font-mono text-gray-500">{rep.kilometraje.toLocaleString()} km</span> : ''}
+                                </p>
+                                
+                                {rep.piezas_cambiadas && rep.piezas_cambiadas.length > 0 && (
+                                  <div className="space-y-2 border-t border-gray-800 pt-3">
+                                    <p className="text-[10px] text-gray-300 font-semibold uppercase">Piezas Cambiadas:</p>
+                                    <ul className="text-[10px] text-gray-500 list-disc pl-4">
+                                      {rep.piezas_cambiadas.map((pieza, pIdx) => (
+                                        <li key={pIdx}>{pieza}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {rep.comentarios && (
+                                  <p className="text-[10px] text-gray-500 mt-2 italic bg-gray-950/40 p-2 rounded border border-gray-850/60 line-clamp-3">
+                                    {rep.comentarios}
+                                  </p>
+                                )}
+
+                                {(rep.imagen_antes || rep.imagen_despues) && (
+                                  <div className="mt-3 flex gap-2">
+                                    {rep.imagen_antes && (
+                                      <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-gray-700 relative group">
+                                        <img src={rep.imagen_antes} className="w-full h-full object-cover opacity-75" alt="Antes" />
+                                      </div>
+                                    )}
+                                    {rep.imagen_despues && (
+                                      <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative group">
+                                        <img src={rep.imagen_despues} className="w-full h-full object-cover" alt="Después" />
+                                        <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1 rounded-tl">OK</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Próximo Mantenimiento Recomendado */}
+                    {(() => {
+                      const vehiculosConMant = clienteDetalle.vehiculos?.filter(v => v.proximo_mantenimiento && (v.proximo_mantenimiento.kilometraje || v.proximo_mantenimiento.fecha_estimada || v.proximo_mantenimiento.sugerencia)) || [];
+                      if (vehiculosConMant.length === 0) return null;
+                      
+                      return (
+                        <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                          <h4 className="text-[10px] font-bold text-yellow-500 uppercase flex items-center gap-2 mb-2">
+                            <Calendar className="w-3 h-3" /> Próximos Mantenimientos Recomendados
+                          </h4>
+                          <div className="space-y-2">
+                            {vehiculosConMant.map((v, i) => (
+                              <div key={i} className="text-xs text-gray-300">
+                                <span className="font-bold text-white">{v.marca} {v.modelo} ({v.patente}):</span>{' '}
+                                {v.proximo_mantenimiento.sugerencia && <span className="text-yellow-400">"{v.proximo_mantenimiento.sugerencia}"</span>}
+                                {v.proximo_mantenimiento.kilometraje && <span> a los {v.proximo_mantenimiento.kilometraje.toLocaleString()} km</span>}
+                                {v.proximo_mantenimiento.fecha_estimada && <span> (Aprox. {new Date(v.proximo_mantenimiento.fecha_estimada).toLocaleDateString()})</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {activeHistoryTab === 'evaluaciones' && (
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
+                      <Clipboard className="w-4 h-4 text-emerald-500" /> Historial de Evaluaciones y Trabajos
+                    </h4>
+                    {citasHistorial.length === 0 ? (
+                      <p className="text-xs text-gray-500 text-center py-6">No hay evaluaciones o citas registradas.</p>
+                    ) : (
+                      <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-6 px-2 snap-x">
+                        {citasHistorial.map((cita, idx) => (
+                          <div key={idx} className="min-w-[300px] max-w-[350px] relative flex flex-col group snap-start">
+                            {idx < citasHistorial.length - 1 && (
+                              <div className="absolute top-5 left-10 w-full h-0.5 bg-gray-800 z-0"></div>
+                            )}
+                            <div className="flex items-center gap-4 mb-4 z-10 relative">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-emerald-500/20 text-emerald-500 shadow shrink-0">
+                                <Car className="w-4 h-4" />
+                              </div>
+                              <span className="text-[10px] font-bold text-emerald-400 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
+                                {new Date(cita.fecha_cita).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="text-gray-400 mt-1 flex flex-col gap-0.5">
-                              <span>Fecha: <b className="text-gray-300">{new Date(cita.fecha_cita).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })} - {new Date(cita.fecha_cita).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true })}</b></span>
-                              {cita.vehiculo && (cita.vehiculo.marca || cita.vehiculo.modelo) && (
-                                <span>Detalles Adicionales: <b className="text-gray-300">{cita.vehiculo.marca} {cita.vehiculo.modelo} ({cita.vehiculo.patente || 'S/P'})</b></span>
+                            
+                            <div className="p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm flex-1">
+                              <h4 className="font-bold text-white text-xs mb-1">{cita.servicio || 'Servicio General'}</h4>
+                              <p className="text-[10px] text-gray-400 mb-2">Estado: <EstadoBadge estado={cita.estado} /></p>
+                              {cita.vehiculo && (
+                                <p className="text-[10px] text-gray-400 mb-2">
+                                  Vehículo: {cita.vehiculo.marca} {cita.vehiculo.modelo} ({cita.vehiculo.patente})
+                                </p>
+                              )}
+                              {cita.descripcion_trabajo && (
+                                <p className="text-[10px] text-gray-500 italic mt-2 bg-gray-950/40 p-2 rounded line-clamp-3">
+                                  {cita.descripcion_trabajo}
+                                </p>
                               )}
                             </div>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <p className="text-[10px] text-gray-550 italic text-center py-4">No hay citas registradas en el historial.</p>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
 
-                {/* Historial de Notificaciones */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-1.5 mb-4 flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-green-500" /> Historial de Notificaciones
-                  </h4>
-                  
-                  <div className="space-y-3 bg-gray-950 p-4 rounded-2xl border border-gray-850 max-h-[250px] overflow-y-auto custom-scrollbar">
-                    {mensajesHistorial && mensajesHistorial.length > 0 ? (
-                      [...mensajesHistorial].reverse().map((msg, idx) => {
-                        const isError = msg.contenido.startsWith('Error:') || msg.contenido.startsWith('Fallo:');
-                        const isCliente = msg.remitente === 'cliente';
-                        
-                        return (
-                          <div key={idx} className={`relative pl-4 border-l ${isError ? 'border-red-500/30' : isCliente ? 'border-green-500/30' : 'border-blue-500/30'}`}>
-                            <span className={`absolute -left-[5px] top-1 w-2 h-2 rounded-full ${isError ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : isCliente ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'}`}></span>
-                            <span className={`text-[9px] font-bold ${isError ? 'text-red-500' : isCliente ? 'text-green-500' : 'text-blue-500'}`}>
-                              {formatRelativeTime(msg.recibido_en)}
-                            </span>
-                            <p className="text-[10px] text-gray-300 mt-1 font-semibold">
-                              {isError ? 'Fallo al enviar' : isCliente ? 'Respuesta del Cliente' : 'Mensaje Entregado (WhatsApp)'}
-                            </p>
-                            <p className="text-[9px] text-gray-500 mt-0.5 italic">
-                              "{msg.contenido}"
-                            </p>
-                          </div>
-                        );
-                      })
+                {activeHistoryTab === 'notificaciones' && (
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
+                      <MessageCircle className="w-4 h-4 text-purple-500" /> Historial de Comunicaciones
+                    </h4>
+                    {mensajesHistorial.length === 0 ? (
+                      <p className="text-xs text-gray-500 text-center py-6">No hay mensajes registrados.</p>
                     ) : (
-                      <p className="text-[10px] text-gray-550 italic text-center py-4">No hay notificaciones ni mensajes registrados.</p>
+                      <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-6 px-2 snap-x">
+                        {[...mensajesHistorial].reverse().map((msg, idx) => (
+                          <div key={idx} className="min-w-[300px] max-w-[350px] relative flex flex-col group snap-start">
+                            {idx < mensajesHistorial.length - 1 && (
+                              <div className="absolute top-5 left-10 w-full h-0.5 bg-gray-800 z-0"></div>
+                            )}
+                            <div className="flex items-center gap-4 mb-4 z-10 relative">
+                              <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card shadow shrink-0 ${
+                                msg.origen === 'sistema' ? 'bg-purple-500/20 text-purple-500' : 'bg-blue-500/20 text-blue-500'
+                              }`}>
+                                <MessageCircle className="w-4 h-4" />
+                              </div>
+                              <span className="text-[10px] font-bold text-gray-400 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
+                                {formatRelativeTime(msg.fecha || msg.recibido_en)}
+                              </span>
+                            </div>
+                            
+                            <div className="p-4 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm flex-1">
+                              <h4 className="font-bold text-white text-xs mb-1">{msg.asunto || (msg.remitente === 'cliente' ? 'Respuesta del Cliente' : 'Sistema')}</h4>
+                              <p className="text-[10px] text-gray-500 leading-relaxed bg-gray-950/40 p-2 rounded mt-2 max-h-[100px] overflow-y-auto custom-scrollbar">
+                                {msg.cuerpo || msg.contenido}
+                              </p>
+                              {msg.estado && (
+                                <div className="mt-3 flex justify-between items-center border-t border-gray-800 pt-2">
+                                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
+                                    msg.estado === 'enviado' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-800 text-gray-400'
+                                  }`}>
+                                    {msg.estado.toUpperCase()}
+                                  </span>
+                                  {msg.canal && <span className="text-[8px] text-gray-500 uppercase">{msg.canal}</span>}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -1070,6 +1122,8 @@ export default function TabClientes() {
                     type="text"
                     value={editDni}
                     onChange={(e) => setEditDni(e.target.value)}
+                    pattern="^\d{8}$"
+                    title="El DNI debe contener exactamente 8 números."
                     className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>

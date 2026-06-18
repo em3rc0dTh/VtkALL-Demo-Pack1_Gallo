@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CalendarRange, Check, MessageCircle, AlertCircle, Clock, Calendar as CalendarIcon, LayoutGrid, Wrench, UploadCloud, Image as ImageIcon, FileText, Send, XCircle, Plus, UserPlus, Car } from 'lucide-react';
+import { 
+  Plus, Search, Edit3, XCircle, Check, MapPin, DollarSign, Clock, MessageCircle, AlertCircle, FileText, Send, UploadCloud, ImageIcon, Camera, Car, Calendar, Wrench, Info, LogOut, CalendarRange, LayoutGrid, Calendar as CalendarIcon, UserPlus
+} from 'lucide-react';
+import OperationalCard from './OperationalCard';
 import { api } from '../../lib/api';
 import Swal from 'sweetalert2';
 
@@ -70,7 +73,9 @@ export default function TabEvaluaciones() {
   const [editNotas, setEditNotas] = useState('');
   const [editMarca, setEditMarca] = useState('');
   const [editModelo, setEditModelo] = useState('');
+  const [editAnio, setEditAnio] = useState('');
   const [editPatente, setEditPatente] = useState('');
+  const [editResponsable, setEditResponsable] = useState('');
 
   const cargarEvaluaciones = async () => {
     setLoading(true);
@@ -147,7 +152,9 @@ export default function TabEvaluaciones() {
     setEditNotas(e.notas || '');
     setEditMarca(e.vehiculo?.marca || '');
     setEditModelo(e.vehiculo?.modelo || '');
+    setEditAnio(e.vehiculo?.anio || '');
     setEditPatente(e.vehiculo?.patente || '');
+    setEditResponsable(e.experto_asignado || '');
   };
 
   const handleSubmitEditar = async (ev) => {
@@ -163,8 +170,10 @@ export default function TabEvaluaciones() {
         vehiculo: {
           marca: editMarca,
           modelo: editModelo,
+          anio: editAnio ? parseInt(editAnio) : undefined,
           patente: editPatente
-        }
+        },
+        experto_asignado: editResponsable
       };
 
       const res = await api.actualizarCita(modalEditarCita, payload);
@@ -201,6 +210,72 @@ export default function TabEvaluaciones() {
     setModalTasar(id);
     const evalObj = evaluaciones.find(e => e.id === id);
     setUploadedImages(evalObj?.imagenes || []);
+  };
+
+  // --- Helper: Calcular Prioridad ---
+  const calcularPrioridad = (cita) => {
+    if (!cita.fecha_original) return 'normal';
+    const horas = (new Date() - new Date(cita.fecha_original)) / (1000 * 60 * 60);
+    
+    if (cita.estado === 'reserva' && horas > 24) return 'high';
+    if (cita.estado === 'reserva' && horas > 48) return 'critical';
+    if (cita.estado === 'pendiente_confirmacion' && horas > 48) return 'low'; // Probablemente perdido
+    if (cita.estado === 'evaluacion_en_curso' && horas > 4) return 'high'; // Mucho tiempo en rampa sin tasación
+    
+    return 'normal';
+  };
+
+  const mapToOperationalProps = (e) => {
+    let defaultOwner = e.experto_asignado || null;
+
+    if (!defaultOwner) {
+      if (['reserva', 'validado', 'pendiente_confirmacion', 'confirmada'].includes(e.estado)) {
+        defaultOwner = 'Atención al Cliente';
+      } else if (e.estado === 'evaluacion_en_curso') {
+        const teamObj = teams.find(t => t._id === e.team_asignado || t._id === e.team_asignado?._id);
+        if (teamObj) {
+          defaultOwner = `Team ${teamObj.nombre} (${teamObj.responsable || 'Líder'})`;
+        } else {
+          defaultOwner = e.team_asignado?.nombre ? `Team ${e.team_asignado.nombre}` : 'Jefe de Taller';
+        }
+      }
+    }
+
+    const extraDetails = [];
+    if (e.estado === 'evaluacion_en_curso') {
+      if (e.producto && e.producto.precio) {
+        extraDetails.push({ label: 'Cotización', value: `S/. ${e.producto.precio}`, highlight: true, icon: DollarSign });
+      } else if (e.precio_final) {
+        extraDetails.push({ label: 'Precio Base', value: `S/. ${e.precio_final}`, highlight: true, icon: DollarSign });
+      }
+
+      const teamObj = teams.find(t => t._id === e.team_asignado || t._id === e.team_asignado?._id);
+      if (teamObj) {
+        extraDetails.push({ label: 'Equipo Asignado', value: `Team ${teamObj.nombre}`, icon: Wrench });
+      } else if (e.team_asignado && e.team_asignado.nombre) {
+        extraDetails.push({ label: 'Equipo Asignado', value: `Team ${e.team_asignado.nombre}`, icon: Wrench });
+      }
+      
+      if (e.notas || e.descripcion_trabajo) {
+        const n = e.notas || e.descripcion_trabajo;
+        extraDetails.push({ label: 'Notas', value: n, icon: FileText });
+      }
+    }
+
+    return {
+      id: e.id,
+      priority: calcularPrioridad(e),
+      identity: {
+        marca: e.vehiculo?.marca,
+        modelo: e.vehiculo?.modelo,
+        anio: e.vehiculo?.anio,
+        patente: e.vehiculo?.patente,
+        cliente: e.cliente
+      },
+      owner: defaultOwner,
+      extraDetails,
+      onDoubleClick: () => handleOpenEditar(e)
+    };
   };
 
   const handleUploadImage = async (e) => {
@@ -276,17 +351,35 @@ export default function TabEvaluaciones() {
     }
   };
 
+  const handlePatenteChange = (e) => {
+    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (val.length > 3) {
+      val = val.slice(0, 3) + '-' + val.slice(3, 6);
+    }
+    e.target.value = val;
+  };
+
   const handleSubmitNuevoIngreso = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const clienteNombre = form.cliente.value;
-    const telefono = form.elements[1].value || '999999999'; // default dummy if not provided
-    const marcaModelo = form.elements[2].value || '';
-    const notas = form.notas.value;
+    const clienteNombre = form.cliente?.value;
+    const telefono = form.telefono?.value || '999999999'; 
+    const marca = form.marca?.value || 'Genérica';
+    const modelo = form.modelo?.value || 'Vehículo';
+    const anio = parseInt(form.anio?.value) || new Date().getFullYear();
+    const patente = form.patente?.value?.toUpperCase() || '';
+    const notas = form.notas?.value || '';
     
-    const marcaParts = marcaModelo.split(' ');
-    const marca = marcaParts[0] || 'Genérica';
-    const modelo = marcaParts.slice(1).join(' ') || 'Vehículo';
+    let fecha_date = form.fecha_cita_date?.value;
+    let fecha_time = form.fecha_cita_time?.value;
+    
+    let fecha_cita;
+    if (fecha_date && fecha_time) {
+      fecha_cita = new Date(`${fecha_date}T${fecha_time}:00`).toISOString();
+    } else {
+      // Si no escoge hora, asume ingreso inmediato (sumamos 10 mins para validación futura)
+      fecha_cita = new Date(Date.now() + 10 * 60000).toISOString();
+    }
 
     try {
       const payload = {
@@ -294,15 +387,15 @@ export default function TabEvaluaciones() {
         numero_telefono: telefono,
         servicio: 'Ingreso Walk-in',
         descripcion_trabajo: notas,
-        fecha_cita: new Date().toISOString(),
+        fecha_cita: fecha_cita,
         tipo_cita: 'Evaluación Presencial',
         vehiculo: {
           marca,
           modelo,
-          anio: new Date().getFullYear(),
-          patente: clienteNombre.match(/^[A-Z0-9-]{6,10}$/i) ? clienteNombre.toUpperCase() : ''
+          anio,
+          patente
         },
-        estado: 'evaluacion_en_curso' // Walk-in pasa directo a evaluación en curso
+        estado: 'reserva' // Admin entries go to "Nuevas Solicitudes" (Column 1)
       };
       
       const res = await api.crearCita(payload);
@@ -311,10 +404,14 @@ export default function TabEvaluaciones() {
         const nuevaEval = {
           id: c._id,
           cliente: c.nombre_cliente || clienteNombre,
-          tipo: c.tipo_cita || 'Ingreso Walk-in (Presencial)',
+          numero_telefono: c.numero_telefono || telefono,
+          tipo: c.tipo_cita || 'Ingreso Walk-in / Manual',
           fecha: formatearFechaLegible(c.fecha_cita),
-          estado: 'evaluacion_en_curso',
-          notas: c.descripcion_trabajo || notas
+          fecha_original: c.fecha_cita,
+          estado: 'reserva',
+          notas: c.descripcion_trabajo || notas,
+          vehiculo: c.vehiculo || { marca, modelo, anio, patente },
+          experto_asignado: null
         };
         setEvaluaciones(prev => [...prev, nuevaEval]);
         setModalNuevoIngreso(false);
@@ -332,44 +429,47 @@ export default function TabEvaluaciones() {
     }
   };
 
-  const horasDia = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
-  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <CalendarRange className="w-4 h-4 text-primary" /> Cotizaciones y Filtro de Leads
-          </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Valida intenciones de servicio, espera confirmación y envía cotizaciones para empezar a trabajar.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
+              <Calendar className="w-5 h-5 text-primary" />
+            </div>
+            Evaluation Workspace
+          </h1>
+          <p className="text-sm text-gray-400 mt-2">Admisión, validación y tasación de vehículos (CRM Operacional)</p>
         </div>
         
         {/* Toggle Vistas y Botón Nuevo Ingreso */}
         <div className="flex items-center gap-3">
           <button
+            title="Crear una evaluación manualmente sin usar el Bot"
             onClick={() => setModalNuevoIngreso(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-btn-primary hover:shadow-btn-primary-hover uppercase tracking-wide"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Ingreso Manual
           </button>
           
           <div className="flex items-center gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800">
             <button
+              title="Vista de Tablero (Kanban)"
               onClick={() => setVista('kanban')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                vista === 'kanban' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
+                vista === 'kanban' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <LayoutGrid className="w-4 h-4" /> Embudo
+              <LayoutGrid className="w-4 h-4" /> Flujo de Admisión
             </button>
             <button
+              title="Vista de Calendario y Agenda"
               onClick={() => setVista('calendario')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                vista === 'calendario' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
+                vista === 'calendario' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <CalendarIcon className="w-4 h-4" /> Ocupación
+              <CalendarIcon className="w-4 h-4" /> Agenda
             </button>
           </div>
         </div>
@@ -380,125 +480,158 @@ export default function TabEvaluaciones() {
         <div className="flex gap-4 overflow-x-auto pb-4">
           
           {/* Columna 1: Reservas Nuevas */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-500 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5"/> 1. Reservas</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Leads recién captados, en espera de validación manual.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-500 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5"/> Evaluation Requested
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'reserva').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-yellow-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-yellow-500/50 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <span className="block text-[9px] text-blue-400">{e.fecha}</span>
-                  <div className="flex justify-end gap-1 mt-2">
-                    <button onClick={() => cambiarEstado(e.id, 'validado')} className="text-[8px] bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded cursor-pointer font-bold">VALIDAR</button>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Evaluation Requested',
+                    next: 'Needs Technical Assignment'
+                  }}
+                  nextAction={{
+                    label: 'Validar Lead',
+                    icon: Check,
+                    primary: true,
+                    onClick: () => cambiarEstado(e.id, 'validado')
+                  }}
+                />
               ))}
             </div>
           </div>
 
           {/* Columna 2: Validados */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><Check className="w-3.5 h-3.5"/> 2. Validados</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Leads verificados listos para agendar en planta.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5"/> Evaluation Scheduled
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'validado').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-blue-500/20 flex flex-col gap-2 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <span className="block text-[9px] text-blue-400">{e.fecha}</span>
-                  <div className="mt-2 hidden group-hover:flex justify-end gap-1">
-                      <button onClick={() => cambiarEstado(e.id, 'pendiente_confirmacion')} className="text-[8px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-1 rounded cursor-pointer font-semibold transition-colors">Enviar Confirmación WP</button>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Evaluation Approved',
+                    next: 'Needs Customer Confirmation'
+                  }}
+                  nextAction={{
+                    label: 'Solicitar Conf. WP',
+                    icon: MessageCircle,
+                    primary: false,
+                    onClick: () => cambiarEstado(e.id, 'pendiente_confirmacion')
+                  }}
+                />
               ))}
             </div>
           </div>
 
           {/* Columna 3: Pendientes WP */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5"/> 3. Pendiente Confirmación</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Esperando que el cliente confirme su asistencia por WhatsApp.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5"/> Waiting Customer
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'pendiente_confirmacion').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-purple-500/20 flex flex-col gap-2 relative overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <p className="text-[9px] text-yellow-500 font-bold mt-1 animate-pulse flex items-center gap-1"><Clock className="w-3 h-3"/> Esperando Conf.</p>
-                  <div className="mt-2 hidden group-hover:flex justify-end gap-1">
-                    <button onClick={() => cambiarEstado(e.id, 'confirmada')} className="text-[8px] bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded cursor-pointer">"Sí"</button>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Waiting Customer Confirmation',
+                    next: 'Customer Arrival'
+                  }}
+                  nextAction={{
+                    label: 'Forzar "Sí" (Asistirá)',
+                    icon: CheckCircle,
+                    primary: true,
+                    onClick: () => cambiarEstado(e.id, 'confirmada')
+                  }}
+                />
               ))}
             </div>
           </div>
 
           {/* Columna 4: Confirmadas */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-green-400 flex items-center gap-1.5"><Check className="w-3.5 h-3.5"/> 4. Confirmadas</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Clientes confirmados para asistir al taller hoy/mañana.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-green-400 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5"/> Appointment Confirmed
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'confirmada').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-green-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-green-500/50 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <span className="block text-[9px] text-blue-400">{e.fecha}</span>
-                  <div className="mt-2 pt-2 border-t border-gray-800">
-                    <button onClick={() => cambiarEstado(e.id, 'evaluacion_en_curso')} className="w-full text-[9px] bg-gray-800 hover:bg-gray-700 text-white py-1.5 rounded cursor-pointer font-bold uppercase tracking-wide">
-                      INICIAR COTIZACIÓN ➔
-                    </button>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Appointment Confirmed',
+                    next: 'Vehicle Intake / Ramp'
+                  }}
+                  nextAction={{
+                    label: 'Iniciar Cotización',
+                    icon: Wrench,
+                    primary: true,
+                    onClick: () => cambiarEstado(e.id, 'evaluacion_en_curso')
+                  }}
+                />
               ))}
             </div>
           </div>
 
           {/* Columna 5: Evaluación en Curso */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5"><Wrench className="w-3.5 h-3.5"/> 5. Cotizando</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Autos en planta esperando armado del presupuesto/cotización.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <Wrench className="w-3.5 h-3.5"/> Intake & Quoting
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'evaluacion_en_curso').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.1)] flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-cyan-500/60 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-cyan-400 animate-pulse"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <span className="block text-[9px] italic text-gray-500 break-words">{e.notas}</span>
-                  <div className="mt-2 pt-2 border-t border-gray-800">
-                    <button onClick={() => handleOpenTasar(e.id)} className="w-full flex items-center justify-center gap-1 text-[9px] bg-primary hover:bg-primary-hover text-white py-1.5 rounded cursor-pointer font-bold uppercase tracking-wide">
-                      <FileText className="w-3 h-3" /> TASAR Y ENVIAR
-                    </button>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Quoting in Progress',
+                    next: 'Send Quote to Customer'
+                  }}
+                  nextAction={{
+                    label: 'Tasar y Enviar',
+                    icon: FileText,
+                    primary: true,
+                    onClick: () => handleOpenTasar(e.id)
+                  }}
+                />
               ))}
             </div>
           </div>
 
           {/* Columna 6: Canceladas */}
-          <div className="min-w-[250px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5"/> 6. Canceladas</span>
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px] opacity-70 hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Citas que no se concretaron o fueron rechazadas.">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                <XCircle className="w-3.5 h-3.5"/> Discarded / No Show
+              </span>
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {evaluaciones.filter(e => e.estado === 'cancelada').map(e => (
-                <div key={e.id} onDoubleClick={() => handleOpenEditar(e)} className="p-3 rounded-xl bg-gray-900 border border-red-500/20 flex flex-col gap-2 relative overflow-hidden cursor-pointer hover:border-red-500/50 transition-all select-none" title="Doble clic para editar detalles">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
-                  <span className="block text-xs font-bold text-white">{e.cliente}</span>
-                  <span className="block text-[9px] text-gray-400 font-semibold">{e.tipo}</span>
-                  <span className="block text-[9px] text-blue-400">{e.fecha}</span>
-                  <div className="mt-2 pt-2 border-t border-gray-800 text-center">
-                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Cita Cancelada</span>
-                  </div>
-                </div>
+                <OperationalCard 
+                  key={e.id}
+                  {...mapToOperationalProps(e)}
+                  businessState={{
+                    current: 'Discarded / Cancelled',
+                    next: null
+                  }}
+                  priority="low"
+                />
               ))}
             </div>
           </div>
@@ -564,7 +697,7 @@ export default function TabEvaluaciones() {
       {/* MODAL DE NUEVO INGRESO (WALK-IN) */}
       {modalNuevoIngreso && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-xl rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setModalNuevoIngreso(false)}
               className="absolute top-6 right-6 text-gray-400 hover:text-white"
@@ -577,31 +710,76 @@ export default function TabEvaluaciones() {
                 <Car className="w-5 h-5 text-primary" /> Ingreso Manual de Taller
               </h2>
               <p className="text-xs text-gray-500 mt-1">
-                Registra un cliente que ha llegado físicamente (Walk-in) sin cita previa. El pedido pasará directamente a Evaluación en Curso.
+                Registra manualmente a un cliente o programa una visita. El pedido ingresará a la columna de "Nuevas Solicitudes".
               </p>
             </div>
 
             <form onSubmit={handleSubmitNuevoIngreso} className="space-y-4">
               
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><UserPlus className="w-3 h-3"/> Nombre del Cliente o Patente</label>
-                <input 
-                  type="text" 
-                  name="cliente"
-                  required 
-                  placeholder="Ej: ABC-123 o Luis Martinez" 
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><UserPlus className="w-3 h-3"/> Nombre del Cliente</label>
+                  <input type="text" name="cliente" required placeholder="Ej: Luis Martinez" className="console-input" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Teléfono (WhatsApp)</label>
+                  <input type="tel" name="telefono" pattern="^\+?\d{8,15}$" title="Debe contener entre 8 y 15 dígitos." placeholder="+56 9..." className="console-input" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Marca</label>
+                  <input type="text" name="marca" list="marcas-list" placeholder="Ej: Toyota" className="console-input" />
+                  <datalist id="marcas-list">
+                    <option value="Toyota" />
+                    <option value="Nissan" />
+                    <option value="Chevrolet" />
+                    <option value="Hyundai" />
+                    <option value="Kia" />
+                    <option value="Suzuki" />
+                    <option value="Peugeot" />
+                    <option value="Ford" />
+                    <option value="Volkswagen" />
+                    <option value="Honda" />
+                    <option value="Mazda" />
+                    <option value="BMW" />
+                    <option value="Mercedes-Benz" />
+                  </datalist>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Modelo</label>
+                  <input type="text" name="modelo" placeholder="Escribe el modelo..." className="console-input" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Año</label>
+                  <input type="number" name="anio" list="anios-list" max={new Date().getFullYear() + 1} min="1950" placeholder={`Ej: ${new Date().getFullYear()}`} className="console-input" />
+                  <datalist id="anios-list">
+                    {Array.from({length: 30}, (_, i) => new Date().getFullYear() + 1 - i).map(y => (
+                      <option key={y} value={y} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Patente</label>
+                  <input type="text" name="patente" maxLength={7} onChange={handlePatenteChange} placeholder="ABC-123" className="console-input uppercase" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Teléfono (WhatsApp)</label>
-                  <input type="tel" placeholder="+56 9..." className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Fecha de Evaluación</label>
+                  <input type="date" name="fecha_cita_date" defaultValue={new Date().toISOString().split('T')[0]} className="console-input text-gray-300 [&::-webkit-calendar-picker-indicator]:filter-invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Marca / Modelo</label>
-                  <input type="text" placeholder="Ej: Toyota Yaris" className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Hora de Evaluación</label>
+                  <input 
+                    type="time" 
+                    name="fecha_cita_time" 
+                    step="1800" 
+                    className="console-input text-gray-300 [&::-webkit-calendar-picker-indicator]:filter-invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                    title="Si dejas este campo en blanco, se asume un ingreso inmediato."
+                  />
                 </div>
               </div>
 
@@ -611,17 +789,18 @@ export default function TabEvaluaciones() {
                   name="notas"
                   rows="3" 
                   required
+                  required
                   placeholder="El cliente indica que los frenos suenan al frenar..."
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
+                  className="console-input custom-scrollbar"
                 />
               </div>
 
               {/* Acciones */}
               <div className="pt-6 border-t border-gray-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setModalNuevoIngreso(false)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 bg-gray-900 hover:bg-gray-800 border border-gray-800 transition-colors">
+                <button type="button" onClick={() => setModalNuevoIngreso(false)} className="console-btn-outline">
                   Cancelar
                 </button>
-                <button type="submit" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-btn-primary hover:shadow-btn-primary-hover transition-all">
+                <button type="submit" className="console-btn-primary">
                   CREAR INGRESO Y EVALUAR
                 </button>
               </div>
@@ -826,8 +1005,8 @@ export default function TabEvaluaciones() {
                 </div>
               </div>
 
-              {/* Grid 2: Tipo de Cita, Fecha y Estado */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Grid 2: Tipo de Cita, Fecha, Responsable y Estado */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Cita</label>
                   <select 
@@ -843,15 +1022,24 @@ export default function TabEvaluaciones() {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Fecha y Hora</label>
                   <input 
-                    type="datetime-local" 
-                    required
+                    type="date" 
                     value={editFecha}
                     onChange={e => setEditFecha(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Responsable</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Juan Pérez"
+                    value={editResponsable}
+                    onChange={e => setEditResponsable(e.target.value)}
                     className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" 
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Estado en Embudo</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Estado Interno</label>
                   <select 
                     value={editEstado} 
                     onChange={e => setEditEstado(e.target.value)}
@@ -871,7 +1059,7 @@ export default function TabEvaluaciones() {
               {/* Grid 3: Pedido (Detalles) */}
               <div className="bg-gray-950/40 border border-gray-800 rounded-2xl p-4 space-y-3">
                 <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Datos del Pedido</span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-gray-500 uppercase">Marca</label>
                     <input 
@@ -879,7 +1067,7 @@ export default function TabEvaluaciones() {
                       placeholder="Ej: Renault"
                       value={editMarca}
                       onChange={e => setEditMarca(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                      className="console-input" 
                     />
                   </div>
                   <div className="space-y-1">
@@ -889,17 +1077,32 @@ export default function TabEvaluaciones() {
                       placeholder="Ej: Logan"
                       value={editModelo}
                       onChange={e => setEditModelo(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                      className="console-input" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-500 uppercase">Año</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ej: 2020"
+                      value={editAnio}
+                      onChange={e => setEditAnio(e.target.value)}
+                      className="console-input" 
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-gray-500 uppercase">Patente (Placa)</label>
                     <input 
                       type="text" 
-                      placeholder="Ej: AKE473"
+                      placeholder="Ej: AKE-473"
                       value={editPatente}
-                      onChange={e => setEditPatente(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                      onChange={e => {
+                        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        if (val.length > 3) val = val.slice(0, 3) + '-' + val.slice(3, 6);
+                        setEditPatente(val);
+                      }}
+                      maxLength={7}
+                      className="console-input uppercase" 
                     />
                   </div>
                 </div>

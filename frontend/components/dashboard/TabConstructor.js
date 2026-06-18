@@ -91,7 +91,7 @@ export default function TabConstructor() {
   const [bloques, setBloques] = useState([
     { 
       id: 1, tipo: 'HeroBlock', titulo: 'Sección Principal (Hero)', activo: true, 
-      conf: { tituloPrincipal: 'Postres y tortas en las mejores manos', subtitulo: 'Expertos en repostería creativa y diseños personalizados.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
+      conf: { tituloPrincipal: 'Centro Automotriz Especializado', subtitulo: 'Expertos en mecánica integral y mantenimientos.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
     },
     { 
       id: 2, tipo: 'StatsBlock', titulo: 'Estadísticas del Negocio', activo: true, 
@@ -99,7 +99,7 @@ export default function TabConstructor() {
     },
     { 
       id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
-      conf: { tituloSeccion: 'Nuestros Postres', subtitulo: 'Endulzamos cada momento especial.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
+      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Diagnóstico y reparación automotriz.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
     },
     {
       id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
@@ -746,20 +746,9 @@ export default function TabConstructor() {
         <div className="relative z-10 flex gap-3">
           <button
             onClick={() => setModalGlobalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
           >
             <Palette className="w-4 h-4 text-[var(--primary)]" /> Apariencia Global
-          </button>
-          <button
-            onClick={handleGuardar}
-            disabled={guardando}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] hover:opacity-80 text-white rounded-xl text-xs font-bold transition-all duration-300 shadow-[0_0_15px_var(--primary)]"
-          >
-            {guardando ? (
-              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Guardando...</>
-            ) : (
-              <><Save className="w-4 h-4" /> Guardar Todo</>
-            )}
           </button>
         </div>
       </div>
@@ -816,17 +805,17 @@ export default function TabConstructor() {
                   <div className="w-px h-6 bg-gray-800 mx-1"></div>
                   <button 
                     onClick={() => toggleActivo(bloque.id)}
-                    className={`p-2.5 rounded-xl border transition-all duration-300 ${
+                    className={`p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
                       bloque.activo ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 hover:scale-105' : 'bg-gray-800 border-gray-700 text-gray-500 hover:text-white'
                     }`}
-                    title={bloque.activo ? "Ocultar bloque" : "Mostrar bloque"}
+                    title={bloque.activo ? "Ocultar bloque temporalmente" : "Mostrar bloque en la landing"}
                   >
                     {bloque.activo ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                   <button 
                     onClick={() => eliminarBloque(bloque.id)}
-                    className="p-2.5 rounded-xl border border-transparent bg-transparent text-gray-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all duration-300"
-                    title="Eliminar Sección"
+                    className="p-2.5 rounded-xl border border-transparent bg-transparent text-gray-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all duration-300 cursor-pointer"
+                    title="Eliminar Sección permanentemente"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1378,10 +1367,10 @@ export default function TabConstructor() {
               </span>
               
               <div className="flex bg-gray-900 p-1 rounded-xl border border-gray-800">
-                <button onClick={() => setPreviewMode('desktop')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all ${previewMode === 'desktop' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
+                <button title="Vista de PC" onClick={() => setPreviewMode('desktop')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${previewMode === 'desktop' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
                   <Monitor className="w-3.5 h-3.5" /> WEB
                 </button>
-                <button onClick={() => setPreviewMode('mobile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all ${previewMode === 'mobile' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
+                <button title="Vista de Celular" onClick={() => setPreviewMode('mobile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${previewMode === 'mobile' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
                   <Smartphone className="w-3.5 h-3.5" /> MÓVIL
                 </button>
               </div>
@@ -1596,6 +1585,19 @@ export default function TabConstructor() {
           </div>
         </div>
       )}
+
+      <button
+        onClick={handleGuardar}
+        disabled={guardando}
+        title="Guarda todos los cambios de tu Landing Page"
+        className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-2xl text-sm font-black transition-all duration-300 shadow-[0_10px_40px_var(--primary)] hover:scale-105 cursor-pointer"
+      >
+        {guardando ? (
+          <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Guardando...</>
+        ) : (
+          <><Save className="w-5 h-5" /> GUARDAR CAMBIOS</>
+        )}
+      </button>
 
     </div>
   );

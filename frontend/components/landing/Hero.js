@@ -14,7 +14,7 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
   const fallbackPromos = [
     {
       titulo: 'Promo del Mes: Box Degustación',
-      descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
+      descripcion: 'Lleva una revisión multipunto gratis con tu primer cambio de aceite sintético.',
       etiqueta: 'PROMO DEL MES',
       mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
       color_fondo: 'primary'

@@ -12,7 +12,8 @@ const ClienteSchema = new Schema({
   total_gastado:{ type: Number, default: 0 },
   deuda_actual: { type: Number, default: 0 },
   whatsapp_lid:  { type: String, index: true },         // Legacy: single LID (backward compat)
-  whatsapp_lids: { type: [String], default: [], index: true } // Array of all known LIDs for this client
+  whatsapp_lids: { type: [String], default: [], index: true }, // Array of all known LIDs for this client
+  vehiculos:     { type: [Schema.Types.Mixed], default: [] } // Vehículos vinculados al cliente
 }, { timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' } });
 
 export default mongoose.models.Cliente || mongoose.model('Cliente', ClienteSchema);

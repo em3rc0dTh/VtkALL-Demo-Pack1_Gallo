@@ -479,3 +479,56 @@ body {
   background-size: 800px 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+/* ─── Operations Console Shared Primitives ─── */
+@layer components {
+  /* Cards */
+  .console-card {
+    @apply bg-dark-card/40 border border-gray-800 rounded-2xl p-5 transition-colors hover:border-gray-700 shadow-none;
+  }
+  .console-card-header {
+    @apply flex items-center justify-between mb-4 border-b border-gray-800 pb-3;
+  }
+  .console-card-title {
+    @apply text-sm font-bold text-white flex items-center gap-2;
+  }
+
+  /* Buttons */
+  .console-btn-primary {
+    @apply flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
+  }
+  .console-btn-secondary {
+    @apply flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer shadow-sm;
+  }
+  .console-btn-outline {
+    @apply flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white bg-gray-950/30 hover:bg-gray-900 rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer;
+  }
+  .console-btn-danger {
+    @apply flex items-center justify-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer shadow-sm;
+  }
+  
+  /* Inputs */
+  .console-input {
+    @apply w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all;
+  }
+
+  /* Badges */
+  .console-badge-red {
+    @apply bg-red-500/10 text-red-500 border border-red-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+  .console-badge-green {
+    @apply bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+  .console-badge-yellow {
+    @apply bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+  .console-badge-blue {
+    @apply bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+  .console-badge-cyan {
+    @apply bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+  .console-badge-gray {
+    @apply bg-gray-800 text-gray-300 border border-gray-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
+  }
+}

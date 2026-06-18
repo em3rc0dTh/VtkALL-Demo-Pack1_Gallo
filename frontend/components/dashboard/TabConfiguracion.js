@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
 import { Save, Wrench, Shield, Globe, Image, Settings, Sparkles } from 'lucide-react';
@@ -40,6 +40,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [urlFondo, setUrlFondo] = useState('');
   const [brochureUrl, setBrochureUrl] = useState('');
   const [promociones, setPromociones] = useState([]);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     cargarConfig();
@@ -173,13 +174,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
     <div className="space-y-6">
       
       {/* Sub menu de configuración */}
-      <div className="flex justify-between items-center bg-[#F9FAFB] p-4 rounded-2xl border border-gray-200">
-        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-center bg-[#F9FAFB] p-4 rounded-2xl border border-gray-800">
+        <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800 shadow-sm">
           <button
             onClick={() => setSubTab('general')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'general' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
+              subTab === 'general' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Datos Generales
@@ -188,7 +189,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('agente')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'agente' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
+              subTab === 'agente' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" /> {nombreAgente}
@@ -197,7 +198,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('promociones')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'promociones' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
+              subTab === 'promociones' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
             }`}
           >
             <Settings className="w-3.5 h-3.5" /> Promociones
@@ -206,7 +207,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('api')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'api' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-navy'
+              subTab === 'api' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
             }`}
           >
             <Shield className="w-3.5 h-3.5" /> Webhook y APIs
@@ -235,7 +236,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Bloque de Identidad */}
-              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+              <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-sm">
                 <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Identidad de Marca</span>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -249,7 +250,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       disabled={user.rol !== 'soporte'}
                       value={nombreTaller}
                       onChange={(e) => setNombreTaller(e.target.value)}
-                      className={`w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
+                      className={`w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                         user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     />
@@ -260,7 +261,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="text"
                       value={slogan}
                       onChange={(e) => setSlogan(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -276,7 +277,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         value={urlFondo}
                         onChange={(e) => setUrlFondo(e.target.value)}
                         placeholder="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
-                        className="flex-1 bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                        className="flex-1 bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
                       />
                       <label className="cursor-pointer bg-navy hover:bg-[#1a2333] text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center transition-all">
                         <input type="file" className="hidden" accept="image/*,video/mp4,video/webm" onChange={(e) => {
@@ -309,13 +310,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     rows="4"
                     value={sobreNosotros}
                     onChange={(e) => setSobreNosotros(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Bloque de Contacto */}
-              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+              <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-sm">
                 <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Datos de Contacto</span>
                 
                 <div>
@@ -324,7 +325,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     type="text"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -335,7 +336,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="text"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -344,7 +345,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -356,7 +357,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={anosExperiencia}
                       onChange={(e) => setAnosExperiencia(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -365,7 +366,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={clientesAtendidos}
                       onChange={(e) => setClientesAtendidos(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -374,7 +375,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="number"
                       value={autosReparados}
                       onChange={(e) => setAutosReparados(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -386,13 +387,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     value={brochureUrl}
                     onChange={(e) => setBrochureUrl(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
                   />
                 </div>
               </div>
 
               {/* Bloque de Configuración de Citas */}
-              <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-4 shadow-sm">
+              <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-sm">
                 <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Horarios y Días de Citas</span>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -402,7 +403,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="time"
                       value={horaInicioCitas}
                       onChange={(e) => setHoraInicioCitas(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
@@ -411,7 +412,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       type="time"
                       value={horaFinCitas}
                       onChange={(e) => setHoraFinCitas(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -430,7 +431,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     ].map((d) => {
                       const checked = diasPermitidosCitas.includes(d.val);
                       return (
-                        <label key={d.val} className="flex items-center gap-2 text-xs text-navy cursor-pointer select-none">
+                        <label key={d.val} className="flex items-center gap-2 text-xs text-white cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -452,7 +453,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               </div>
 
               {/* Bloque de Galería */}
-              <div className="p-6 rounded-2xl bg-white border border-gray-200 md:col-span-2 space-y-3 shadow-sm">
+              <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 md:col-span-2 space-y-3 shadow-sm">
                 <span className="block text-xs font-bold text-primary uppercase tracking-wider">Galería de Imágenes (Unsplash URLs)</span>
                 <p className="text-[10px] text-gray-500">Ingresa una URL de imagen por línea para renderizar en la landing page principal.</p>
                 <textarea
@@ -460,7 +461,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   value={galeriaInput}
                   onChange={(e) => setGaleriaInput(e.target.value)}
                   placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-primary"
+                  className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -469,7 +470,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
           {/* TAB 2: CONFIG AGENTE IA */}
           {subTab === 'agente' && (
-            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 shadow-sm">
+            <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6 shadow-sm">
               <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Comportamiento del Agente Virtual ({nombreAgente})</span>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -483,7 +484,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     disabled={user.rol !== 'soporte'}
                     value={nombreAgente}
                     onChange={(e) => setNombreAgente(e.target.value)}
-                    className={`w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
+                    className={`w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                       user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                     }`}
                   />
@@ -495,13 +496,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     required
                     value={mensajeBienvenida}
                     onChange={(e) => setMensajeBienvenida(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Rediseño de Avatar: presets y carga de archivos */}
-              <div className="p-5 bg-[#F9FAFB] rounded-2xl border border-gray-200 space-y-4">
+              <div className="p-5 bg-[#F9FAFB] rounded-2xl border border-gray-800 space-y-4">
                 <label className="block text-[10px] font-bold text-primary uppercase tracking-widest">Avatar del Asistente Virtual</label>
                 
                 {/* Preview actual */}
@@ -510,7 +511,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <img 
                       src={avatarUrl || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=120'} 
                       alt="Avatar Preview" 
-                      className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-md bg-white"
+                      className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-md bg-gray-900"
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
                       }}
@@ -518,7 +519,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-navy">Vista Previa</h5>
+                    <h5 className="text-xs font-bold text-white">Vista Previa</h5>
                     <p className="text-[10px] text-gray-500 mt-0.5">Elige un preset, sube un archivo o escribe una URL.</p>
                   </div>
                 </div>
@@ -534,10 +535,10 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                           key={preset.name}
                           type="button"
                           onClick={() => setAvatarUrl(preset.url)}
-                          className={`p-2.5 rounded-xl border flex flex-col items-center gap-2 bg-white transition-all hover:scale-102 ${
+                          className={`p-2.5 rounded-xl border flex flex-col items-center gap-2 bg-gray-900 transition-all hover:scale-102 ${
                             isSelected 
                               ? 'border-primary ring-1 ring-primary shadow-sm' 
-                              : 'border-gray-200 hover:border-gray-300'
+                              : 'border-gray-800 hover:border-gray-300'
                           }`}
                         >
                           <img 
@@ -545,7 +546,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                             alt={preset.name} 
                             className="w-10 h-10 rounded-full object-cover border border-gray-100" 
                           />
-                          <span className="text-[9px] font-medium text-navy text-center line-clamp-1">{preset.name}</span>
+                          <span className="text-[9px] font-medium text-white text-center line-clamp-1">{preset.name}</span>
                         </button>
                       );
                     })}
@@ -556,14 +557,15 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   <div className="space-y-2">
                     <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción B: Subir Imagen desde la Computadora</span>
-                    <label 
-                      htmlFor="avatar-upload"
-                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-300 bg-white hover:border-primary hover:bg-blue-50/10 cursor-pointer text-xs font-semibold text-primary transition-all"
+                    <button 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-700 bg-gray-900 hover:border-primary hover:bg-gray-800 cursor-pointer text-xs font-semibold text-primary transition-all"
                     >
                       <Image className="w-4 h-4" /> Seleccionar Imagen (Máx 2MB)
-                    </label>
+                    </button>
                     <input 
-                      id="avatar-upload"
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
@@ -579,7 +581,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       value={avatarUrl}
                       onChange={(e) => setAvatarUrl(e.target.value)}
                       placeholder="https://ejemplo.com/mi-avatar.png"
-                      className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -593,7 +595,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   value={instruccionesBase}
                   onChange={(e) => setInstruccionesBase(e.target.value)}
                   placeholder="Eres Max, especialista de atención al cliente de MecánicaPro..."
-                  className="w-full bg-[#F9FAFB] border border-gray-200 text-navy rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
+                  className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
                 />
               </div>
             </div>
@@ -601,7 +603,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
           {/* TAB: PROMOCIONES */}
           {subTab === 'promociones' && (
-            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 shadow-sm">
+            <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6 shadow-sm">
               <div className="flex justify-between items-center border-b border-gray-150 pb-4">
                 <div>
                   <span className="block text-xs font-bold text-primary uppercase tracking-wider">Ofertas y Promociones</span>
@@ -625,7 +627,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   }}
                   className={`px-4 py-2 rounded-xl border transition-all text-xs font-semibold select-none ${
                     promociones.length >= 4
-                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                      ? 'border-gray-800 text-gray-400 bg-gray-50 cursor-not-allowed'
                       : 'border-primary text-primary hover:bg-primary hover:text-white cursor-pointer'
                   }`}
                 >
@@ -643,7 +645,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       setPromociones([
                         {
                           titulo: 'Promo del Mes: Box Degustación',
-                          descripcion: 'Lleva nuestro box degustación con 6 minitortas de nuestros mejores sabores con envío gratis.',
+                          descripcion: 'Lleva una revisión multipunto gratis con tu primer cambio de aceite sintético.',
                           etiqueta: 'PROMO DEL MES',
                           mensaje_chat: 'Hola, me interesa la Promo del Mes: Box Degustación',
                           color_fondo: 'primary',
@@ -659,7 +661,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         }
                       ]);
                     }}
-                    className="px-4 py-2 bg-white border border-gray-200 text-[var(--primary)] text-xs font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-all cursor-pointer"
+                    className="px-4 py-2 bg-gray-900 border border-gray-800 text-[var(--primary)] text-xs font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-all cursor-pointer"
                   >
                     Importar promociones por defecto para editarlas
                   </button>
@@ -667,11 +669,11 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               ) : (
                 <div className="space-y-6">
                   {promociones.map((promo, index) => (
-                    <div key={index} className="p-5 rounded-2xl bg-[#F9FAFB] border border-gray-200 relative space-y-4">
+                    <div key={index} className="p-5 rounded-2xl bg-[#F9FAFB] border border-gray-800 relative space-y-4">
                       
                       {/* Cabecera de la promo: título de sección y botón eliminar */}
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-bold text-navy uppercase tracking-wide">Promoción #{index + 1}</span>
+                        <span className="text-[11px] font-bold text-white uppercase tracking-wide">Promoción #{index + 1}</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -696,7 +698,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                               updated[index].titulo = e.target.value;
                               setPromociones(updated);
                             }}
-                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                           />
                         </div>
 
@@ -711,7 +713,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                               updated[index].etiqueta = e.target.value;
                               setPromociones(updated);
                             }}
-                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                           />
                         </div>
 
@@ -726,7 +728,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                               updated[index].descripcion = e.target.value;
                               setPromociones(updated);
                             }}
-                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                           />
                         </div>
 
@@ -741,7 +743,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                               updated[index].mensaje_chat = e.target.value;
                               setPromociones(updated);
                             }}
-                            className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                           />
                         </div>
 
@@ -755,7 +757,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                                 updated[index].color_fondo = e.target.value;
                                 setPromociones(updated);
                               }}
-                              className="w-full bg-white border border-gray-200 text-navy rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                              className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                             >
                               <option value="primary">Azul (Primary)</option>
                               <option value="navy">Gris Oscuro (Navy)</option>
@@ -774,7 +776,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                               }}
                               className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                             />
-                            <label htmlFor={`promo-activa-${index}`} className="text-xs font-semibold text-navy cursor-pointer select-none">
+                            <label htmlFor={`promo-activa-${index}`} className="text-xs font-semibold text-white cursor-pointer select-none">
                               Mostrar en la web
                             </label>
                           </div>
@@ -791,22 +793,22 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
           {/* TAB 3: WEBHOOKS Y APIS */}
           {subTab === 'api' && (
-            <div className="p-6 rounded-2xl bg-white border border-gray-200 space-y-6 text-xs shadow-sm">
+            <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6 text-xs shadow-sm">
               <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Conectores de API de Producción</span>
               
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200">
+                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-800">
                   <h4 className="font-bold text-primary mb-2 uppercase text-[10px] tracking-wider">Endpoint Webhook del Taller</h4>
                   <p className="text-[#54595F] mb-2 leading-relaxed">
                     Para conectar Twilio Sandbox a tu backend, configura el Webhook de WhatsApp entrante en la consola de Twilio con la siguiente URL:
                   </p>
-                  <div className="bg-white p-3 rounded-xl border border-gray-200 font-mono text-[11px] select-all text-navy flex justify-between items-center shadow-sm">
+                  <div className="bg-gray-900 p-3 rounded-xl border border-gray-800 font-mono text-[11px] select-all text-white flex justify-between items-center shadow-sm">
                     <span>http://localhost:4000/api/webhook/whatsapp</span>
                     <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded font-sans font-semibold">POST</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-200 space-y-3">
+                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-800 space-y-3">
                   <h4 className="font-bold text-primary uppercase text-[10px] tracking-wider">Estado de Credenciales (.env)</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
@@ -815,7 +817,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     </div>
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                       <span className="text-[#54595F]">Twilio Webhook:</span>
-                      <span className="font-mono text-navy">PRODUCCIÓN MOCK / ACTIVADO</span>
+                      <span className="font-mono text-white">PRODUCCIÓN MOCK / ACTIVADO</span>
                     </div>
                   </div>
                 </div>
@@ -824,7 +826,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           )}
 
           {/* Botón inferior guardar */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="flex justify-end pt-4 border-t border-gray-800">
             <button
               type="submit"
               disabled={guardando}

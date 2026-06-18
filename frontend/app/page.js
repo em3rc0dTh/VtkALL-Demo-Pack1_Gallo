@@ -88,7 +88,7 @@ export default function Home() {
 
   useEffect(() => {
     if (taller?.nombre_taller) {
-      document.title = `${taller.nombre_taller} — ${taller.slogan || 'Endulzamos tus mejores momentos'}`;
+      document.title = `${taller.nombre_taller} — ${taller.slogan || 'Expertos en cuidado automotriz'}`;
     }
     if (taller?.tema_global?.color) {
       document.documentElement.style.setProperty('--primary', taller.tema_global.color);

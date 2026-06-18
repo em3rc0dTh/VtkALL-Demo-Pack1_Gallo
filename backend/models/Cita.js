@@ -6,6 +6,7 @@ const CitaSchema = new Schema({
   numero_telefono: { type: String, required: true, index: true },
   nombre_cliente:  String,   // desnormalizado para queries rápidas
   detalles_reserva: { type: Schema.Types.Mixed, default: {} },
+  vehiculo:         { type: Schema.Types.Mixed, default: {} },
   servicio:                 { type: String, required: true }, // Mantenido para retrocompatibilidad o nombre del servicio/producto
   producto_id:              { type: Schema.Types.ObjectId, ref: 'Producto' }, // Referencia opcional al paquete específico
   tipo_cita: { 
