@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Plus, Search, Edit3, XCircle, Check, MapPin, DollarSign, Clock, MessageCircle, AlertCircle, FileText, Send, UploadCloud, ImageIcon, Camera, Car, Calendar, Wrench, Info, LogOut, CalendarRange, LayoutGrid, Calendar as CalendarIcon, UserPlus, CheckCircle
+  Plus, Search, Edit3, XCircle, Check, MapPin, DollarSign, Clock, MessageCircle, AlertCircle, FileText, Send, UploadCloud, ImageIcon, Camera, Car, Calendar, Wrench, Info, LogOut, CalendarRange, LayoutGrid, Calendar as CalendarIcon, UserPlus, CheckCircle, X
 } from 'lucide-react';
 import OperationalCard from './OperationalCard';
-import { api } from '../../lib/api';
+import { api } from "../../lib/api.js";
 import Swal from 'sweetalert2';
+import CloseModalButton from "../ui/CloseModalButton.js";
 
 const mapBackendToUi = (estado) => {
   switch (estado) {
@@ -717,12 +718,7 @@ export default function TabEvaluaciones() {
       {modalNuevoIngreso && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-xl rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
-            <button 
-              onClick={() => setModalNuevoIngreso(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
+            <CloseModalButton onClick={() => setModalNuevoIngreso(false)} absolute />
             
             <div className="mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -851,12 +847,7 @@ export default function TabEvaluaciones() {
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
             <div className="w-full max-w-2xl rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
-              <button 
-                onClick={() => setModalTasar(null)}
-                className="absolute top-6 right-6 text-gray-400 hover:text-white"
-              >
-                <XCircle className="w-6 h-6" />
-              </button>
+              <CloseModalButton onClick={() => setModalTasar(null)} absolute />
               
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -971,7 +962,7 @@ export default function TabEvaluaciones() {
                           onClick={() => handleRemoveImage(idx)}
                           className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-500 text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 shadow-md"
                         >
-                          <XCircle className="w-4 h-4" />
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     ))}
@@ -998,12 +989,7 @@ export default function TabEvaluaciones() {
       {modalEditarCita && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-2xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
-            <button 
-              onClick={() => setModalEditarCita(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
+            <CloseModalButton onClick={() => setModalEditarCita(null)} absolute />
             
             <div className="mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">

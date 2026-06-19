@@ -6,8 +6,9 @@ import {
   CarFront, LayoutGrid, AlertTriangle, Search, Info, MapPin, ChevronLeft, ChevronRight, XCircle, UploadCloud, Image as ImageIcon, Wrench, User
 } from 'lucide-react';
 import OperationalCard from './OperationalCard';
-import { api } from '../../lib/api';
+import { api } from "../../lib/api.js";
 import Swal from 'sweetalert2';
+import CloseModalButton from "../ui/CloseModalButton.js";
 
 const obtenerLunesDeLaSemana = (fecha) => {
   const d = new Date(fecha);
@@ -909,12 +910,7 @@ export default function TabEjecuciones() {
       {modalFinalizar && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
-            <button 
-              onClick={() => setModalFinalizar(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
+            <CloseModalButton onClick={() => setModalFinalizar(null)} absolute />
             
             <div className="mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1027,7 +1023,7 @@ export default function TabEjecuciones() {
                         onClick={() => handleRemoveImage(idx)}
                         className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-500 text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
                       >
-                        <XCircle className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </button>
                       <span className="absolute bottom-1 left-1 bg-black/60 px-1 py-0.5 rounded text-[8px] text-gray-300">
                         {idx === 0 ? 'Antes (Evidencia)' : `Foto #${idx + 1}`}

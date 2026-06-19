@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, List, Clock, Video, Phone, User, CheckCircle2, AlertCircle, Plus, ChevronLeft, ChevronRight, UserCircle, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import CloseModalButton from '../ui/CloseModalButton.js';
 import { api } from '../../lib/api';
 
 export default function TabCitas() {
@@ -314,7 +315,7 @@ export default function TabCitas() {
         <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-white">Editar Estado de Cita</h3>
-            <button onClick={() => setModalCitaOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+            <CloseModalButton onClick={() => setModalCitaOpen(false)} />
           </div>
           <form onSubmit={handleGuardarCita} className="space-y-4">
             <div>

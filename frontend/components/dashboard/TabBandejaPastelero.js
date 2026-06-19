@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChefHat, Clock, MessageSquare, Image as ImageIcon, Send, X, DollarSign, UploadCloud } from 'lucide-react';
 import Swal from 'sweetalert2';
+import CloseModalButton from '../ui/CloseModalButton.js';
 import { api } from '../../lib/api.js';
 
 export default function TabBandejaPastelero() {
@@ -183,7 +184,7 @@ export default function TabBandejaPastelero() {
               <div className="w-full md:w-1/2 p-6 overflow-y-auto bg-gray-950/50 border-r border-gray-800">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2"><MessageSquare className="w-5 h-5 text-primary"/> Detalles del Pedido</h3>
-                  <button onClick={cerrarModal} className="p-2 text-gray-400 hover:text-white bg-gray-800 rounded-full md:hidden"><X className="w-4 h-4"/></button>
+                  <CloseModalButton onClick={cerrarModal} className="md:hidden" />
                 </div>
                 
                 <div className="space-y-4">
@@ -224,7 +225,7 @@ export default function TabBandejaPastelero() {
 
               {/* Columna Derecha: Feedback del Jefe de Cocina */}
               <div className="w-full md:w-1/2 p-6 flex flex-col relative bg-gray-900">
-                <button onClick={cerrarModal} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white bg-gray-800 rounded-full hidden md:block"><X className="w-4 h-4"/></button>
+                <CloseModalButton onClick={cerrarModal} absolute className="hidden md:flex" />
                 
                 <h3 className="text-lg font-bold text-white mb-6">Tu Evaluación (Feedback)</h3>
                 

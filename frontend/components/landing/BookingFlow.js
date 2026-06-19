@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, MapPin, Camera, Phone, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, MapPin, Camera, Phone, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { api } from '../../lib/api.js';
 
 export default function BookingFlow({ 
@@ -541,7 +541,7 @@ export default function BookingFlow({
                           onClick={() => handleRemoveImage(idx)}
                           className="absolute top-1.5 right-1.5 bg-red-500/80 text-white rounded-full p-1 text-[8px] hover:bg-red-600 transition-colors shadow-sm"
                         >
-                          ✕
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     ))}

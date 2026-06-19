@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Plus, Edit3, Trash2, Shield, UserCog, Clock, CalendarDays, Wrench } from 'lucide-react';
 import Swal from 'sweetalert2';
+import CloseModalButton from '../ui/CloseModalButton.js';
 
 import { api } from '../../lib/api';
 
@@ -370,12 +371,7 @@ export default function TabTeam() {
               <h3 className="text-lg font-bold text-white">
                 Disponibilidad: <span className="text-primary">{equipoSeleccionado?.nombre}</span>
               </h3>
-              <button 
-                onClick={() => setModalHorarioOpen(false)} 
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                ✕
-              </button>
+              <CloseModalButton onClick={() => setModalHorarioOpen(false)} />
             </div>
 
             <div className="space-y-6">

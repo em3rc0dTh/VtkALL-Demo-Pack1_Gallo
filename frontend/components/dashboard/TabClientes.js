@@ -23,8 +23,10 @@ import {
   Activity,
   Star,
   Users,
+  Edit3,
 } from "lucide-react";
 import EstadoBadge from "../ui/EstadoBadge.js";
+import CloseModalButton from "../ui/CloseModalButton.js";
 import Swal from "sweetalert2";
 
 const formatRelativeTime = (dateString) => {
@@ -898,12 +900,7 @@ export default function TabClientes() {
                 </span>
               </div>
 
-              <button
-                onClick={() => setModalDetalleOpen(false)}
-                className="p-1 rounded-lg border border-radius text-gray-200 cursor-pointer hover:text-white hover:bg-gray-800 shrink-0"
-              >
-                ✕
-              </button>
+              <CloseModalButton onClick={() => setModalDetalleOpen(false)} />
             </div>
             {/* Estadísticas */}
             <div className="w-full items-center text-center rounded-xl border border-gray-800 bg-gray-950/50 p-3 shrink-0">
@@ -1730,12 +1727,7 @@ export default function TabClientes() {
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Users className="w-5 h-5 text-orange-500" /> Fusionar Cliente
               </h3>
-              <button
-                onClick={() => setModalMergeOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                ✕
-              </button>
+              <CloseModalButton onClick={() => setModalMergeOpen(false)} />
             </div>
 
             <p className="text-xs text-gray-400 mb-4">
@@ -1845,15 +1837,10 @@ export default function TabClientes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
-              <h3 className="text-lg font-bold text-white">
-                Editar Perfil del Cliente
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-primary" /> Editar Perfil
               </h3>
-              <button
-                onClick={() => setModalEditOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                ✕
-              </button>
+              <CloseModalButton onClick={() => setModalEditOpen(false)} />
             </div>
 
             {errorEdit && (
@@ -2008,7 +1995,7 @@ export default function TabClientes() {
                         onClick={() => handleRemoveVehiculoEdit(i)}
                         className="text-red-500 hover:text-red-400 p-1"
                       >
-                        ✕
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
@@ -2093,23 +2080,10 @@ export default function TabClientes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Wrench className="w-5 h-5 text-primary" /> Registrar
-                  Reparación
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Detalles Adicionales: {reparacionVehiculoActivo.marca}{" "}
-                  {reparacionVehiculoActivo.modelo} (
-                  {reparacionVehiculoActivo.patente})
-                </p>
-              </div>
-              <button
-                onClick={() => setModalReparacionOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                ✕
-              </button>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-primary" /> Reparación de {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+              </h3>
+              <CloseModalButton onClick={() => setModalReparacionOpen(false)} />
             </div>
 
             <form onSubmit={handleGuardarReparacion} className="space-y-4">
@@ -2201,7 +2175,7 @@ export default function TabClientes() {
                           onClick={() => setRepImagenAntes("")}
                           className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 text-[10px] hover:bg-red-600"
                         >
-                          ✕
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
@@ -2242,7 +2216,7 @@ export default function TabClientes() {
                           onClick={() => setRepImagenDespues("")}
                           className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 text-[10px] hover:bg-red-600"
                         >
-                          ✕
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
@@ -2293,23 +2267,10 @@ export default function TabClientes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-yellow-500" /> Planificar
-                  Mantenimiento
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Detalles Adicionales: {reparacionVehiculoActivo.marca}{" "}
-                  {reparacionVehiculoActivo.modelo} (
-                  {reparacionVehiculoActivo.patente})
-                </p>
-              </div>
-              <button
-                onClick={() => setModalMantenimientoOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                ✕
-              </button>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-purple-400" /> Programar Mantenimiento
+              </h3>
+              <CloseModalButton onClick={() => setModalMantenimientoOpen(false)} />
             </div>
 
             <form onSubmit={handleGuardarMantenimiento} className="space-y-4">
@@ -2376,12 +2337,7 @@ export default function TabClientes() {
       {modalRepairDetail && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative">
-            <button
-              onClick={() => setModalRepairDetail(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer"
-            >
-              ✕
-            </button>
+            <CloseModalButton onClick={() => setModalRepairDetail(null)} />
 
             <div className="mb-6">
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
@@ -2582,12 +2538,7 @@ export default function TabClientes() {
                   Tema: {selectedThread.topic}
                 </p>
               </div>
-              <button
-                onClick={() => setModalThreadOpen(false)}
-                className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors cursor-pointer"
-              >
-                Cerrar
-              </button>
+              <CloseModalButton onClick={() => setModalThreadOpen(false)} />
             </div>
 
             {/* Content / Chat Log */}
@@ -2649,12 +2600,7 @@ export default function TabClientes() {
                   </b>
                 </p>
               </div>
-              <button
-                onClick={() => setModalVehiculoDetailOpen(false)}
-                className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors cursor-pointer"
-              >
-                Cerrar
-              </button>
+              <CloseModalButton onClick={() => setModalVehiculoDetailOpen(false)} />
             </div>
 
             {/* Content */}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, Clock, Tag, XCircle, Users, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move, Code } from 'lucide-react';
 import Swal from 'sweetalert2';
+import CloseModalButton from '../ui/CloseModalButton.js';
 import { api } from '../../lib/api.js';
 import EmbedBlockEditor from './EmbedBlockEditor';
 
@@ -1452,9 +1453,7 @@ export default function TabConstructor() {
       {modalGlobalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-lg rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative">
-            <button onClick={() => setModalGlobalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white">
-              <XCircle className="w-6 h-6" />
-            </button>
+            <CloseModalButton onClick={() => setModalGlobalOpen(false)} absolute />
             <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Palette className="w-5 h-5 text-[var(--primary)]"/> Color Global del Tema</h2>
             <p className="text-xs text-gray-400 mb-6">Cambia la identidad visual de toda la aplicación y la landing page al instante.</p>
             
@@ -1510,13 +1509,20 @@ export default function TabConstructor() {
         </div>
       )}
 
+      {modalCodeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-5xl rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative flex flex-col h-[90vh]">
+            <CloseModalButton onClick={() => setModalCodeOpen(false)} absolute />
+            <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Code className="w-5 h-5 text-blue-400"/> Código Exportado</h2>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: CATÁLOGO DE BLOQUES */}
       {modalAgregarOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-2xl rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 md:p-8 relative">
-            <button onClick={() => setModalAgregarOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white">
-              <XCircle className="w-6 h-6" />
-            </button>
+            <CloseModalButton onClick={() => setModalAgregarOpen(false)} absolute />
             <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><LayoutGrid className="w-5 h-5 text-[var(--primary)]"/> Catálogo de Secciones</h2>
             <p className="text-xs text-gray-400 mb-6">Selecciona un bloque preconstruido para añadirlo a tu página.</p>
             
