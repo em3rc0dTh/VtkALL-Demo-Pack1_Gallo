@@ -362,19 +362,22 @@ export default function TabEvaluaciones() {
   const handleSubmitNuevoIngreso = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const clienteNombre = form.cliente?.value;
-    const telefono = form.telefono?.value || '999999999'; 
+    const nombre = form.nombre?.value || '';
+    const apellido = form.apellido?.value || '';
+    const clienteNombre = `${nombre} ${apellido}`.trim();
+    const telefono = form.telefono?.value || ''; 
     const marca = form.marca?.value || 'Genérica';
     const modelo = form.modelo?.value || 'Vehículo';
     const anio = parseInt(form.anio?.value) || new Date().getFullYear();
     const patente = form.patente?.value?.toUpperCase() || '';
     const notas = form.notas?.value || '';
     
-    let fecha_date = form.fecha_cita_date?.value;
+    // Always assume today's date for walk-ins
+    const fecha_date = new Date().toISOString().split('T')[0];
     let fecha_time = form.fecha_cita_time?.value;
     
     let fecha_cita;
-    if (fecha_date && fecha_time) {
+    if (fecha_time) {
       fecha_cita = new Date(`${fecha_date}T${fecha_time}:00`).toISOString();
     } else {
       // Si no escoge hora, asume ingreso inmediato (sumamos 10 mins para validación futura)
@@ -723,23 +726,35 @@ export default function TabEvaluaciones() {
             
             <div className="mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Car className="w-5 h-5 text-primary" /> Ingreso Manual de Taller
+                <Car className="w-5 h-5 text-primary" /> Nuevo Ingreso Presencial
               </h2>
               <p className="text-xs text-gray-500 mt-1">
-                Registra manualmente a un cliente o programa una visita. El pedido ingresará a la columna de "Nuevas Solicitudes".
+                Registra un cliente que se encuentra actualmente en el taller.
               </p>
             </div>
 
             <form onSubmit={handleSubmitNuevoIngreso} className="space-y-4">
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><UserPlus className="w-3 h-3"/> Nombre del Cliente</label>
-                  <input type="text" name="cliente" required placeholder="Ej: Luis Martinez" className="console-input" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1"><UserPlus className="w-3 h-3"/> Nombre</label>
+                  <input type="text" name="nombre" required placeholder="Ej: Luis" className="console-input" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Teléfono (WhatsApp)</label>
-                  <input type="tel" name="telefono" pattern="^\+?\d{8,15}$" title="Debe contener entre 8 y 15 dígitos." placeholder="+56 9..." className="console-input" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Apellido</label>
+                  <input type="text" name="apellido" required placeholder="Ej: Martinez" className="console-input" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">WhatsApp (con prefijo)</label>
+                  <input 
+                    type="tel" 
+                    name="telefono" 
+                    required
+                    pattern="^\+\d{10,15}$" 
+                    title="Debe incluir el código de país con el signo + al inicio. Ejemplo: +51999999999" 
+                    placeholder="+51..." 
+                    className="console-input" 
+                  />
                 </div>
               </div>
 
@@ -782,10 +797,15 @@ export default function TabEvaluaciones() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Fecha de Evaluación</label>
-                  <input type="date" name="fecha_cita_date" defaultValue={new Date().toISOString().split('T')[0]} className="console-input text-gray-300 [&::-webkit-calendar-picker-indicator]:filter-invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" />
+                  <input 
+                    type="text" 
+                    disabled 
+                    value="Hoy (Ingreso Inmediato)" 
+                    className="console-input text-gray-500 bg-gray-900 cursor-not-allowed" 
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Hora de Evaluación</label>
@@ -804,7 +824,6 @@ export default function TabEvaluaciones() {
                 <textarea 
                   name="notas"
                   rows="3" 
-                  required
                   required
                   placeholder="El cliente indica que los frenos suenan al frenar..."
                   className="console-input custom-scrollbar"

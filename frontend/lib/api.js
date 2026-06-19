@@ -136,6 +136,7 @@ export const api = {
   // Historial Clínico y Mantenimiento de Vehículos
   agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
   actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
+  mergeClientes: (id, targetClientId) => request(`/clientes/${id}/merge`, { method: 'POST', body: { targetClientId } }),
   subirImagenGeneral: (formData) => {
     // Para uploads grandes (videos), bypass proxy Next.js para evitar límite de size
     const uploadUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'

@@ -1,6 +1,7 @@
 import express from 'express';
 import Cliente from '../models/Cliente.js';
 import Cita from '../models/Cita.js';
+import Mensaje from '../models/Mensaje.js';
 import { protegerRuta, soloAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -279,6 +280,97 @@ router.put('/:id/vehiculos/:patente/mantenimiento', protegerRuta, async (req, re
   } catch (error) {
     console.error('Error al actualizar mantenimiento:', error);
     res.status(500).json({ error: 'Error del servidor al actualizar mantenimiento' });
+  }
+});
+
+// POST /api/clientes/:id/merge (admin)
+router.post('/:id/merge', protegerRuta, soloAdmin, async (req, res) => {
+  try {
+    const sourceId = req.params.id;
+    const { targetClientId } = req.body;
+
+    if (!targetClientId || sourceId === targetClientId) {
+      return res.status(400).json({ error: 'ID de cliente destino inválido' });
+    }
+
+    const sourceClient = await Cliente.findById(sourceId);
+    const targetClient = await Cliente.findById(targetClientId);
+
+    if (!sourceClient || !targetClient) {
+      return res.status(404).json({ error: 'Cliente origen o destino no encontrado' });
+    }
+
+    // 1. Update Citas
+    await Cita.updateMany(
+      { cliente: sourceId },
+      { 
+        $set: { 
+          cliente: targetClientId, 
+          numero_telefono: targetClient.numero_telefono, 
+          nombre_cliente: targetClient.nombre || 'Cliente' 
+        } 
+      }
+    );
+
+    // 2. Update Mensajes
+    await Mensaje.updateMany(
+      { numero_telefono: sourceClient.numero_telefono },
+      { 
+        $set: { 
+          numero_telefono: targetClient.numero_telefono, 
+          nombre_cliente: targetClient.nombre || 'Cliente' 
+        } 
+      }
+    );
+
+    // 3. Merge Vehículos
+    const targetPatentes = targetClient.vehiculos.map(v => v.patente?.trim().toUpperCase()).filter(Boolean);
+    const vehiculosToAdd = [];
+
+    if (sourceClient.vehiculos && sourceClient.vehiculos.length > 0) {
+      for (const v of sourceClient.vehiculos) {
+        const patente = v.patente?.trim().toUpperCase();
+        if (!patente || !targetPatentes.includes(patente)) {
+          vehiculosToAdd.push(v);
+          if (patente) targetPatentes.push(patente);
+        }
+      }
+    }
+
+    if (vehiculosToAdd.length > 0) {
+      targetClient.vehiculos = [...targetClient.vehiculos, ...vehiculosToAdd];
+    }
+
+    // 4. Merge LIDs (if present)
+    if (sourceClient.whatsapp_lids && sourceClient.whatsapp_lids.length > 0) {
+      const targetLids = targetClient.whatsapp_lids || [];
+      for (const lid of sourceClient.whatsapp_lids) {
+        if (!targetLids.includes(lid)) {
+          targetLids.push(lid);
+        }
+      }
+      targetClient.whatsapp_lids = targetLids;
+    }
+
+    // 5. Merge Stats
+    targetClient.total_citas = (targetClient.total_citas || 0) + (sourceClient.total_citas || 0);
+    targetClient.total_gastado = (targetClient.total_gastado || 0) + (sourceClient.total_gastado || 0);
+    targetClient.deuda_actual = (targetClient.deuda_actual || 0) + (sourceClient.deuda_actual || 0);
+
+    // Si el destino no tiene nombre, email o dni, heredarlos del origen
+    if (!targetClient.nombre && sourceClient.nombre) targetClient.nombre = sourceClient.nombre;
+    if (!targetClient.email && sourceClient.email) targetClient.email = sourceClient.email;
+    if (!targetClient.dni && sourceClient.dni) targetClient.dni = sourceClient.dni;
+
+    await targetClient.save();
+
+    // 6. Delete Source Client
+    await Cliente.findByIdAndDelete(sourceId);
+
+    res.json({ ok: true, mensaje: 'Clientes fusionados exitosamente', cliente: targetClient });
+  } catch (error) {
+    console.error('Error al fusionar clientes:', error);
+    res.status(500).json({ error: 'Error al fusionar clientes' });
   }
 });
 

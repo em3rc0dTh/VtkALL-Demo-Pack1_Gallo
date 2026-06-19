@@ -22,6 +22,7 @@ import {
   ChevronUp,
   Activity,
   Star,
+  Users,
 } from "lucide-react";
 import EstadoBadge from "../ui/EstadoBadge.js";
 import Swal from "sweetalert2";
@@ -48,6 +49,8 @@ const formatRelativeTime = (dateString) => {
   return `Hace ${diffYears} ${diffYears === 1 ? "año" : "años"}`;
 };
 
+const DAYS_FILTER = 60;
+
 export default function TabClientes() {
   const [clientes, setClientes] = useState([]);
   const [total, setTotal] = useState(0);
@@ -70,6 +73,7 @@ export default function TabClientes() {
   const [modalEditOpen, setModalEditOpen] = useState(false);
   const [editId, setEditId] = useState("");
   const [editNombre, setEditNombre] = useState("");
+  const [editApellido, setEditApellido] = useState("");
   const [editDni, setEditDni] = useState("");
   const [editTelefono, setEditTelefono] = useState("");
   const [editEmail, setEditEmail] = useState("");
@@ -90,10 +94,21 @@ export default function TabClientes() {
   // Historial Clínico & Mantenimiento states
   const [activeHistoryTab, setActiveHistoryTab] = useState("personales");
   const [mensajesHistorial, setMensajesHistorial] = useState([]);
+  const [showFullTimelineServicios, setShowFullTimelineServicios] = useState(false);
+  const [showFullTimelineEvaluaciones, setShowFullTimelineEvaluaciones] = useState(false);
   const [reparacionVehiculoActivo, setReparacionVehiculoActivo] =
     useState(null);
   const [modalRepairDetail, setModalRepairDetail] = useState(null);
   const [modalThreadOpen, setModalThreadOpen] = useState(false);
+
+  // Fusionar Clientes states
+  const [modalMergeOpen, setModalMergeOpen] = useState(false);
+  const [mergeSearchTerm, setMergeSearchTerm] = useState("");
+  const [mergeTargetClient, setMergeTargetClient] = useState(null);
+  const [mergeIsLoading, setMergeIsLoading] = useState(false);
+  const [mergeError, setMergeError] = useState("");
+  const [mergeSearchResults, setMergeSearchResults] = useState([]);
+  const [mergeSearchLoading, setMergeSearchLoading] = useState(false);
   const [modalVehiculoDetailOpen, setModalVehiculoDetailOpen] = useState(false);
   const [selectedVehiculoDetail, setSelectedVehiculoDetail] = useState(null);
 
@@ -165,6 +180,33 @@ export default function TabClientes() {
     cargarClientes();
   }, [busqueda, pagina]);
 
+  useEffect(() => {
+    if (!modalMergeOpen) return;
+    const fetchMergeSearchResults = async () => {
+      if (mergeSearchTerm.length < 3) {
+        setMergeSearchResults([]);
+        return;
+      }
+      setMergeSearchLoading(true);
+      try {
+        const res = await api.getClientes(mergeSearchTerm, 1, 20);
+        if (res && res.clientes) {
+          setMergeSearchResults(res.clientes);
+        }
+      } catch (err) {
+        console.error("Error cargando clientes para fusionar:", err);
+      } finally {
+        setMergeSearchLoading(false);
+      }
+    };
+
+    const delayDebounceFn = setTimeout(() => {
+      fetchMergeSearchResults();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [mergeSearchTerm, modalMergeOpen]);
+
   const cargarClientes = async () => {
     setLoading(true);
     try {
@@ -231,6 +273,15 @@ export default function TabClientes() {
       }
     } catch (error) {
       console.error("Error al cargar detalle:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Cliente no encontrado",
+        text: "El perfil de este cliente ya no existe (probablemente fue fusionado o eliminado).",
+        background: "#111827",
+        color: "#fff",
+        confirmButtonColor: "#3b82f6",
+      });
+      cargarClientes(); // Force refresh to remove ghost items
     }
   };
 
@@ -382,8 +433,14 @@ export default function TabClientes() {
       const res = await api.getClienteDetalle(cliente._id);
       const latestCliente = res ? res.cliente : cliente;
 
+      const fullName = latestCliente.nombre || "";
+      const nameParts = fullName.split(" ");
+      const apellido = nameParts.length > 1 ? nameParts.pop() : "";
+      const nombre = nameParts.join(" ");
+
       setEditId(latestCliente._id);
-      setEditNombre(latestCliente.nombre || "");
+      setEditNombre(nombre);
+      setEditApellido(apellido);
       setEditDni(latestCliente.dni || "");
       setEditTelefono(latestCliente.numero_telefono || "");
       setEditEmail(latestCliente.email || "");
@@ -405,8 +462,14 @@ export default function TabClientes() {
     } catch (err) {
       console.error("Error al cargar detalles del cliente para editar:", err);
       // Fallback a los datos locales si falla el fetch
+      const fullName = cliente.nombre || "";
+      const nameParts = fullName.split(" ");
+      const apellido = nameParts.length > 1 ? nameParts.pop() : "";
+      const nombre = nameParts.join(" ");
+
       setEditId(cliente._id);
-      setEditNombre(cliente.nombre || "");
+      setEditNombre(nombre);
+      setEditApellido(apellido);
       setEditDni(cliente.dni || "");
       setEditTelefono(cliente.numero_telefono || "");
       setEditEmail(cliente.email || "");
@@ -422,6 +485,38 @@ export default function TabClientes() {
       setEditDeudaActual(cliente.deuda_actual || 0);
       setErrorEdit("");
       setModalEditOpen(true);
+    }
+  };
+
+  const handleMergeCliente = async () => {
+    if (!mergeTargetClient) return;
+
+    setMergeIsLoading(true);
+    setMergeError("");
+    try {
+      const res = await api.mergeClientes(clienteDetalle._id, mergeTargetClient._id);
+      
+      if (!res || !res.ok) {
+        throw new Error(res?.error || "Error al fusionar clientes");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Clientes fusionados",
+        text: "Los datos han sido transferidos exitosamente.",
+        background: "#111827",
+        color: "#fff",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+
+      setModalMergeOpen(false);
+      setModalDetalleOpen(false);
+      cargarClientes(); // Refresh list
+    } catch (err) {
+      setMergeError(err.message);
+    } finally {
+      setMergeIsLoading(false);
     }
   };
 
@@ -485,7 +580,7 @@ export default function TabClientes() {
       // Ensure notes key matches schema (notas or notes? Let's check: the schema uses 'notas', payload line 330 previously had 'notas: editNotas')
       // Ah! Payload line 330 had: 'notas: editNotas'. Let me keep 'notas: editNotas' instead of 'notes: editNotas'.
       const actualPayload = {
-        nombre: editNombre,
+        nombre: `${editNombre} ${editApellido}`.trim(),
         dni: editDni,
         numero_telefono: editTelefono,
         email: editEmail,
@@ -645,7 +740,7 @@ export default function TabClientes() {
                     className="hover:bg-gray-900/10 cursor-pointer"
                     onClick={() => handleVerDetalle(c._id)}
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 flex flex-row gap-2 items-center">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-450 font-bold">
                           {c.nombre?.charAt(0) || "C"}
@@ -667,6 +762,12 @@ export default function TabClientes() {
                           </div>
                         </div>
                       </div>
+                      <button
+                        onClick={() => handleOpenEdit(c)}
+                        className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary text-[10px] font-bold cursor-pointer"
+                      >
+                        Editar
+                      </button>
                     </td>
                     <td className="px-6 py-4 font-mono text-gray-400">
                       {c.numero_telefono}
@@ -731,12 +832,7 @@ export default function TabClientes() {
                       >
                         Ver Perfil
                       </button>
-                      <button
-                        onClick={() => handleOpenEdit(c)}
-                        className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary text-[10px] font-bold cursor-pointer"
-                      >
-                        Editar
-                      </button>
+                      
                     </td>
                   </tr>
                 ))}
@@ -1080,347 +1176,374 @@ export default function TabClientes() {
                   </div>
                 )}
 
-                {activeHistoryTab === "clinico" && (
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-[-10px] mb-3">
-                      <Wrench className="w-4 h-4 text-primary" /> Servicios
-                    </h4>
+                {activeHistoryTab === "clinico" && (() => {
+                  // --- Lógica de Servicios ---
+                  const obtenerTodasLasReparaciones = () => {
+                    const reps = [];
 
-                    {(() => {
-                      const obtenerTodasLasReparaciones = () => {
-                        const reps = [];
-
-                        if (clienteDetalle && clienteDetalle.vehiculos) {
-                          clienteDetalle.vehiculos.forEach((v) => {
-                            if (v.reparaciones && v.reparaciones.length > 0) {
-                              v.reparaciones.forEach((r) => {
-                                reps.push({
-                                  ...r,
-                                  vehiculoMarca: v.marca,
-                                  vehiculoModelo: v.modelo,
-                                  vehiculoPatente: v.patente,
-                                });
-                              });
-                            }
+                    if (clienteDetalle && clienteDetalle.vehiculos) {
+                      clienteDetalle.vehiculos.forEach((v) => {
+                        if (v.reparaciones && v.reparaciones.length > 0) {
+                          v.reparaciones.forEach((r) => {
+                            reps.push({
+                              ...r,
+                              vehiculoMarca: v.marca,
+                              vehiculoModelo: v.modelo,
+                              vehiculoPatente: v.patente,
+                            });
                           });
                         }
+                      });
+                    }
 
-                        // Inyectar citas agendadas/pendientes que aún no están en el historial finalizado
-                        if (citasHistorial && citasHistorial.length > 0) {
-                          citasHistorial.forEach((cita) => {
-                            const yaExiste = reps.some(
-                              (r) =>
-                                (r.cita_id &&
-                                  r.cita_id.toString() ===
-                                    cita._id.toString()) ||
-                                (r._id &&
-                                  r._id.toString() === cita._id.toString()),
-                            );
+                    if (citasHistorial && citasHistorial.length > 0) {
+                      citasHistorial.forEach((cita) => {
+                        const yaExiste = reps.some(
+                          (r) =>
+                            (r.cita_id && r.cita_id.toString() === cita._id.toString()) ||
+                            (r._id && r._id.toString() === cita._id.toString()),
+                        );
 
-                            if (!yaExiste) {
-                              reps.push({
-                                _id: cita._id,
-                                cita_id: cita._id,
-                                titulo: cita.servicio || "Servicio Agendado",
-                                fecha: cita.fecha_cita,
-                                estado:
-                                  cita.estado_trabajo === "en_curso"
-                                    ? "En Progreso"
-                                    : cita.estado_trabajo === "pendiente"
-                                      ? "Pendiente"
-                                      : cita.estado_trabajo,
-                                vehiculoMarca:
-                                  cita.vehiculo?.marca || "Vehículo",
-                                vehiculoModelo: cita.vehiculo?.modelo || "",
-                                vehiculoPatente: cita.vehiculo?.patente || "",
-                                comentarios:
-                                  cita.descripcion_trabajo ||
-                                  cita.notas_mecanico ||
-                                  "",
-                                imagen_antes:
-                                  cita.imagenes && cita.imagenes.length > 0
-                                    ? cita.imagenes[0]
-                                    : null,
-                                imagen_despues: null,
-                                piezas_cambiadas: [],
-                              });
-                            }
+                        if (!yaExiste) {
+                          reps.push({
+                            _id: cita._id,
+                            cita_id: cita._id,
+                            titulo: cita.servicio || "Servicio Agendado",
+                            fecha: cita.fecha_cita,
+                            estado:
+                              cita.estado_trabajo === "en_curso"
+                                ? "En Progreso"
+                                : cita.estado_trabajo === "pendiente"
+                                  ? "Pendiente"
+                                  : cita.estado_trabajo,
+                            vehiculoMarca: cita.vehiculo?.marca || "Vehículo",
+                            vehiculoModelo: cita.vehiculo?.modelo || "",
+                            vehiculoPatente: cita.vehiculo?.patente || "",
+                            comentarios:
+                              cita.descripcion_trabajo ||
+                              cita.notas_mecanico ||
+                              "",
+                            imagen_antes:
+                              cita.imagenes && cita.imagenes.length > 0
+                                ? cita.imagenes[0]
+                                : null,
+                            imagen_despues: null,
+                            piezas_cambiadas: [],
                           });
                         }
+                      });
+                    }
 
-                        return reps.sort(
-                          (a, b) => new Date(b.fecha) - new Date(a.fecha),
-                        );
-                      };
+                    return reps.sort(
+                      (a, b) => new Date(b.fecha) - new Date(a.fecha),
+                    );
+                  };
 
-                      const todasLasReparaciones =
-                        obtenerTodasLasReparaciones();
+                  const todasLasReparaciones = obtenerTodasLasReparaciones();
+                  const sixtyDaysAgoRep = new Date();
+                  sixtyDaysAgoRep.setDate(sixtyDaysAgoRep.getDate() - DAYS_FILTER);
 
-                      if (todasLasReparaciones.length === 0) {
-                        return (
-                          <div className="text-center py-8 text-xs text-gray-550">
-                            No hay reparaciones registradas en el historial
-                            clínico.
-                          </div>
-                        );
-                      }
+                  const reparacionesRecientes = todasLasReparaciones.filter(
+                    (r) => new Date(r.fecha) >= sixtyDaysAgoRep,
+                  );
 
-                      return (
-                        <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-1 px-2 snap-x mb-4">
-                          {todasLasReparaciones.map((rep, idx) => (
+                  const hasMoreReparaciones = todasLasReparaciones.length > reparacionesRecientes.length && reparacionesRecientes.length > 0;
+
+                  const reparacionesAMostrar = showFullTimelineServicios || reparacionesRecientes.length === 0
+                    ? todasLasReparaciones
+                    : reparacionesRecientes;
+
+                  // --- Lógica de Evaluaciones ---
+                  const sixtyDaysAgoEval = new Date();
+                  sixtyDaysAgoEval.setDate(sixtyDaysAgoEval.getDate() - DAYS_FILTER);
+
+                  const citasRecientes = citasHistorial.filter(
+                    (c) => new Date(c.fecha_cita) >= sixtyDaysAgoEval,
+                  );
+
+                  const hasMoreEvaluaciones = citasHistorial.length > citasRecientes.length && citasRecientes.length > 0;
+
+                  const citasAMostrar = showFullTimelineEvaluaciones || citasRecientes.length === 0
+                    ? citasHistorial
+                    : citasRecientes;
+
+                  return (
+                    <div>
+                      <div className="flex items-center justify-between mb-3 mt-[-10px]">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                          <Wrench className="w-4 h-4 text-primary" /> Servicios
+                        </h4>
+                        {hasMoreReparaciones && (
+                          <button
+                            onClick={() => setShowFullTimelineServicios(!showFullTimelineServicios)}
+                            className="flex items-center gap-1 text-[9px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-md transition-colors"
+                            title={
+                              showFullTimelineServicios
+                                ? "Ver recientes"
+                                : "Ver todo el historial"
+                            }
+                          >
+                            {showFullTimelineServicios ? "VER RECIENTES" : "VER TODO"}
+                            <ChevronRight
+                              className={`w-3 h-3 transition-transform ${showFullTimelineServicios ? "rotate-90" : "-rotate-45"}`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {todasLasReparaciones.length === 0 ? (
+                        <div className="text-center py-8 text-xs text-gray-550">
+                          No hay reparaciones registradas en el historial
+                          clínico.
+                        </div>
+                      ) : (
+                        <div
+                          className="flex flex-col gap-2 overflow-y-auto max-h-[140px] custom-scrollbar pb-1 px-2 mb-4"
+                          onDoubleClick={() => hasMoreReparaciones && setShowFullTimelineServicios(!showFullTimelineServicios)}
+                          title={hasMoreReparaciones ? "Doble clic para ver todo el historial o contraerlo" : undefined}
+                        >
+                          {reparacionesAMostrar.map((rep, idx) => (
                             <div
                               key={idx}
-                              className="min-w-[300px] max-w-[350px] relative flex flex-col group snap-start"
+                              className="w-full relative flex items-center bg-gray-900/40 hover:bg-gray-900 rounded-xl border border-gray-850 px-3 py-2.5 gap-3 cursor-pointer group transition-colors"
+                              onClick={() => setModalRepairDetail(rep)}
+                              title="Clic para ver detalles de la reparación"
                             >
-                              {/* Connector line */}
-                              {idx < todasLasReparaciones.length - 1 && (
-                                <div className="absolute top-5 left-10 w-[calc(100%+1.5rem)] h-0.5 bg-gray-800 z-0"></div>
-                              )}
-                              <div className="flex items-center gap-4 mb-2 z-10 relative">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-primary text-white shadow shrink-0">
-                                  {rep.estado === "OK" ? (
-                                    <Check className="w-4 h-4" />
-                                  ) : (
-                                    <Clipboard className="w-4 h-4" />
-                                  )}
-                                </div>
-                                <span className="text-[10px] font-bold text-blue-400 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
-                                  {formatRelativeTime(rep.fecha)}
-                                </span>
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 text-primary shrink-0">
+                                {rep.estado === "OK" ? (
+                                  <Check className="w-3 h-3" />
+                                ) : (
+                                  <Clipboard className="w-3 h-3" />
+                                )}
                               </div>
+                              <div className="flex-1 flex items-center justify-between min-w-0 gap-3">
+                                <div className="flex flex-row gap-2 items-center min-w-0">
+                                  <h4 className="font-semibold text-white text-[11px] truncate">
+                                    {rep.titulo}
+                                  </h4>
 
-                              <div
-                                className="px-4 py-3 rounded-2xl bg-gray-900 border border-gray-850 shadow-sm cursor-zoom-in hover:border-primary/50 transition-all select-none flex-1"
-                                onDoubleClick={() => setModalRepairDetail(rep)}
-                                title="Doble clic para ver detalles y fotos de evaluación/ejecución"
-                              >
-                                <div className="flex justify-between items-start mb-3 gap-2">
-                                  <div>
-                                    <h4 className="font-bold text-white text-xs mb-1">
-                                      {rep.titulo}
-                                    </h4>
-                                    <p className="text-[10px] text-gray-400">
-                                      {rep.vehiculoMarca} {rep.vehiculoModelo} (
-                                      {rep.vehiculoPatente})
-                                      {rep.kilometraje ? ` • ` : ""}
-                                      {rep.kilometraje ? (
-                                        <span className="font-mono text-gray-500">
-                                          {rep.kilometraje.toLocaleString()} km
-                                        </span>
-                                      ) : (
-                                        ""
-                                      )}
-                                    </p>
-                                  </div>
+                                  <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                                    {rep.vehiculoMarca} {rep.vehiculoModelo}
+                                    {rep.vehiculoPatente &&
+                                      ` (${rep.vehiculoPatente})`}
+                                  </p>
+                                </div>
+                                <div className="flex flex-row justify-between items-end gap-1 shrink-0">
+                                  <span className="text-[10px] font-bold text-blue-400 bg-gray-950 px-2.5 py-1 rounded-lg border border-gray-800 whitespace-nowrap">
+                                    {formatRelativeTime(rep.fecha)}
+                                  </span>
                                   <button
-                                    onClick={() =>
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       window.open(
-                                        `/mission-control/${rep.vehiculoPatente}?clienteId=${clienteDetalle.id || clienteDetalle._id}`,
+                                        `/mission-control/${rep.vehiculoPatente}?clienteId=${
+                                          clienteDetalle.id ||
+                                          clienteDetalle._id
+                                        }`,
                                         "_blank",
-                                      )
-                                    }
-                                    className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white border border-blue-500/20 transition-colors shrink-0"
+                                      );
+                                    }}
+                                    className="p-1.5 rounded-md bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white border border-blue-500/20 transition-colors"
                                     title="Ir a Mission Control"
                                   >
                                     <Activity className="w-3 h-3" />
                                   </button>
                                 </div>
-
-                                {rep.piezas_cambiadas &&
-                                  rep.piezas_cambiadas.length > 0 && (
-                                    <div className="space-y-2 border-t border-gray-800 pt-3">
-                                      <p className="text-[10px] text-gray-300 font-semibold uppercase">
-                                        Piezas Cambiadas:
-                                      </p>
-                                      <ul className="text-[10px] text-gray-500 list-disc pl-4">
-                                        {rep.piezas_cambiadas.map(
-                                          (pieza, pIdx) => (
-                                            <li key={pIdx}>{pieza}</li>
-                                          ),
-                                        )}
-                                      </ul>
-                                    </div>
-                                  )}
-                                {(rep.imagen_antes || rep.imagen_despues) && (
-                                  <div className="mt-3 flex gap-2">
-                                    {rep.imagen_antes && (
-                                      <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-gray-700 relative group">
-                                        <img
-                                          src={rep.imagen_antes}
-                                          className="w-full h-full object-cover opacity-75"
-                                          alt="Antes"
-                                        />
-                                      </div>
-                                    )}
-                                    {rep.imagen_despues && (
-                                      <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-primary/50 relative group">
-                                        <img
-                                          src={rep.imagen_despues}
-                                          className="w-full h-full object-cover"
-                                          alt="Después"
-                                        />
-                                        <span className="absolute bottom-0 right-0 bg-primary text-[8px] font-bold text-white px-1 rounded-tl">
-                                          OK
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
                               </div>
                             </div>
                           ))}
                         </div>
-                      );
-                    })()}
+                      )}
 
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-3 border-t border-gray-800 pt-3">
-                      <Clipboard className="w-4 h-4 text-emerald-500" />{" "}
-                      Evaluaciones
-                    </h4>
-                    {(() => {
-                      if (citasHistorial.length === 0) {
-                        return (
-                          <p className="text-xs text-gray-500 text-center py-6">
-                            No hay evaluaciones o citas registradas.
-                          </p>
+                      {/* --- Lógica de Evaluaciones --- */}
+                      <div className="flex items-center justify-between mb-3 border-t border-gray-800 pt-3">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                          <Clipboard className="w-4 h-4 text-emerald-500" />{" "}
+                          Evaluaciones
+                        </h4>
+                        {hasMoreEvaluaciones && (
+                          <button
+                            onClick={() => setShowFullTimelineEvaluaciones(!showFullTimelineEvaluaciones)}
+                            className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-1 rounded-md transition-colors"
+                            title={
+                              showFullTimelineEvaluaciones
+                                ? "Ver recientes"
+                                : "Ver todo el historial"
+                            }
+                          >
+                            {showFullTimelineEvaluaciones ? "VER RECIENTES" : "VER TODO"}
+                            <ChevronRight
+                              className={`w-3 h-3 transition-transform ${showFullTimelineEvaluaciones ? "rotate-90" : "-rotate-45"}`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {(() => {
+                        if (citasHistorial.length === 0) {
+                          return (
+                            <p className="text-xs text-gray-500 text-center py-6">
+                              No hay evaluaciones o citas registradas.
+                            </p>
+                          );
+                        }
+
+                        if (citasAMostrar.length === 0) {
+                          return (
+                            <p className="text-xs text-gray-500 text-center py-6">
+                              No hay evaluaciones o citas registradas.
+                            </p>
+                          );
+                        }
+
+                        const citasAgrupadas = citasAMostrar.reduce(
+                          (acc, cita) => {
+                            const dateStr = new Date(
+                              cita.fecha_cita,
+                            ).toLocaleDateString();
+                            if (!acc[dateStr]) acc[dateStr] = [];
+                            acc[dateStr].push(cita);
+                            return acc;
+                          },
+                          {},
                         );
-                      }
 
-                      const citasAgrupadas = citasHistorial.reduce(
-                        (acc, cita) => {
-                          const dateStr = new Date(
-                            cita.fecha_cita,
-                          ).toLocaleDateString();
-                          if (!acc[dateStr]) acc[dateStr] = [];
-                          acc[dateStr].push(cita);
-                          return acc;
-                        },
-                        {},
-                      );
+                        const citasEntries = Object.entries(citasAgrupadas).sort(
+                          (a, b) => {
+                            return (
+                              new Date(b[1][0].fecha_cita) -
+                              new Date(a[1][0].fecha_cita)
+                            );
+                          },
+                        );
 
-                      const citasEntries = Object.entries(citasAgrupadas);
+                        return (
+                          <div
+                            className="flex flex-col gap-2 overflow-y-auto max-h-[140px] custom-scrollbar pb-1 px-2 mb-6"
+                            onDoubleClick={() =>
+                              hasMoreEvaluaciones && setShowFullTimelineEvaluaciones(!showFullTimelineEvaluaciones)
+                            }
+                            title={hasMoreEvaluaciones ? "Doble clic para ver todo el historial o contraerlo" : undefined}
+                          >
+                            {citasEntries.map(([fecha, citas], idx) => (
+                              <div
+                                key={idx}
+                                className="w-full relative flex flex-col group bg-gray-900/40 rounded-xl border border-gray-850 px-3 py-2 gap-2"
+                              >
+                                <div className="flex items-center justify-between pb-0 border-b border-gray-800/50">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 shrink-0">
+                                      <Calendar className="w-3 h-3" />
+                                    </div>
 
-                      return (
-                        <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-1 px-2 snap-x">
-                          {citasEntries.map(([fecha, citas], idx) => (
-                            <div
-                              key={idx}
-                              className="min-w-[300px] max-w-[350px] relative flex flex-col group snap-start bg-gray-900/40 rounded-2xl border border-gray-850 px-5 py-2"
-                            >
-                              {/* Connector line */}
-                              {idx < citasEntries.length - 1 && (
-                                <div className="absolute top-10 left-10 w-[calc(100%+1.5rem)] h-0.5 bg-gray-800 z-0"></div>
-                              )}
-
-                              <div className="flex items-center gap-3 mb-2 border-b border-gray-800/80 pb-3 relative z-10">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-emerald-500/20 text-emerald-500 shadow shrink-0">
-                                  <Calendar className="w-4 h-4" />
-                                </div>
-                                <div>
-                                  <span className="block text-sm font-bold text-white">
-                                    {fecha}
-                                  </span>
-                                  <span className="text-[10px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full inline-block mt-1">
+                                    <span className="text-xs font-bold text-white">
+                                      {fecha}
+                                    </span>
+                                  </div>
+                                  <span className="text-[9px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full inline-block">
                                     {citas.length} servicio
                                     {citas.length > 1 ? "s" : ""}
                                   </span>
                                 </div>
-                              </div>
-                              <div className="flex flex-col gap-4 flex-1">
-                                {citas.map((cita, cIdx) => (
-                                  <div
-                                    key={cIdx}
-                                    className="p-4 rounded-xl bg-gray-950 border border-gray-800 hover:border-emerald-500/30 transition-colors shadow-sm"
-                                  >
-                                    <div className="flex items-center justify-between mb-2">
-                                      <h4 className="font-bold text-emerald-400 text-xs mb-2">
-                                        {cita.servicio || "Servicio General"}
-                                      </h4>
-                                      <div className="text-[10px] text-gray-400 mb-2 flex items-center gap-2">
+                                <div className="flex flex-col gap-2">
+                                  {citas.map((cita, cIdx) => (
+                                    <div
+                                      key={cIdx}
+                                      className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-gray-950 border border-gray-800 hover:border-emerald-500/30 transition-colors shadow-sm"
+                                    >
+                                      <div className="flex flex-row gap-2 items-center min-w-0">
+                                        <h4 className="font-bold text-emerald-400 text-[10px] truncate">
+                                          {cita.servicio || "Servicio General"}
+                                        </h4>
+
+                                        {cita.vehiculo && (
+                                          <p className="text-[10px] text-gray-400 truncate flex items-center gap-1 mt-0.5">
+                                            <Car className="w-3 h-3 shrink-0" />
+                                            {cita.vehiculo.marca}{" "}
+                                            {cita.vehiculo.modelo} (
+                                            {cita.vehiculo.patente})
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      <div className="shrink-0 flex items-center">
                                         <EstadoBadge estado={cita.estado} />
                                       </div>
                                     </div>
-                                    <div>
-                                      {cita.vehiculo && (
-                                        <p className="text-[10px] text-gray-400">
-                                          <Car className="inline-block w-3 h-3 mr-1 mb-0.5" />
-                                          {cita.vehiculo.marca}{" "}
-                                          {cita.vehiculo.modelo} (
-                                          {cita.vehiculo.patente})
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Próximo Mantenimiento Recomendado */}
-                    {(() => {
-                      const vehiculosConMant =
-                        clienteDetalle.vehiculos?.filter(
-                          (v) =>
-                            v.proximo_mantenimiento &&
-                            (v.proximo_mantenimiento.kilometraje ||
-                              v.proximo_mantenimiento.fecha_estimada ||
-                              v.proximo_mantenimiento.sugerencia),
-                        ) || [];
-                      if (vehiculosConMant.length === 0) return null;
-
-                      return (
-                        <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
-                          <h4 className="text-[10px] font-bold text-yellow-500 uppercase flex items-center gap-2 mb-2">
-                            <Calendar className="w-3 h-3" /> Próximos
-                            Mantenimientos Recomendados
-                          </h4>
-                          <div className="space-y-2">
-                            {vehiculosConMant.map((v, i) => (
-                              <div key={i} className="text-xs text-gray-300">
-                                <span className="font-bold text-white">
-                                  {v.marca} {v.modelo} ({v.patente}):
-                                </span>{" "}
-                                {v.proximo_mantenimiento.sugerencia && (
-                                  <span className="text-yellow-400">
-                                    "{v.proximo_mantenimiento.sugerencia}"
-                                  </span>
-                                )}
-                                {v.proximo_mantenimiento.kilometraje && (
-                                  <span>
-                                    {" "}
-                                    a los{" "}
-                                    {v.proximo_mantenimiento.kilometraje.toLocaleString()}{" "}
-                                    km
-                                  </span>
-                                )}
-                                {v.proximo_mantenimiento.fecha_estimada && (
-                                  <span>
-                                    {" "}
-                                    (Aprox.{" "}
-                                    {new Date(
-                                      v.proximo_mantenimiento.fecha_estimada,
-                                    ).toLocaleDateString()}
-                                    )
-                                  </span>
-                                )}
+                                  ))}
+                                </div>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+                        );
+                      })()}
+
+                      {/* Próximo Mantenimiento Recomendado */}
+                      {(() => {
+                        const vehiculosConMant =
+                          clienteDetalle.vehiculos?.filter(
+                            (v) =>
+                              v.proximo_mantenimiento &&
+                              (v.proximo_mantenimiento.kilometraje ||
+                                v.proximo_mantenimiento.fecha_estimada ||
+                                v.proximo_mantenimiento.sugerencia),
+                          ) || [];
+                        if (vehiculosConMant.length === 0) return null;
+
+                        return (
+                          <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                            <h4 className="text-[10px] font-bold text-yellow-500 uppercase flex items-center gap-2 mb-2">
+                              <Calendar className="w-3 h-3" /> Próximos
+                              Mantenimientos Recomendados
+                            </h4>
+                            <div className="space-y-2">
+                              {vehiculosConMant.map((v, i) => (
+                                <div key={i} className="text-xs text-gray-300">
+                                  <span className="font-bold text-white">
+                                    {v.marca} {v.modelo} ({v.patente}):
+                                  </span>{" "}
+                                  {v.proximo_mantenimiento.sugerencia && (
+                                    <span className="text-yellow-400">
+                                      "{v.proximo_mantenimiento.sugerencia}"
+                                    </span>
+                                  )}
+                                  {v.proximo_mantenimiento.kilometraje && (
+                                    <span>
+                                      {" "}
+                                      a los{" "}
+                                      {v.proximo_mantenimiento.kilometraje.toLocaleString()}{" "}
+                                      km
+                                    </span>
+                                  )}
+                                  {v.proximo_mantenimiento.fecha_estimada && (
+                                    <span>
+                                      {" "}
+                                      (Aprox.{" "}
+                                      {new Date(
+                                        v.proximo_mantenimiento.fecha_estimada,
+                                      ).toLocaleDateString()}
+                                      )
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  );
+                })()}
 
                 {activeHistoryTab === "notificaciones" && (
                   <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
-                      <MessageCircle className="w-4 h-4 text-purple-500" />{" "}
-                      Historial de Comunicaciones
-                    </h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-purple-500" />{" "}
+                        Historial de Comunicaciones
+                      </h4>
+                    </div>
+
                     {(() => {
                       if (mensajesHistorial.length === 0) {
                         return (
@@ -1470,8 +1593,15 @@ export default function TabClientes() {
                       conversaciones.reverse();
 
                       return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {conversaciones.map((conv, cIdx) => {
+                        <div className="flex flex-col gap-2 overflow-y-auto max-h-[140px] custom-scrollbar pb-1 px-2 mb-4">
+                          {conversaciones.map((conv, idx) => {
+                            // Find original index to keep consistent numbering "Hilo N"
+                            const originalIndex = conversaciones.findIndex(
+                              (c) => c === conv,
+                            );
+                            const threadNum =
+                              conversaciones.length - originalIndex;
+
                             const firstMsg = conv[0];
                             const lastMsg = conv[conv.length - 1];
                             const lastSender =
@@ -1485,74 +1615,56 @@ export default function TabClientes() {
                               firstMsg.cuerpo ||
                               firstMsg.contenido ||
                               "Sin asunto";
-                            const snippet =
-                              lastMsg.cuerpo ||
-                              lastMsg.contenido ||
-                              "Sin contenido";
 
                             return (
                               <div
-                                key={cIdx}
-                                className="bg-gray-900/40 rounded-2xl border border-gray-850 p-4 hover:border-purple-500/30 transition-colors shadow-sm flex flex-col cursor-zoom-in select-none"
-                                onDoubleClick={() => {
+                                key={idx}
+                                className="w-full relative flex items-center bg-gray-900/40 hover:bg-gray-900 rounded-xl border border-gray-850 p-2 gap-3 cursor-pointer group transition-colors"
+                                onClick={() => {
                                   setSelectedThread({
                                     mensajes: conv,
-                                    id: conversaciones.length - cIdx,
+                                    id: threadNum,
                                     topic,
                                   });
                                   setModalThreadOpen(true);
                                 }}
-                                title="Doble clic para ver el hilo completo"
+                                title="Clic para ver el hilo completo"
                               >
-                                <div className="flex items-center justify-between mb-3 border-b border-gray-800/80 pb-2">
-                                  <div className="flex items-center gap-2">
-                                    <MessageCircle className="w-4 h-4 text-purple-500" />
-                                    <span className="text-xs font-bold text-white">
-                                      Hilo {conversaciones.length - cIdx}
-                                    </span>
-                                  </div>
-                                  <span className="text-[10px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
-                                    {conv.length} msg
-                                    {conv.length > 1 ? "s" : ""}
-                                  </span>
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/20 text-purple-500 shrink-0">
+                                  <MessageCircle className="w-4 h-4" />
                                 </div>
-
-                                <div className="flex flex-col gap-1.5 mb-3 flex-1">
-                                  <span
-                                    className="text-[10px] text-gray-300 line-clamp-1"
-                                    title={topic}
-                                  >
-                                    <b className="text-gray-400">Tema:</b>{" "}
-                                    {topic}
-                                  </span>
-                                  <div className="text-[10px] text-gray-500 italic line-clamp-2 bg-gray-950/50 p-2 rounded border border-gray-800/30">
-                                    "{snippet}"
-                                  </div>
-                                </div>
-
-                                <div className="space-y-1.5 text-[10px] text-gray-400 mt-auto">
-                                  <div className="flex justify-between">
-                                    <span>Inicio:</span>
-                                    <span className="text-gray-300">
-                                      {new Date(
-                                        firstMsg.fecha || firstMsg.recibido_en,
-                                      ).toLocaleDateString()}
+                                <div className="flex-1 flex items-center justify-between min-w-0">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 truncate">
+                                    <h4 className="font-bold text-white text-[11px] truncate">
+                                      Hilo {threadNum}
+                                    </h4>
+                                    <span className="hidden sm:inline text-gray-600 text-[10px]">
+                                      •
                                     </span>
+                                    {/* <p className="text-[10px] text-gray-400 truncate">
+                                      {topic}
+                                    </p> */}
                                   </div>
-                                  <div className="flex justify-between">
-                                    <span>Fin:</span>
-                                    <span className="text-gray-300">
-                                      {new Date(
-                                        lastMsg.fecha || lastMsg.recibido_en,
-                                      ).toLocaleDateString()}
+                                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                                    <span className="text-[9px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full inline-block whitespace-nowrap">
+                                      {conv.length} msg
+                                      {conv.length > 1 ? "s" : ""}
                                     </span>
-                                  </div>
-                                  <div className="flex justify-between items-center border-t border-gray-800/50 pt-1.5 mt-1.5">
-                                    <span>Último en hablar:</span>
                                     <span
-                                      className={`font-bold px-1.5 py-0.5 rounded ${lastSender === "Sistema" ? "bg-purple-500/10 text-purple-400" : "bg-blue-500/10 text-blue-400"}`}
+                                      className={`text-[9px] font-bold px-2 py-0.5 rounded-md border border-gray-800 whitespace-nowrap ${lastSender === "Sistema" ? "bg-purple-500/10 text-purple-400" : "bg-blue-500/10 text-blue-400"}`}
                                     >
                                       {lastSender}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-blue-400 bg-gray-950 px-2 py-0.5 rounded-md border border-gray-800 whitespace-nowrap hidden md:inline">
+                                      {formatRelativeTime
+                                        ? formatRelativeTime(
+                                            lastMsg.fecha ||
+                                              lastMsg.recibido_en,
+                                          )
+                                        : new Date(
+                                            lastMsg.fecha ||
+                                              lastMsg.recibido_en,
+                                          ).toLocaleDateString()}
                                     </span>
                                   </div>
                                 </div>
@@ -1569,12 +1681,25 @@ export default function TabClientes() {
 
             {/* Botones de acción inferior */}
             <div className="pt-6 mt-8 border-t border-gray-850 flex justify-between items-center">
-              <button
-                onClick={() => handleEliminarCliente(clienteDetalle._id)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500 cursor-pointer"
-              >
-                Eliminar Cliente
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleEliminarCliente(clienteDetalle._id)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500 cursor-pointer"
+                >
+                  Eliminar Cliente
+                </button>
+                <button
+                  onClick={() => {
+                    setMergeSearchTerm("");
+                    setMergeTargetClient(null);
+                    setMergeError("");
+                    setModalMergeOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-orange-400 hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500 cursor-pointer flex items-center gap-2"
+                >
+                  <Users className="w-3 h-3" /> Fusionar Cliente
+                </button>
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalDetalleOpen(false)}
@@ -1593,6 +1718,124 @@ export default function TabClientes() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL MERGE CLIENTE */}
+      {modalMergeOpen && clienteDetalle && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-orange-500" /> Fusionar Cliente
+              </h3>
+              <button
+                onClick={() => setModalMergeOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 mb-4">
+              Estás a punto de fusionar a <strong className="text-white">{clienteDetalle.nombre || "este cliente"}</strong> (Tel: {clienteDetalle.numero_telefono}). Todos sus datos, citas y mensajes se transferirán al cliente que elijas. Este perfil original se <strong>eliminará</strong> de forma irreversible.
+            </p>
+
+            {mergeError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl mb-4 font-semibold">
+                {mergeError}
+              </div>
+            )}
+
+            {!mergeTargetClient ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">
+                    Buscar Cliente Destino
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o teléfono..."
+                      value={mergeSearchTerm}
+                      onChange={(e) => setMergeSearchTerm(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl pl-10 pr-4 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
+                    />
+                  </div>
+                </div>
+
+                {mergeSearchTerm.length > 2 && (
+                  <div className="max-h-48 overflow-y-auto custom-scrollbar flex flex-col gap-2 mt-2">
+                    {mergeSearchLoading ? (
+                      <div className="text-center py-4 text-xs text-gray-500">Buscando...</div>
+                    ) : (
+                      <>
+                        {mergeSearchResults
+                          .filter(c => c._id !== clienteDetalle._id)
+                          .map(c => (
+                            <div
+                              key={c._id}
+                              onClick={() => setMergeTargetClient(c)}
+                              className="p-3 rounded-xl border border-gray-800 bg-gray-900/50 hover:bg-gray-800 cursor-pointer flex justify-between items-center transition-colors"
+                            >
+                              <div>
+                                <div className="text-sm font-bold text-white">{c.nombre || "Sin Nombre"}</div>
+                                <div className="text-xs text-gray-500">{c.numero_telefono}</div>
+                              </div>
+                              <ChevronRight className="w-4 h-4 text-gray-600" />
+                            </div>
+                          ))}
+                        {mergeSearchResults.filter(c => c._id !== clienteDetalle._id).length === 0 && (
+                          <div className="text-center py-4 text-xs text-gray-500">No se encontraron clientes coincidentes en la base de datos.</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5">
+                  <h4 className="text-xs font-bold text-orange-400 mb-3 uppercase tracking-wider">Resumen de Fusión</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs text-gray-300 pb-2 border-b border-gray-800/50">
+                      <span>Citas a transferir:</span>
+                      <span className="font-bold text-white">{clienteDetalle.total_citas || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-gray-300 pb-2 border-b border-gray-800/50">
+                      <span>Vehículos a transferir:</span>
+                      <span className="font-bold text-white">{(clienteDetalle.vehiculos || []).length}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 text-xs text-gray-300 mt-2">
+                      <span>El perfil se fusionará dentro de:</span>
+                      <div className="p-2 bg-gray-900 rounded-lg border border-emerald-500/20 text-emerald-400 font-bold flex items-center justify-between">
+                        <span>{mergeTargetClient.nombre || "Sin Nombre"}</span>
+                        <span>{mergeTargetClient.numero_telefono}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setMergeTargetClient(null)}
+                    disabled={mergeIsLoading}
+                    className="flex-1 px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 transition-colors"
+                  >
+                    Cambiar Destino
+                  </button>
+                  <button
+                    onClick={handleMergeCliente}
+                    disabled={mergeIsLoading}
+                    className="flex-1 px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {mergeIsLoading ? "Fusionando..." : "Confirmar Fusión"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1620,29 +1863,46 @@ export default function TabClientes() {
             )}
 
             <form onSubmit={handleGuardarCliente} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editNombre}
-                  onChange={(e) => setEditNombre(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editNombre}
+                    onChange={(e) => setEditNombre(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-450 uppercase mb-1">
+                    Apellido
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editApellido}
+                    onChange={(e) => setEditApellido(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">
-                    Teléfono
+                    WhatsApp (con prefijo)
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     required
                     value={editTelefono}
                     onChange={(e) => setEditTelefono(e.target.value)}
+                    pattern="^\+\d{10,15}$" 
+                    title="Debe incluir el código de país con el signo + al inicio. Ejemplo: +51999999999" 
+                    placeholder="+51..."
                     className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
