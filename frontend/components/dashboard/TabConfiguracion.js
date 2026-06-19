@@ -24,6 +24,11 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [anosExperiencia, setAnosExperiencia] = useState('');
   const [clientesAtendidos, setClientesAtendidos] = useState('');
   const [autosReparados, setAutosReparados] = useState('');
+  const [moneda, setMoneda] = useState('PEN');
+  const [monedaOriginal, setMonedaOriginal] = useState('PEN');
+  const [convertirCatalogo, setConvertirCatalogo] = useState(false);
+  const [exchangeRateInfo, setExchangeRateInfo] = useState('');
+  const [diasHistorialChat, setDiasHistorialChat] = useState(14);
   
   // Agente IA states
   const [nombreAgente, setNombreAgente] = useState('');
@@ -65,6 +70,12 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
         setUrlFondo(res.url_fondo || '');
         setBrochureUrl(res.brochure_url || '');
         
+        const configMoneda = res.moneda || 'PEN';
+        setMoneda(configMoneda);
+        setMonedaOriginal(configMoneda);
+        fetchExchangeRate(configMoneda);
+        setDiasHistorialChat(res.dias_historial_chat || 14);
+
         if (res.config_agente) {
           setNombreAgente(res.config_agente.nombre_agente || '');
           setMensajeBienvenida(res.config_agente.mensaje_bienvenida || '');
@@ -99,6 +110,24 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
     }
   };
 
+  const fetchExchangeRate = async (baseCurrency) => {
+    try {
+      setExchangeRateInfo('Cargando tasas de cambio...');
+      const response = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+      const data = await response.json();
+      if (data && data.rates) {
+        const usd = data.rates.USD ? `USD: ${data.rates.USD.toFixed(3)}` : '';
+        const eur = data.rates.EUR ? `EUR: ${data.rates.EUR.toFixed(3)}` : '';
+        const pen = data.rates.PEN ? `PEN: ${data.rates.PEN.toFixed(3)}` : '';
+        setExchangeRateInfo(`1 ${baseCurrency} = ${[usd, eur, pen].filter(Boolean).join(' | ')}`);
+      } else {
+        setExchangeRateInfo('No se pudo obtener el tipo de cambio');
+      }
+    } catch (err) {
+      setExchangeRateInfo('Error de conexión a la API de divisas');
+    }
+  };
+
   const handleGuardar = async (e) => {
     e.preventDefault();
     setMensajeOk('');
@@ -115,6 +144,9 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
         telefono,
         whatsapp,
         email,
+        moneda,
+        convertir_catalogo: convertirCatalogo,
+        dias_historial_chat: parseInt(diasHistorialChat),
         sobre_nosotros: sobreNosotros,
         anos_experiencia: parseInt(anosExperiencia),
         clientes_atendidos: parseInt(clientesAtendidos),
@@ -141,6 +173,8 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
       if (onSaveSuccess && response && response.taller) {
         onSaveSuccess(response.taller);
       }
+      setMonedaOriginal(moneda);
+      setConvertirCatalogo(false);
       setTimeout(() => setMensajeOk(''), 4000);
     } catch (err) {
       setMensajeError(err.message || 'Error al guardar los cambios');
@@ -175,13 +209,13 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
     <div className="space-y-6">
       
       {/* Sub menu de configuración */}
-      <div className="flex justify-between items-center bg-[#F9FAFB] p-4 rounded-2xl border border-gray-800">
+      <div className="flex justify-between items-center bg-gray-950 p-4 rounded-2xl border border-gray-800">
         <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800 shadow-sm">
           <button
             onClick={() => setSubTab('general')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'general' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+              subTab === 'general' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Datos Generales
@@ -190,7 +224,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('agente')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'agente' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+              subTab === 'agente' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" /> {nombreAgente}
@@ -199,7 +233,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('promociones')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'promociones' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+              subTab === 'promociones' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Settings className="w-3.5 h-3.5" /> Promociones
@@ -208,7 +242,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
             onClick={() => setSubTab('api')}
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              subTab === 'api' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+              subTab === 'api' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Shield className="w-3.5 h-3.5" /> Webhook y APIs
@@ -218,7 +252,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               onClick={() => setSubTab('constructor')}
               type="button"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                subTab === 'constructor' ? 'bg-primary text-white' : 'text-[#54595F] hover:text-white'
+                subTab === 'constructor' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
               <LayoutTemplate className="w-3.5 h-3.5" /> Sitio Web (Constructor)
@@ -255,7 +289,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
                       Nombre Taller * {user.rol !== 'soporte' && <span className="text-gray-400 font-normal lowercase">(solo soporte)</span>}
                     </label>
                     <input
@@ -264,25 +298,25 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       disabled={user.rol !== 'soporte'}
                       value={nombreTaller}
                       onChange={(e) => setNombreTaller(e.target.value)}
-                      className={`w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
+                      className={`w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                         user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Slogan</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Slogan</label>
                     <input
                       type="text"
                       value={slogan}
                       onChange={(e) => setSlogan(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
 
                 {user.rol === 'soporte' && (
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
                       URL Video/Imagen de Fondo (solo soporte)
                     </label>
                     <div className="flex gap-2 items-center">
@@ -291,7 +325,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         value={urlFondo}
                         onChange={(e) => setUrlFondo(e.target.value)}
                         placeholder="/videos/PixVerse_V6_Image_Text_360P_Create_a_visually_ (2).mp4"
-                        className="flex-1 bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                        className="flex-1 bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
                       />
                       <label className="cursor-pointer bg-navy hover:bg-[#1a2333] text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center transition-all">
                         <input type="file" className="hidden" accept="image/*,video/mp4,video/webm" onChange={(e) => {
@@ -319,12 +353,12 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 )}
 
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Sobre Nosotros</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Sobre Nosotros</label>
                   <textarea
                     rows="4"
                     value={sobreNosotros}
                     onChange={(e) => setSobreNosotros(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -334,76 +368,137 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Datos de Contacto</span>
                 
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Dirección Física</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Dirección Física</label>
                   <input
                     type="text"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Teléfono</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Teléfono</label>
                     <input
                       type="text"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Email</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Email</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Años Exp.</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Años Exp.</label>
                     <input
                       type="number"
                       value={anosExperiencia}
                       onChange={(e) => setAnosExperiencia(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Clientes</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Clientes</label>
                     <input
                       type="number"
                       value={clientesAtendidos}
                       onChange={(e) => setClientesAtendidos(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Autos Rep.</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Autos Rep.</label>
                     <input
                       type="number"
                       value={autosReparados}
                       onChange={(e) => setAutosReparados(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Brochure Digital (URL PDF / Drive)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Brochure Digital (URL PDF / Drive)</label>
                   <input
                     type="text"
                     value={brochureUrl}
                     onChange={(e) => setBrochureUrl(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Bloque de Configuración Regional */}
+              <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-sm md:col-span-2">
+                <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Configuración del Panel y Región</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Historial Chatlog (Días)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        value={diasHistorialChat}
+                        onChange={(e) => setDiasHistorialChat(e.target.value)}
+                        className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Moneda Principal</label>
+                    <select
+                      value={moneda}
+                      onChange={(e) => {
+                        setMoneda(e.target.value);
+                        fetchExchangeRate(e.target.value);
+                      }}
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                    >
+                      <option value="PEN">Soles (PEN S/.)</option>
+                      <option value="USD">Dólares (USD $)</option>
+                      <option value="EUR">Euros (EUR €)</option>
+                      <option value="MXN">Pesos Mexicanos (MXN $)</option>
+                      <option value="COP">Pesos Colombianos (COP $)</option>
+                      <option value="ARS">Pesos Argentinos (ARS $)</option>
+                      <option value="CLP">Pesos Chilenos (CLP $)</option>
+                    </select>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Tasa de Cambio en Vivo:</span>
+                    <span className="text-[11px] font-mono text-primary font-bold">{exchangeRateInfo}</span>
+                  </div>
+                </div>
+                {moneda !== monedaOriginal && (
+                  <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-start gap-3 animate-fade-in">
+                    <input
+                      type="checkbox"
+                      id="convertirCatalogo"
+                      checked={convertirCatalogo}
+                      onChange={(e) => setConvertirCatalogo(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-gray-700 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-900 bg-gray-900 cursor-pointer"
+                    />
+                    <div>
+                      <label htmlFor="convertirCatalogo" className="text-xs font-bold text-orange-400 cursor-pointer">
+                        Convertir precios del catálogo a la nueva moneda
+                      </label>
+                      <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                        Si marcas esta opción, todos los precios base de los productos y servicios se convertirán matemáticamente de <b>{monedaOriginal}</b> a <b>{moneda}</b>. Si no la marcas, los valores numéricos se mantendrán iguales y solo cambiará el símbolo (S/. 150 pasará a ser $ 150).
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Bloque de Configuración de Citas */}
@@ -412,27 +507,27 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Hora Inicio</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hora Inicio</label>
                     <input
                       type="time"
                       value={horaInicioCitas}
                       onChange={(e) => setHoraInicioCitas(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Hora Fin</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hora Fin</label>
                     <input
                       type="time"
                       value={horaFinCitas}
                       onChange={(e) => setHoraFinCitas(e.target.value)}
-                      className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-2">Días Permitidos</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Días Permitidos</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { val: 1, label: 'Lunes' },
@@ -475,7 +570,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   value={galeriaInput}
                   onChange={(e) => setGaleriaInput(e.target.value)}
                   placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-primary"
+                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -489,7 +584,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
                     Nombre del Agente IA * {user.rol !== 'soporte' && <span className="text-gray-400 font-normal lowercase">(solo soporte)</span>}
                   </label>
                   <input
@@ -498,25 +593,25 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                     disabled={user.rol !== 'soporte'}
                     value={nombreAgente}
                     onChange={(e) => setNombreAgente(e.target.value)}
-                    className={`w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
+                    className={`w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary ${
                       user.rol !== 'soporte' ? 'opacity-60 cursor-not-allowed' : ''
                     }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Mensaje de Bienvenida por WhatsApp</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Mensaje de Bienvenida por WhatsApp</label>
                   <input
                     type="text"
                     required
                     value={mensajeBienvenida}
                     onChange={(e) => setMensajeBienvenida(e.target.value)}
-                    className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Rediseño de Avatar: presets y carga de archivos */}
-              <div className="p-5 bg-[#F9FAFB] rounded-2xl border border-gray-800 space-y-4">
+              <div className="p-5 bg-gray-950 rounded-2xl border border-gray-800 space-y-4">
                 <label className="block text-[10px] font-bold text-primary uppercase tracking-widest">Avatar del Asistente Virtual</label>
                 
                 {/* Preview actual */}
@@ -540,7 +635,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
                 {/* Opción 1: Presets */}
                 <div className="space-y-2">
-                  <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción A: Elegir un Avatar Predefinido</span>
+                  <span className="block text-[9px] font-bold text-gray-400 uppercase">Opción A: Elegir un Avatar Predefinido</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {presets.map((preset) => {
                       const isSelected = avatarUrl === preset.url;
@@ -570,7 +665,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                 {/* Opción 2: Subir archivo y convertir a Base64 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   <div className="space-y-2">
-                    <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción B: Subir Imagen desde la Computadora</span>
+                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Opción B: Subir Imagen desde la Computadora</span>
                     <button 
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -589,7 +684,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
                   {/* Opción 3: Input de URL tradicional */}
                   <div className="space-y-2">
-                    <span className="block text-[9px] font-bold text-[#54595F] uppercase">Opción C: URL Personalizada</span>
+                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Opción C: URL Personalizada</span>
                     <input
                       type="text"
                       value={avatarUrl}
@@ -602,14 +697,14 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Instrucciones de System Prompt / Personalidad</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Instrucciones de System Prompt / Personalidad</label>
                 <p className="text-[10px] text-gray-500 mb-2">Define las directivas de comportamiento del agente para Gemini (cómo presentarse, consultar la agenda, etc.).</p>
                 <textarea
                   rows="8"
                   value={instruccionesBase}
                   onChange={(e) => setInstruccionesBase(e.target.value)}
                   placeholder="Eres Max, especialista de atención al cliente de MecánicaPro..."
-                  className="w-full bg-[#F9FAFB] border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
+                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary font-light leading-relaxed"
                 />
               </div>
             </div>
@@ -683,7 +778,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               ) : (
                 <div className="space-y-6">
                   {promociones.map((promo, index) => (
-                    <div key={index} className="p-5 rounded-2xl bg-[#F9FAFB] border border-gray-800 relative space-y-4">
+                    <div key={index} className="p-5 rounded-2xl bg-gray-950 border border-gray-800 relative space-y-4">
                       
                       {/* Cabecera de la promo: título de sección y botón eliminar */}
                       <div className="flex justify-between items-center">
@@ -702,7 +797,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       {/* Inputs en grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Título de la Oferta</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Título de la Oferta</label>
                           <input
                             type="text"
                             required
@@ -717,7 +812,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Etiqueta (Badge)</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Etiqueta (Badge)</label>
                           <input
                             type="text"
                             value={promo.etiqueta}
@@ -732,7 +827,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Descripción corta</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Descripción corta</label>
                           <textarea
                             rows="2"
                             required
@@ -747,7 +842,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Mensaje Predeterminado del Chat</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Mensaje Predeterminado del Chat</label>
                           <input
                             type="text"
                             value={promo.mensaje_chat || ''}
@@ -763,7 +858,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[10px] font-bold text-[#54595F] uppercase mb-1">Color Temático</label>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color Temático</label>
                             <select
                               value={promo.color_fondo || 'primary'}
                               onChange={(e) => {
@@ -811,9 +906,9 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               <span className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Conectores de API de Producción</span>
               
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-800">
+                <div className="p-4 rounded-xl bg-gray-950 border border-gray-800">
                   <h4 className="font-bold text-primary mb-2 uppercase text-[10px] tracking-wider">Endpoint Webhook del Taller</h4>
-                  <p className="text-[#54595F] mb-2 leading-relaxed">
+                  <p className="text-gray-400 mb-2 leading-relaxed">
                     Para conectar Twilio Sandbox a tu backend, configura el Webhook de WhatsApp entrante en la consola de Twilio con la siguiente URL:
                   </p>
                   <div className="bg-gray-900 p-3 rounded-xl border border-gray-800 font-mono text-[11px] select-all text-white flex justify-between items-center shadow-sm">
@@ -822,15 +917,15 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F9FAFB] border border-gray-800 space-y-3">
+                <div className="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
                   <h4 className="font-bold text-primary uppercase text-[10px] tracking-wider">Estado de Credenciales (.env)</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                      <span className="text-[#54595F]">Gemini LLM API Key:</span>
+                      <span className="text-gray-400">Gemini LLM API Key:</span>
                       <span className="font-mono text-emerald-600 font-bold">CONFIGURADO OK</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                      <span className="text-[#54595F]">Twilio Webhook:</span>
+                      <span className="text-gray-400">Twilio Webhook:</span>
                       <span className="font-mono text-white">PRODUCCIÓN MOCK / ACTIVADO</span>
                     </div>
                   </div>

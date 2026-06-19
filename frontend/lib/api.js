@@ -85,7 +85,15 @@ export const api = {
 
   // Mensajes y chat
   getConversaciones: () => request('/mensajes/conversaciones'),
-  getMensajes: (numeroTelefono) => request(`/mensajes/${numeroTelefono}`),
+  getMensajes: (numeroTelefono, options = {}) => {
+    let url = `/mensajes/${numeroTelefono}`;
+    const params = new URLSearchParams();
+    if (options.limitWeeks) params.append('limitWeeks', options.limitWeeks);
+    if (options.useConfig) params.append('useConfig', 'true');
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return request(url);
+  },
   enviarMensajeManual: (numero_telefono, contenido) => request('/mensajes/enviar-manual', { method: 'POST', body: { numero_telefono, contenido } }),
   
   // Simulador de WhatsApp webhook

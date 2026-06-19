@@ -11,6 +11,7 @@ export default function TabConstructor() {
   const [previewMode, setPreviewMode] = useState('desktop'); 
   const [modalGlobalOpen, setModalGlobalOpen] = useState(false);
   const [modalAgregarOpen, setModalAgregarOpen] = useState(false);
+  const [modalCodeOpen, setModalCodeOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Paleta de temas para toda la app

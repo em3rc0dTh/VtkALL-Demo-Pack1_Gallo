@@ -15,6 +15,22 @@ export default function TabTeam() {
   const [equipos, setEquipos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
+  // UI States
+  const [equipoActivo, setEquipoActivo] = useState(null);
+  
+  // Modals States
+  const [modalEquipoOpen, setModalEquipoOpen] = useState(false);
+  const [equipoNombre, setEquipoNombre] = useState('');
+  
+  const [modalTrabajadorOpen, setModalTrabajadorOpen] = useState(false);
+  const [trabajadorEditando, setTrabajadorEditando] = useState(null);
+  const [trabajadorNombre, setTrabajadorNombre] = useState('');
+  const [trabajadorRol, setTrabajadorRol] = useState('');
+  const [trabajadorContrato, setTrabajadorContrato] = useState('Planilla');
+  const [trabajadorTeam, setTrabajadorTeam] = useState('');
+  
+  const [guardandoUi, setGuardandoUi] = useState(false);
+
   // Estados para Disponibilidad
   const [duracionSlot, setDuracionSlot] = useState(30);
   const [diasLaborables, setDiasLaborables] = useState([1, 2, 3, 4, 5, 6]);
@@ -34,6 +50,12 @@ export default function TabTeam() {
       ]);
       setEquipos(teamsData);
       setTrabajadores(trabajadoresData);
+
+      if (!equipoActivo) {
+        setEquipoActivo('todos');
+      } else if (equipoActivo !== 'todos' && equipoActivo !== 'sin_equipo' && !teamsData.find(e => e._id === equipoActivo)) {
+        setEquipoActivo('todos');
+      }
     } catch (error) {
       console.error('Error cargando equipos:', error);
     } finally {
@@ -58,7 +80,6 @@ export default function TabTeam() {
       }
     } catch (error) {
       console.error('Error al cargar disponibilidad:', error);
-      // Fallback a valores por defecto
       setDuracionSlot(30);
       setDiasLaborables([1, 2, 3, 4, 5, 6]);
       setHoraInicio('08:00');
@@ -70,7 +91,6 @@ export default function TabTeam() {
   const handleGuardarDisponibilidad = async () => {
     setGuardandoHorario(true);
     try {
-      // Guardar en la base de datos de Disponibilidad
       await api.guardarDisponibilidad({
         entidad_id: equipoSeleccionado._id,
         tipo_entidad: 'Team',
@@ -80,7 +100,6 @@ export default function TabTeam() {
         hora_fin: horaFin
       });
 
-      // Generar horario referencial para mostrar en la tarjeta de equipo
       let diasText = '';
       if (diasLaborables.length === 0) {
         diasText = 'Sin días';
@@ -104,7 +123,6 @@ export default function TabTeam() {
       const slotText = duracionSlot === 0 ? 'Continúo' : `Slots ${duracionSlot} min`;
       const horarioReferencial = `${diasText} ${horaInicio} - ${horaFin} (${slotText})`;
 
-      // Actualizar el horario_referencial en la colección del Team
       await api.actualizarTeam(equipoSeleccionado._id, {
         horario_referencial: horarioReferencial
       });
@@ -123,130 +141,76 @@ export default function TabTeam() {
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar disponibilidad:', error);
-      Swal.fire({
-        title: 'Error',
-        text: error.message || 'No se pudo guardar la disponibilidad.',
-        icon: 'error',
-        background: '#111827',
-        color: '#fff'
-      });
+      Swal.fire({ title: 'Error', text: error.message, icon: 'error', background: '#111827', color: '#fff' });
     } finally {
       setGuardandoHorario(false);
     }
   };
 
-  const handleCrearTeam = async () => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Nuevo Team / Especialidad',
-      html: `
-        <input id="swal-t1" class="swal2-input" placeholder="Nombre (Ej: Mecánica Rápida)">
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      background: '#111827',
-      color: '#fff',
-      preConfirm: () => {
-        return {
-          nombre: document.getElementById('swal-t1').value,
-          horario_referencial: 'Por configurar',
-          capacidad: 1
-        }
-      }
-    });
-
-    if (formValues && formValues.nombre) {
-      try {
-        await api.crearTeam(formValues);
-        Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
-        cargarDatos();
-      } catch (error) {
-        Swal.fire('Error', error.message, 'error');
-      }
+  const handleGuardarEquipo = async (e) => {
+    e.preventDefault();
+    if (!equipoNombre.trim()) return;
+    setGuardandoUi(true);
+    try {
+      await api.crearTeam({
+        nombre: equipoNombre.trim(),
+        horario_referencial: 'Por configurar',
+        capacidad: 1
+      });
+      Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
+      setModalEquipoOpen(false);
+      cargarDatos();
+    } catch (error) {
+      Swal.fire('Error', error.message, 'error');
+    } finally {
+      setGuardandoUi(false);
     }
   };
 
-  const handleCrearTrabajador = async () => {
-    // Preparar opciones de teams para el select
-    const teamOptions = equipos.map(eq => `<option value="${eq._id}">${eq.nombre}</option>`).join('');
-
-    const { value: formValues } = await Swal.fire({
-      title: 'Agregar Trabajador',
-      html: `
-        <input id="swal-tr1" class="swal2-input" placeholder="Nombre Completo">
-        <input id="swal-tr2" class="swal2-input" placeholder="Rol (Ej: Especialista)">
-        <select id="swal-tr3" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
-          <option value="Planilla">Planilla</option>
-          <option value="Recibo por Honorarios">Recibo por Honorarios</option>
-        </select>
-        <select id="swal-tr4" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
-          <option value="">-- Seleccionar Team --</option>
-          ${teamOptions}
-        </select>
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      background: '#111827',
-      color: '#fff',
-      preConfirm: () => {
-        return {
-          nombre: document.getElementById('swal-tr1').value,
-          rol: document.getElementById('swal-tr2').value,
-          contrato: document.getElementById('swal-tr3').value,
-          team: document.getElementById('swal-tr4').value || null
-        }
-      }
-    });
-
-    if (formValues && formValues.nombre) {
-      try {
-        await api.crearTrabajador(formValues);
-        Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
-        cargarDatos();
-      } catch (error) {
-        Swal.fire('Error', error.message, 'error');
-      }
-    }
+  const abrirModalCrearTrabajador = () => {
+    setTrabajadorEditando(null);
+    setTrabajadorNombre('');
+    setTrabajadorRol('');
+    setTrabajadorContrato('Planilla');
+    setTrabajadorTeam(equipoActivo !== 'sin_equipo' && equipoActivo ? equipoActivo : '');
+    setModalTrabajadorOpen(true);
   };
 
-  const handleEditarTrabajador = async (t) => {
-    const teamOptions = equipos.map(eq => `<option value="${eq._id}" ${t.team && t.team._id === eq._id ? 'selected' : ''}>${eq.nombre}</option>`).join('');
+  const abrirModalEditarTrabajador = (t) => {
+    setTrabajadorEditando(t);
+    setTrabajadorNombre(t.nombre || '');
+    setTrabajadorRol(t.rol || '');
+    setTrabajadorContrato(t.contrato || 'Planilla');
+    setTrabajadorTeam(t.team?._id || '');
+    setModalTrabajadorOpen(true);
+  };
 
-    const { value: formValues } = await Swal.fire({
-      title: 'Editar Trabajador',
-      html: `
-        <input id="swal-tr1" class="swal2-input" placeholder="Nombre Completo" value="${t.nombre || ''}">
-        <input id="swal-tr2" class="swal2-input" placeholder="Rol (Ej: Especialista)" value="${t.rol || ''}">
-        <select id="swal-tr3" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
-          <option value="Planilla" ${t.contrato === 'Planilla' ? 'selected' : ''}>Planilla</option>
-          <option value="Recibo por Honorarios" ${t.contrato === 'Recibo por Honorarios' ? 'selected' : ''}>Recibo por Honorarios</option>
-        </select>
-        <select id="swal-tr4" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
-          <option value="">-- Seleccionar Team --</option>
-          ${teamOptions}
-        </select>
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      background: '#111827',
-      color: '#fff',
-      preConfirm: () => {
-        return {
-          nombre: document.getElementById('swal-tr1').value,
-          rol: document.getElementById('swal-tr2').value,
-          contrato: document.getElementById('swal-tr3').value,
-          team: document.getElementById('swal-tr4').value || null
-        }
-      }
-    });
+  const handleGuardarTrabajador = async (e) => {
+    e.preventDefault();
+    if (!trabajadorNombre.trim()) return;
+    setGuardandoUi(true);
+    
+    const payload = {
+      nombre: trabajadorNombre.trim(),
+      rol: trabajadorRol.trim(),
+      contrato: trabajadorContrato,
+      team: trabajadorTeam || null
+    };
 
-    if (formValues && formValues.nombre) {
-      try {
-        await api.actualizarTrabajador(t._id, formValues);
+    try {
+      if (trabajadorEditando) {
+        await api.actualizarTrabajador(trabajadorEditando._id, payload);
         Swal.fire({ title: 'Actualizado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
-        cargarDatos();
-      } catch (error) {
-        Swal.fire('Error', error.message, 'error');
+      } else {
+        await api.crearTrabajador(payload);
+        Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
       }
+      setModalTrabajadorOpen(false);
+      cargarDatos();
+    } catch (error) {
+      Swal.fire('Error', error.message, 'error');
+    } finally {
+      setGuardandoUi(false);
     }
   };
 
@@ -267,93 +231,135 @@ export default function TabTeam() {
     }
   };
 
+  // Filtrado
+  const trabajadoresFiltrados = trabajadores.filter(t => {
+    if (equipoActivo === 'todos') return true;
+    if (equipoActivo === 'sin_equipo') {
+      return !t.team;
+    }
+    return t.team?._id === equipoActivo;
+  });
+
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" /> Staff y Disponibilidad (Time Slots)
+            <Users className="w-4 h-4 text-primary" /> Especialidades y Personal
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Registra a tus técnicos/expertos y define sus intervalos de atención para el motor de reservas.</p>
+          <p className="text-[10px] text-gray-500 mt-1">Administra tus grupos de trabajo y asigna a tus técnicos.</p>
         </div>
-        <button onClick={handleCrearTrabajador} className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer">
-          <Plus className="w-4 h-4" /> AGREGAR TRABAJADOR
+        <button 
+          onClick={() => { setEquipoNombre(''); setModalEquipoOpen(true); }} 
+          className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer"
+        >
+          <Plus className="w-4 h-4" /> AGREGAR EQUIPO
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* GRID LAYOUT */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         
-        {/* Lista de Trabajadores */}
-        <div className="md:col-span-2 space-y-4">
-          <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2"><UserCog className="w-4 h-4 text-gray-400" /> Directorio de Expertos</h4>
+        {/* COLUMNA IZQUIERDA: EQUIPOS */}
+        <div className="space-y-4 xl:col-span-1 sticky top-24">
+          <h4 className="text-sm font-bold text-white flex items-center gap-2"><Shield className="w-4 h-4 text-gray-400" /> Grupos de Trabajo</h4>
           
-          <div className="overflow-x-auto border border-gray-850 rounded-2xl bg-gray-950/20">
-            <table className="min-w-full divide-y divide-gray-850 text-left text-xs">
-              <thead className="bg-dark-card/40 text-gray-400 font-bold uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Nombre y Rol</th>
-                  <th className="px-6 py-4">Tipo de Contrato</th>
-                  <th className="px-6 py-4">Team (Grupo)</th>
-                  <th className="px-6 py-4 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-850/60 text-gray-300 font-light">
-                {trabajadores.map((t) => (
-                  <tr key={t._id} className="hover:bg-gray-900/10">
-                    <td className="px-6 py-4">
-                      <span className="block font-bold text-white">{t.nombre}</span>
-                      <span className="text-[10px] text-gray-500">{t.rol}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-[9px] font-bold ${
-                        t.contrato === 'Planilla' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                      }`}>
-                        {t.contrato}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-900 border border-gray-800 rounded-md text-[10px] text-gray-300 font-bold">
-                        <Wrench className="w-3 h-3 text-primary" /> {t.team ? t.team.nombre : 'Sin Equipo'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-1.5">
-                      <button title="Editar" aria-label="Editar Trabajador" onClick={() => handleEditarTrabajador(t)} className="p-2.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                      <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-2.5 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
+            {/* "TODOS" TILE */}
+            <div 
+              onClick={() => setEquipoActivo('todos')}
+              className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
+                equipoActivo === 'todos' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+              }`}
+            >
+              <h5 className={`font-bold text-sm ${equipoActivo === 'todos' ? 'text-blue-400' : 'text-gray-500'}`}>Todos los Trabajadores</h5>
+              <p className="text-[10px] text-gray-600 mt-1">Ver lista completa</p>
+            </div>
+
+            {equipos.map((eq) => (
+              <div 
+                key={eq._id} 
+                onClick={() => setEquipoActivo(eq._id)}
+                className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
+                  equipoActivo === eq._id ? 'border-primary bg-primary/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h5 className={`font-bold text-sm ${equipoActivo === eq._id ? 'text-white' : 'text-gray-400'}`}>{eq.nombre}</h5>
+                    <p className="text-[10px] text-gray-500 mt-1">Horario: {eq.horario_referencial || 'No configurado'}</p>
+                  </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleAbrirHorario(eq); }} 
+                    className="p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-blue-400 hover:border-blue-500/30 transition-colors" 
+                    title="Configurar Horario"
+                  >
+                    <CalendarDays className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* "SIN EQUIPO" TILE */}
+            <div 
+              onClick={() => setEquipoActivo('sin_equipo')}
+              className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
+                equipoActivo === 'sin_equipo' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+              }`}
+            >
+              <h5 className={`font-bold text-sm ${equipoActivo === 'sin_equipo' ? 'text-orange-400' : 'text-gray-500'}`}>Sin Equipo Asignado</h5>
+              <p className="text-[10px] text-gray-600 mt-1">Técnicos libres o por asignar</p>
+            </div>
           </div>
         </div>
 
-        {/* Gestión de Teams / Slots */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="text-sm font-bold text-white flex items-center gap-2"><Shield className="w-4 h-4 text-gray-400" /> Grupos / Especialidades</h4>
-            <button onClick={handleCrearTeam} className="text-primary hover:text-white transition-colors"><Plus className="w-4 h-4 cursor-pointer" /></button>
+        {/* COLUMNA DERECHA: TRABAJADORES DEL EQUIPO */}
+        <div className="xl:col-span-2 space-y-4">
+          <div className="flex items-center justify-between mb-4 px-1 pb-3 border-b border-gray-800">
+            <div>
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <UserCog className="w-4 h-4 text-gray-400" /> 
+                {equipoActivo === 'todos' ? 'Todos los Trabajadores' : (equipoActivo === 'sin_equipo' ? 'Trabajadores sin Equipo' : (equipos.find(e => e._id === equipoActivo)?.nombre || 'Trabajadores'))}
+              </h4>
+              <p className="text-[10px] text-gray-500 mt-0.5">{trabajadoresFiltrados.length} miembros encontrados</p>
+            </div>
+            <button 
+              onClick={abrirModalCrearTrabajador}
+              className="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition-colors cursor-pointer text-xs font-bold flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" /> AÑADIR TRABAJADOR
+            </button>
           </div>
-
-          <div className="space-y-3">
-            {equipos.map((eq) => (
-              <div key={eq._id} className="p-4 rounded-xl border border-gray-850 bg-gray-950/40 hover:border-primary/50 transition-all group">
-                <h5 className="font-bold text-white text-sm">{eq.nombre}</h5>
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Clock className="w-3 h-3 text-gray-500 mt-0.5" />
-                    <p className="text-[10px] text-gray-400 leading-tight">Disponibilidad:<br/><span className="text-gray-300 font-bold">{eq.horario_referencial || 'No configurado'}</span></p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-3 h-3 text-gray-500" />
-                    <p className="text-[10px] text-gray-400">Expertos asignados: <span className="text-gray-300 font-bold">{eq.capacidad}</span></p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-max">
+            {trabajadoresFiltrados.length === 0 ? (
+              <div className="sm:col-span-2 p-12 text-center flex flex-col items-center justify-center bg-gray-950/20 rounded-2xl border border-gray-850 border-dashed">
+                <UserCog className="w-8 h-8 text-gray-700 mb-3" />
+                <p className="text-xs text-gray-500 italic">No hay trabajadores registrados en esta lista.</p>
+              </div>
+            ) : trabajadoresFiltrados.map((t) => (
+              <div key={t._id} className="p-4 rounded-2xl border border-gray-850 bg-gray-950/20 hover:bg-gray-900/40 transition-all flex flex-col justify-between h-full group shadow-sm">
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <span className="block font-bold text-white text-sm">{t.nombre}</span>
+                      <span className="text-[10px] text-gray-400">{t.rol || 'Sin rol'}</span>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-[9px] font-bold ${
+                      t.contrato === 'Planilla' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                    }`}>
+                      {t.contrato}
+                    </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-gray-850 flex justify-end">
-                  <button 
-                    onClick={() => handleAbrirHorario(eq)}
-                    className="flex items-center gap-1.5 text-[10px] text-blue-400 hover:text-blue-300 font-bold cursor-pointer transition-colors"
-                  >
-                    <CalendarDays className="w-3.5 h-3.5" /> CONFIGURAR DISPONIBILIDAD
+                
+                <div className="pt-3 mt-2 border-t border-gray-850 flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button title="Editar" aria-label="Editar Trabajador" onClick={() => abrirModalEditarTrabajador(t)} className="p-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors flex items-center gap-1.5 text-[10px] font-bold">
+                    <Edit3 className="w-3.5 h-3.5" /> EDITAR
+                  </button>
+                  <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-2 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850 transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -363,9 +369,107 @@ export default function TabTeam() {
 
       </div>
 
-      {/* Modal Wireframe para Configurar Horarios y Time Slots */}
+      {/* MODAL: Agregar Equipo */}
+      {modalEquipoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+              <h3 className="text-lg font-bold text-white">Nuevo Equipo</h3>
+              <CloseModalButton onClick={() => setModalEquipoOpen(false)} />
+            </div>
+            <form onSubmit={handleGuardarEquipo} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Nombre del Equipo o Especialidad</label>
+                <input 
+                  type="text" 
+                  value={equipoNombre} 
+                  onChange={(e) => setEquipoNombre(e.target.value)} 
+                  className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" 
+                  placeholder="Ej: Mecánica Rápida"
+                  required 
+                />
+              </div>
+              <div className="pt-4 flex justify-end">
+                <button type="submit" disabled={guardandoUi} className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-all disabled:opacity-50 cursor-pointer">
+                  {guardandoUi ? 'Guardando...' : 'Crear Equipo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Agregar/Editar Trabajador */}
+      {modalTrabajadorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+              <h3 className="text-lg font-bold text-white">
+                {trabajadorEditando ? 'Editar Trabajador' : 'Nuevo Trabajador'}
+              </h3>
+              <CloseModalButton onClick={() => setModalTrabajadorOpen(false)} />
+            </div>
+            <form onSubmit={handleGuardarTrabajador} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Nombre Completo</label>
+                <input 
+                  type="text" 
+                  value={trabajadorNombre} 
+                  onChange={(e) => setTrabajadorNombre(e.target.value)} 
+                  className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" 
+                  placeholder="Ej: Juan Pérez"
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Rol / Cargo</label>
+                <input 
+                  type="text" 
+                  value={trabajadorRol} 
+                  onChange={(e) => setTrabajadorRol(e.target.value)} 
+                  className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" 
+                  placeholder="Ej: Técnico Especialista"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Tipo de Contrato</label>
+                  <select 
+                    value={trabajadorContrato} 
+                    onChange={(e) => setTrabajadorContrato(e.target.value)} 
+                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer appearance-none"
+                  >
+                    <option value="Planilla">Planilla</option>
+                    <option value="Recibo por Honorarios">Recibos</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Equipo Asignado</label>
+                  <select 
+                    value={trabajadorTeam} 
+                    onChange={(e) => setTrabajadorTeam(e.target.value)} 
+                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer appearance-none"
+                  >
+                    <option value="">-- Ninguno --</option>
+                    {equipos.map(eq => (
+                      <option key={eq._id} value={eq._id}>{eq.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="pt-4 flex justify-end">
+                <button type="submit" disabled={guardandoUi} className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-all disabled:opacity-50 cursor-pointer">
+                  {guardandoUi ? 'Guardando...' : (trabajadorEditando ? 'Guardar Cambios' : 'Crear Trabajador')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Configurar Horarios y Time Slots */}
       {modalHorarioOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
               <h3 className="text-lg font-bold text-white">
@@ -468,7 +572,7 @@ export default function TabTeam() {
                   type="button"
                   onClick={() => setModalHorarioOpen(false)}
                   disabled={guardandoHorario}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50 cursor-pointer"
                 >
                   Cancelar
                 </button>

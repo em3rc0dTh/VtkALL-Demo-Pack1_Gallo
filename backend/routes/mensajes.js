@@ -1,6 +1,7 @@
 import express from 'express';
 import Mensaje from '../models/Mensaje.js';
 import Cliente from '../models/Cliente.js';
+import Taller from '../models/Taller.js';
 import { protegerRuta } from '../middleware/auth.js';
 import { enviarMensajeWhatsApp } from '../services/twilio.js';
 
@@ -57,9 +58,23 @@ router.get('/conversaciones', protegerRuta, async (req, res) => {
 router.get('/:numero_telefono', protegerRuta, async (req, res) => {
   try {
     const { numero_telefono } = req.params;
+    const { limitWeeks, useConfig } = req.query;
     
-    // Obtener todos los mensajes
-    const mensajes = await Mensaje.find({ numero_telefono }).sort({ recibido_en: 1 });
+    let query = { numero_telefono };
+    if (limitWeeks) {
+      const weeksAgo = new Date();
+      weeksAgo.setDate(weeksAgo.getDate() - (parseInt(limitWeeks) * 7));
+      query.recibido_en = { $gte: weeksAgo };
+    } else if (useConfig === 'true') {
+      const tallerConfig = await Taller.findOne();
+      const dias = tallerConfig?.dias_historial_chat || 14;
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - dias);
+      query.recibido_en = { $gte: daysAgo };
+    }
+
+    // Obtener mensajes filtrados por fecha
+    const mensajes = await Mensaje.find(query).sort({ recibido_en: 1 });
     
     // Buscar cliente asociado
     const cliente = await Cliente.findOne({ numero_telefono });

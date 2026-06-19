@@ -79,7 +79,7 @@ export default function TabMensajes() {
   const cargarMensajes = async (nro, showLoading = false) => {
     if (showLoading) setLoadingChat(true);
     try {
-      const res = await api.getMensajes(nro);
+      const res = await api.getMensajes(nro, { useConfig: true });
       if (res) {
         setMensajes(res.mensajes || []);
         setActiveCliente(res.cliente);
@@ -235,7 +235,11 @@ export default function TabMensajes() {
                 <div>
                   <h4 className="text-xs font-bold text-white flex items-center gap-2">
                     {activeCliente?.nombre || 'Cliente Nuevo'}
-                    <span title="Contexto: El auto del cliente está en la planta" className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] flex items-center gap-1 cursor-default">🚗 En Taller</span>
+                    {activeCliente?.vehiculos?.length > 0 ? (
+                      <span title="Cliente con vehículo registrado" className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] flex items-center gap-1 cursor-default">🚗 Cliente</span>
+                    ) : (
+                      <span title="Prospecto / Lead" className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] flex items-center gap-1 cursor-default">🎯 Prospecto</span>
+                    )}
                   </h4>
                   <span className="text-[10px] text-gray-500 font-mono">{activeNro}</span>
                 </div>

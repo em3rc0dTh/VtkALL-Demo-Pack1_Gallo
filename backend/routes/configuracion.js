@@ -1,5 +1,6 @@
 import express from 'express';
 import Taller from '../models/Taller.js';
+import Producto from '../models/Producto.js';
 import { protegerRuta } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -28,12 +29,30 @@ router.put('/', protegerRuta, async (req, res) => {
       taller = new Taller();
     }
 
+    let realizarConversion = false;
+    let rate = 1;
+
+    if (datos.moneda && taller.moneda !== datos.moneda && datos.convertir_catalogo) {
+      try {
+        const response = await fetch(`https://open.er-api.com/v6/latest/${taller.moneda}`);
+        const data = await response.json();
+        if (data && data.rates && data.rates[datos.moneda]) {
+          rate = data.rates[datos.moneda];
+          realizarConversion = true;
+        }
+      } catch (e) {
+        console.error('Error al obtener tasa de cambio:', e);
+      }
+    }
+
     // Campos generales editables por todos (admin y soporte)
     if (datos.slogan !== undefined) taller.slogan = datos.slogan;
     if (datos.direccion !== undefined) taller.direccion = datos.direccion;
     if (datos.telefono !== undefined) taller.telefono = datos.telefono;
     if (datos.whatsapp !== undefined) taller.whatsapp = datos.whatsapp;
     if (datos.email !== undefined) taller.email = datos.email;
+    if (datos.moneda !== undefined) taller.moneda = datos.moneda;
+    if (datos.dias_historial_chat !== undefined) taller.dias_historial_chat = Number(datos.dias_historial_chat);
     if (datos.sobre_nosotros !== undefined) taller.sobre_nosotros = datos.sobre_nosotros;
     if (datos.anos_experiencia !== undefined) taller.anos_experiencia = datos.anos_experiencia;
     if (datos.clientes_atendidos !== undefined) taller.clientes_atendidos = datos.clientes_atendidos;
@@ -85,6 +104,26 @@ router.put('/', protegerRuta, async (req, res) => {
       if (datos.nombre_taller !== undefined) taller.nombre_taller = datos.nombre_taller;
       if (datos.webhook_url !== undefined) taller.webhook_url = datos.webhook_url;
       if (datos.url_fondo !== undefined) taller.url_fondo = datos.url_fondo;
+    }
+
+    await taller.save();
+
+    if (realizarConversion) {
+      if (taller.servicios && taller.servicios.length > 0) {
+        taller.servicios.forEach(s => {
+          if (typeof s.precio_base === 'number') {
+            s.precio_base = Math.round(s.precio_base * rate * 100) / 100;
+          }
+        });
+      }
+      
+      const productos = await Producto.find();
+      for (const p of productos) {
+        if (typeof p.precio === 'number') {
+          p.precio = Math.round(p.precio * rate * 100) / 100;
+          await p.save();
+        }
+      }
     }
 
     await taller.save();

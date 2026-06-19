@@ -8,6 +8,8 @@ const TallerSchema = new Schema({
   telefono:        { type: String, default: '955479450' },
   whatsapp:        { type: String, default: '51955479450' },  // número para el deep link de WhatsApp
   email:           { type: String, default: 'citas@turagua.thradex.com' },
+  moneda:          { type: String, default: 'PEN' },
+  dias_historial_chat: { type: Number, default: 14 },
   horarios: {
     lunes_viernes: { type: String, default: '10:00 - 19:00' },
     sabado:        { type: String, default: '10:00 - 16:00' },
