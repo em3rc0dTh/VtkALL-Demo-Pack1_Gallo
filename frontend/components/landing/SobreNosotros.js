@@ -1,77 +1,106 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Award, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Award, CheckCircle2, Users, Wrench } from 'lucide-react';
 
-export default function SobreNosotros({ taller = {} }) {
-  const caracteristicas = [
-    { titulo: 'Técnicos Certificados', desc: 'Profesionales altamente capacitados en mecánica general y electrónica automotriz.' },
-    { titulo: 'Garantía Escrita', desc: 'Todos nuestros trabajos cuentan con garantía de repuestos y mano de obra.' },
-    { titulo: 'Equipamiento de Fábrica', desc: 'Escáneres y herramientas de diagnóstico originales homologadas.' }
+export default function SobreNosotros({ taller = {}, conf = {} }) {
+  const caracteristicas = conf.caracteristicas || [
+    { icono: Wrench,       titulo: 'Mecánicos Certificados',    desc: 'Profesionales capacitados en mecánica general y electrónica automotriz.' },
+    { icono: CheckCircle2, titulo: 'Calidad de Repuestos',      desc: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
+    { icono: Users,        titulo: 'Mecánica Especializada',   desc: 'Brindamos atención personalizada y garantizada para cada vehículo.' },
   ];
 
   return (
-    <section id="nosotros" className="py-28 bg-[#070b13] relative border-b border-gray-900">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          
-          {/* Columna Izquierda: Imagen Decorativa */}
-          <motion.div 
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="relative h-[480px] rounded-3xl overflow-hidden border border-gray-800"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url('https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=800')` }}
-            />
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070b13] via-transparent to-transparent" />
-            
-            {/* Badge de Experiencia flotante */}
-            <div className="absolute bottom-6 left-6 p-6 rounded-2xl glass-panel border border-orange-500/30 flex items-center gap-4">
-              <Award className="w-10 h-10 text-orange-500" />
-              <div>
-                <h4 className="text-xl font-bold text-white">{taller.anos_experiencia || 12} Años</h4>
-                <p className="text-xs text-gray-400">Trayectoria Ininterrumpida</p>
+    <section id="nosotros" className="py-10 sm:py-16 md:py-20 lg:py-28 bg-[#F4F5FF] relative overflow-hidden">
+
+      {/* Ambient orb */}
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-cyan/8 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+
+          {/* Left: Image or Video */}
+          <div className="reveal-left relative h-[220px] sm:h-[320px] lg:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
+            {(() => {
+              const urlMedia = conf.imagenURL || "/images/sobre_nosotros.png";
+              const isVideo = /\.(mp4|webm|ogg)($|\?)/i.test(urlMedia) || urlMedia.includes('/videos/') || urlMedia.startsWith('data:video/');
+              return isVideo ? (
+                <video
+                  src={urlMedia}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={urlMedia}
+                  alt="Equipo del taller"
+                  className="w-full h-full object-cover"
+                />
+              );
+            })()}
+            {/* Overlay gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent" />
+
+            {/* Floating badge */}
+            <div className="absolute bottom-6 left-6 right-6">
+              <div className="glass-panel-dark rounded-2xl p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-white leading-tight">
+                    {conf.anosExperiencia || taller.anos_experiencia || 12}+ Años
+                  </h4>
+                  <p className="text-xs text-white/60 font-light">Trayectoria ininterrumpida</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-2xl font-black text-secondary">4.9</p>
+                  <p className="text-[10px] text-white/50">★★★★★ rating</p>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Columna Derecha: Texto e Información */}
-          <motion.div 
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <span className="text-xs font-bold tracking-widest text-orange-500 uppercase block mb-3">
-              ¿QUIÉNES SOMOS?
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-6">
-              Compromiso Con La Calidad De Tu Auto
+          {/* Right: Text */}
+          <div className="reveal-right">
+            <span className="section-label">{conf.tituloSeccion || 'SOBRE NOSOTROS'}</span>
+
+            <h2
+              className="text-2xl sm:text-4xl md:text-5xl font-black text-navy tracking-tight leading-tight mb-4 lg:mb-6"
+              style={{ fontFamily: "'Readex Pro', sans-serif" }}
+            >
+              {conf.tituloPrincipal || 'Compromiso con la'} {' '}
+              <span className="text-gradient">{conf.tituloGradiente || 'Calidad de Tu Auto'}</span>
             </h2>
-            <p className="text-gray-400 font-light leading-relaxed mb-8">
-              {taller.sobre_nosotros || 'En MecánicaPro contamos con más de 10 años de trayectoria brindando servicios mecánicos integrales de alta calidad. Contamos con tecnología de diagnóstico computarizado avanzada y un equipo de profesionales apasionados por el cuidado de tu automóvil.'}
+
+            <p className="text-[#54595F] font-light leading-relaxed mb-5 lg:mb-10 text-xs sm:text-sm">
+              {conf.sobreNosotros || taller.sobre_nosotros ||
+                'En Bate y Late contamos con trayectoria brindando postres de alta calidad. Disponemos de las mejores recetas, ingredientes de primera y un equipo de reposteros apasionados por endulzar tus momentos.'}
             </p>
 
-            {/* Listado de características */}
-            <div className="space-y-6">
-              {caracteristicas.map((item, idx) => (
-                <div key={item.titulo} className="flex gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <CheckCircle2 className="w-5 h-5 text-orange-500" />
+            {/* Feature list: 3-col grid on mobile (compact), stacked on lg) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 lg:gap-4 w-full">
+              {caracteristicas.map((item, idx) => {
+                const Icono = item.icono;
+                return (
+                  <div
+                    key={item.titulo}
+                    className={`reveal delay-${idx + 1} flex gap-3 p-3 lg:p-4 rounded-2xl bg-white border border-primary/8 card-lift`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                      {Icono && typeof Icono !== 'string' ? <Icono className="w-5 h-5 text-primary" /> : <span className="text-xl">{item.icono || '✨'}</span>}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-navy mb-0.5">{item.titulo}</h4>
+                      <p className="text-xs text-[#54595F] font-light leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-md font-semibold text-white mb-1">{item.titulo}</h4>
-                    <p className="text-sm text-gray-400 font-light">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

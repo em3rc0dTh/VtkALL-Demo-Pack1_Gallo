@@ -1,82 +1,49 @@
 import express from 'express';
-import Taller from '../models/Taller.js';
+import Servicio from '../models/Servicio.js';
+import Producto from '../models/Producto.js';
 import { protegerRuta } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/servicios (Público - Landing page)
+// GET /api/servicios
 router.get('/', async (req, res) => {
   try {
-    const taller = await Taller.findOne();
-    if (!taller) {
-      return res.json([]);
-    }
-    // Devolver solo los activos
-    const activos = taller.servicios.filter(s => s.activo);
-    res.json(activos);
+    const servicios = await Servicio.find({ activo: true }).populate('team_asignado');
+    // Para construir la vista agrupada con sus productos
+    const serviciosConProductos = await Promise.all(servicios.map(async (s) => {
+      const productos = await Producto.find({ servicio_padre: s._id, activo: true });
+      return {
+        ...s.toObject(),
+        productos
+      };
+    }));
+    res.json(serviciosConProductos);
   } catch (error) {
     console.error('Error al obtener servicios:', error);
     res.status(500).json({ error: 'Error al obtener servicios' });
   }
 });
 
-// POST /api/servicios (Protegido)
+// POST /api/servicios
 router.post('/', protegerRuta, async (req, res) => {
   try {
-    const { nombre, descripcion, precio_base, duracion_minutos, icono } = req.body;
-    
-    if (!nombre || !precio_base) {
-      return res.status(400).json({ error: 'Nombre y precio base son requeridos' });
+    const { nombre, descripcion, icono, team_asignado } = req.body;
+    if (!nombre) {
+      return res.status(400).json({ error: 'El nombre es requerido' });
     }
-
-    let taller = await Taller.findOne();
-    if (!taller) {
-      taller = new Taller({ servicios: [] });
-    }
-
-    taller.servicios.push({
-      nombre,
-      descripcion,
-      precio_base,
-      duracion_minutos: duracion_minutos || 60,
-      icono: icono || '🔧',
-      activo: true
-    });
-
-    await taller.save();
-    
-    const creado = taller.servicios[taller.servicios.length - 1];
-    res.status(201).json({ ok: true, servicio: creado });
+    const servicio = new Servicio({ nombre, descripcion, icono, team_asignado });
+    await servicio.save();
+    res.status(201).json({ ok: true, servicio: { ...servicio.toObject(), productos: [] } });
   } catch (error) {
     console.error('Error al crear servicio:', error);
     res.status(500).json({ error: 'Error al crear servicio' });
   }
 });
 
-// PUT /api/servicios/:id (Protegido)
+// PUT /api/servicios/:id
 router.put('/:id', protegerRuta, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { nombre, descripcion, precio_base, duracion_minutos, icono, activo } = req.body;
-
-    const taller = await Taller.findOne();
-    if (!taller) {
-      return res.status(404).json({ error: 'Taller no configurado' });
-    }
-
-    const servicio = taller.servicios.id(id);
-    if (!servicio) {
-      return res.status(404).json({ error: 'Servicio no encontrado' });
-    }
-
-    if (nombre !== undefined) servicio.nombre = nombre;
-    if (descripcion !== undefined) servicio.descripcion = descripcion;
-    if (precio_base !== undefined) servicio.precio_base = precio_base;
-    if (duracion_minutos !== undefined) servicio.duracion_minutos = duracion_minutos;
-    if (icono !== undefined) servicio.icono = icono;
-    if (activo !== undefined) servicio.activo = activo;
-
-    await taller.save();
+    const servicio = await Servicio.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ ok: true, servicio });
   } catch (error) {
     console.error('Error al actualizar servicio:', error);
@@ -84,24 +51,10 @@ router.put('/:id', protegerRuta, async (req, res) => {
   }
 });
 
-// DELETE /api/servicios/:id (Protegido - soft delete)
+// DELETE /api/servicios/:id
 router.delete('/:id', protegerRuta, async (req, res) => {
   try {
-    const { id } = req.params;
-    const taller = await Taller.findOne();
-    if (!taller) {
-      return res.status(404).json({ error: 'Taller no configurado' });
-    }
-
-    const servicio = taller.servicios.id(id);
-    if (!servicio) {
-      return res.status(404).json({ error: 'Servicio no encontrado' });
-    }
-
-    // Marcamos como inactivo en vez de eliminar para mantener referencias en citas
-    servicio.activo = false;
-    await taller.save();
-    
+    await Servicio.findByIdAndUpdate(req.params.id, { activo: false });
     res.json({ ok: true, mensaje: 'Servicio desactivado con éxito' });
   } catch (error) {
     console.error('Error al desactivar servicio:', error);

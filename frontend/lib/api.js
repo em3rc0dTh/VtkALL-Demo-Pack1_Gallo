@@ -28,7 +28,9 @@ const request = async (endpoint, options = {}) => {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.error || `Error del servidor (status: ${response.status})`;
+      const errorMsg = errorData.error 
+        ? (errorData.detalle ? `${errorData.error}: ${errorData.detalle}` : errorData.error)
+        : `Error del servidor (status: ${response.status})`;
       const error = new Error(errorMsg);
       error.status = response.status;
       throw error;
@@ -38,7 +40,11 @@ const request = async (endpoint, options = {}) => {
   } catch (error) {
     // Evitar inundar la consola con errores 401 (no autorizado) al verificar sesión o login
     if (error.status !== 401 || (endpoint !== '/auth/me' && endpoint !== '/auth/login')) {
-      console.error(`Error en API Request [${endpoint}]:`, error);
+      if (error.status === 400 || error.status === 409) {
+        console.warn(`Validation Warning [${endpoint}]:`, error.message);
+      } else {
+        console.error(`Error en API Request [${endpoint}]:`, error);
+      }
     }
     throw error;
   }
@@ -60,6 +66,11 @@ export const api = {
   crearCita: (data) => request('/citas', { method: 'POST', body: data }),
   actualizarCita: (id, data) => request(`/citas/${id}`, { method: 'PUT', body: data }),
   eliminarCita: (id) => request(`/citas/${id}`, { method: 'DELETE' }),
+  enviarFeedbackMaestro: (id, data) => request(`/citas/${id}/feedback-maestro`, { method: 'POST', body: data }),
+  
+  // Temporal Workflow
+  temporalStart: (data) => request('/temporal/start', { method: 'POST', body: data }),
+  temporalBakerQuote: (data) => request('/temporal/baker-quote', { method: 'POST', body: data }),
 
   // Clientes
   getClientes: (busqueda = '', pagina = 1, limite = 20) => {
@@ -74,27 +85,82 @@ export const api = {
 
   // Mensajes y chat
   getConversaciones: () => request('/mensajes/conversaciones'),
-  getMensajes: (numeroTelefono) => request(`/mensajes/${numeroTelefono}`),
+  getMensajes: (numeroTelefono, options = {}) => {
+    let url = `/mensajes/${numeroTelefono}`;
+    const params = new URLSearchParams();
+    if (options.limitWeeks) params.append('limitWeeks', options.limitWeeks);
+    if (options.useConfig) params.append('useConfig', 'true');
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return request(url);
+  },
   enviarMensajeManual: (numero_telefono, contenido) => request('/mensajes/enviar-manual', { method: 'POST', body: { numero_telefono, contenido } }),
   
   // Simulador de WhatsApp webhook
-  enviarMensajeSimulado: (numeroTelefono, contenido) => {
+  enviarMensajeSimulado: (numeroTelefono, contenido, adjuntos = []) => {
     return request('/webhook/whatsapp', {
       method: 'POST',
       body: {
         from: `whatsapp:${numeroTelefono}`,
-        body: contenido
+        body: contenido,
+        adjuntos: adjuntos
       }
     });
   },
+  getHistorialPublico: (telefono) => request(`/webhook/historial/${telefono}`),
+  getDisponibilidadPublica: (fecha) => request(`/webhook/disponibilidad?fecha=${fecha}`),
+  agendarCitaPublica: (data) => request('/webhook/agendar', { method: 'POST', body: data }),
 
-  // Servicios
+  // Servicios y Productos
   getServicios: () => request('/servicios'),
   crearServicio: (data) => request('/servicios', { method: 'POST', body: data }),
   actualizarServicio: (id, data) => request(`/servicios/${id}`, { method: 'PUT', body: data }),
   eliminarServicio: (id) => request(`/servicios/${id}`, { method: 'DELETE' }),
 
+  getProductos: () => request('/productos'),
+  crearProducto: (data) => request('/productos', { method: 'POST', body: data }),
+  actualizarProducto: (id, data) => request(`/productos/${id}`, { method: 'PUT', body: data }),
+  eliminarProducto: (id) => request(`/productos/${id}`, { method: 'DELETE' }),
+
+  // Teams y Trabajadores
+  getTeams: () => request('/teams'),
+  crearTeam: (data) => request('/teams', { method: 'POST', body: data }),
+  actualizarTeam: (id, data) => request(`/teams/${id}`, { method: 'PUT', body: data }),
+  eliminarTeam: (id) => request(`/teams/${id}`, { method: 'DELETE' }),
+
+  getTrabajadores: () => request('/trabajadores'),
+  crearTrabajador: (data) => request('/trabajadores', { method: 'POST', body: data }),
+  actualizarTrabajador: (id, data) => request(`/trabajadores/${id}`, { method: 'PUT', body: data }),
+  eliminarTrabajador: (id) => request(`/trabajadores/${id}`, { method: 'DELETE' }),
+
+  // Disponibilidad
+  getDisponibilidad: (entidadId) => request(`/disponibilidad/${entidadId}`),
+  guardarDisponibilidad: (data) => request('/disponibilidad', { method: 'POST', body: data }),
+
   // Configuración del taller
   getConfiguracion: () => request('/configuracion'),
   actualizarConfiguracion: (data) => request('/configuracion', { method: 'PUT', body: data }),
+
+  // Historial Clínico y Mantenimiento de Vehículos
+  agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
+  actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
+  mergeClientes: (id, targetClientId) => request(`/clientes/${id}/merge`, { method: 'POST', body: { targetClientId } }),
+  subirImagenGeneral: (formData) => {
+    // Para uploads grandes (videos), bypass proxy Next.js para evitar límite de size
+    const uploadUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? 'http://localhost:4000/api/upload/general'
+      : '/api/upload/general';
+
+    return fetch(uploadUrl, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al subir imagen');
+      }
+      return res.json();
+    });
+  },
 };

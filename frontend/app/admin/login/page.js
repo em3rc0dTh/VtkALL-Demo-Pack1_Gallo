@@ -52,14 +52,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b13] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-dark-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       {/* Background ambient blur */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-orange-600/10 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         {/* Brand Brand Logo */}
         <Link href="/" className="inline-flex items-center gap-2 group mb-6">
-          <div className="p-2 bg-orange-600/10 rounded-lg text-orange-500 border border-orange-500/20 group-hover:bg-orange-600/20 transition-all duration-300">
+          <div className="p-2 bg-primary/10 rounded-lg text-primary border border-primary/20 group-hover:bg-primary/20 transition-all duration-300">
             <Wrench className="w-6 h-6" />
           </div>
           <span className="text-2xl font-bold tracking-tight text-white">
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 {taller.nombre_taller.includes(' ') ? (
                   <>
                     {taller.nombre_taller.substring(0, taller.nombre_taller.indexOf(' '))}
-                    <span className="text-orange-500">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
+                    <span className="text-primary">{taller.nombre_taller.substring(taller.nombre_taller.indexOf(' '))}</span>
                   </>
                 ) : (
                   <>
@@ -78,7 +78,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                Mecánica<span className="text-orange-500">Pro</span>
+                Mecánica<span className="text-primary">Pro</span>
               </>
             )}
           </span>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@mecanicapro.com"
-                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/60 border border-gray-800 text-white placeholder-gray-650 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-xs outline-none transition-all duration-200"
+                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/60 border border-gray-800 text-white placeholder-gray-650 focus:border-primary focus:ring-1 focus:ring-primary text-xs outline-none transition-all duration-200"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/60 border border-gray-800 text-white placeholder-gray-650 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-xs outline-none transition-all duration-200"
+                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/60 border border-gray-800 text-white placeholder-gray-650 focus:border-primary focus:ring-1 focus:ring-primary text-xs outline-none transition-all duration-200"
                 />
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/10 cursor-pointer"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-btn-primary hover:shadow-btn-primary-hover cursor-pointer"
               >
                 {loading ? 'INGRESANDO...' : (
                   <>

@@ -1,0 +1,4 @@
+{
+  "url": "http://turagua-backend:4000/api/webhook/whatsapp",
+  "events": ["message.received", "*"]
+}

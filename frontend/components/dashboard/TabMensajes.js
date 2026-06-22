@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { api } from '../../lib/api.js';
 import LoadingSpinner from '../ui/LoadingSpinner.js';
 import { Search, Send, RefreshCw, MessageSquare, ShieldCheck, User } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function TabMensajes() {
   const [conversaciones, setConversaciones] = useState([]);
@@ -16,6 +17,7 @@ export default function TabMensajes() {
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [nombreAgente, setNombreAgente] = useState('Max');
+  const [filtroChat, setFiltroChat] = useState('Todos');
   
   const chatEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
@@ -122,7 +124,14 @@ export default function TabMensajes() {
       cargarConversaciones(false);
     } catch (err) {
       console.error('Error al enviar respuesta:', err);
-      alert('Error al enviar respuesta manual.');
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al enviar respuesta manual.',
+        icon: 'error',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     } finally {
       setEnviando(false);
     }
@@ -133,10 +142,10 @@ export default function TabMensajes() {
   }, [mensajes]);
 
   return (
-    <div className="h-[calc(100vh-210px)] min-h-[480px] flex rounded-3xl border border-gray-800 bg-[#0d1222]/40 overflow-hidden font-sans">
+    <div className="h-[calc(100vh-210px)] min-h-[480px] flex rounded-3xl border border-gray-800 bg-dark-panel/40 overflow-hidden font-sans">
       
       {/* Panel Izquierdo: Conversaciones */}
-      <div className="w-1/3 border-r border-gray-800 flex flex-col bg-[#0b0f19]/80">
+      <div className="w-1/3 border-r border-gray-800 flex flex-col bg-dark-aside/80">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950/20">
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-300">Chats WhatsApp</h3>
           <button 
@@ -154,8 +163,13 @@ export default function TabMensajes() {
             <input
               type="text"
               placeholder="Buscar por número..."
-              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full bg-gray-950 border border-gray-850 rounded-xl pl-9 pr-4 py-2 text-[11px] text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-primary transition-all"
             />
+          </div>
+          <div className="flex gap-2 mt-3 overflow-x-auto custom-scrollbar pb-1">
+            <button onClick={() => setFiltroChat('Todos')} className={`px-3 py-1.5 rounded-full text-[9px] font-bold whitespace-nowrap transition-colors ${filtroChat === 'Todos' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-gray-900 text-gray-400 border border-gray-800 hover:text-white'}`}>Todos</button>
+            <button onClick={() => setFiltroChat('Sin Leer')} className={`px-3 py-1.5 rounded-full text-[9px] font-bold whitespace-nowrap flex items-center gap-1.5 transition-colors ${filtroChat === 'Sin Leer' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-gray-900 text-gray-400 border border-gray-800 hover:text-white'}`}><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> Sin Leer</button>
+            <button onClick={() => setFiltroChat('Atención')} className={`px-3 py-1.5 rounded-full text-[9px] font-bold whitespace-nowrap transition-colors ${filtroChat === 'Atención' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-gray-900 text-gray-400 border border-gray-800 hover:text-white'}`}>Atención</button>
           </div>
         </div>
 
@@ -166,7 +180,10 @@ export default function TabMensajes() {
           ) : conversaciones.length === 0 ? (
             <div className="text-center py-10 text-[11px] text-gray-500">No hay conversaciones registradas.</div>
           ) : (
-            conversaciones.map((conv) => {
+            conversaciones.filter(c => {
+              if (filtroChat === 'Sin Leer') return c.no_leidos > 0;
+              return true; // Atención not implemented yet in backend
+            }).map((conv) => {
               const active = conv.numero_telefono === activeNro;
               const f = new Date(conv.recibido_en);
               return (
@@ -174,7 +191,7 @@ export default function TabMensajes() {
                   key={conv.numero_telefono}
                   onClick={() => handleSelectConv(conv.numero_telefono)}
                   className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                    active ? 'bg-orange-600/10 border-l-4 border-orange-500' : 'hover:bg-gray-900/20'
+                    active ? 'bg-primary/10 border-l-4 border-primary' : 'hover:bg-gray-900/20'
                   }`}
                 >
                   <div className="flex-1 min-w-0">
@@ -206,28 +223,35 @@ export default function TabMensajes() {
       </div>
 
       {/* Panel Derecho: Chat Activo */}
-      <div className="flex-1 flex flex-col bg-[#0b0f19]/30">
+      <div className="flex-1 flex flex-col bg-dark-aside/30">
         {activeNro ? (
           <>
             {/* Header del Chat */}
-            <div className="p-4 border-b border-gray-800 bg-[#0d1222]/80 flex justify-between items-center">
+            <div className="p-4 border-b border-gray-800 bg-dark-panel/80 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-600/10 border border-orange-500/20 flex items-center justify-center font-bold text-orange-500 text-sm">
+                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-sm">
                   {activeCliente?.nombre?.charAt(0) || 'C'}
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">
+                  <h4 className="text-xs font-bold text-white flex items-center gap-2">
                     {activeCliente?.nombre || 'Cliente Nuevo'}
+                    <span title="Contexto: El auto del cliente está en la planta" className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] flex items-center gap-1 cursor-default">{if is lead or just prospect say it. Not only sale "En Taller"}🚗 En Taller</span>
                   </h4>
                   <span className="text-[10px] text-gray-500 font-mono">{activeNro}</span>
                 </div>
               </div>
               
-              {activeCliente?.vehiculos?.length > 0 && (
-                <div className="text-[10px] bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-gray-400">
-                  Vehículo: <span className="text-white font-bold">{activeCliente.vehiculos[0].marca} {activeCliente.vehiculos[0].modelo}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {activeCliente?.vehiculos?.length > 0 && (
+                  <div className="text-[10px] bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-xl text-gray-400 hidden sm:block">
+                    Pedido: <span className="text-white font-bold">{activeCliente.vehiculos[0].marca} {activeCliente.vehiculos[0].modelo}</span>
+                  </div>
+                )}
+                <button title="Pausa el bot de IA para este cliente y permite enviar mensajes manuales" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 text-[10px] font-bold transition-all cursor-pointer">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                  TOMAR CONTROL MANUAL
+                </button>
+              </div>
             </div>
 
             {/* Historial de Mensajes */}
@@ -248,12 +272,12 @@ export default function TabMensajes() {
                         deCliente
                           ? 'bg-[#1e293b] text-gray-150 border border-gray-800/60 rounded-bl-none'
                           : deAdminManual
-                            ? 'bg-orange-650 text-white rounded-br-none shadow-md shadow-orange-950/20'
+                            ? 'bg-primary text-white rounded-br-none shadow-btn-primary'
                             : 'bg-gray-800 text-gray-300 rounded-br-none'
                       }`}>
                         {/* Nombre arriba si no es cliente */}
                         {!deCliente && (
-                          <span className="block text-[8px] font-bold text-orange-400 uppercase tracking-widest mb-1">
+                          <span className="block text-[8px] font-bold text-blue-400 uppercase tracking-widest mb-1">
                             {deAdminManual ? 'Tú (Manual)' : `${nombreAgente} (IA Agent)`}
                           </span>
                         )}
@@ -270,18 +294,18 @@ export default function TabMensajes() {
             </div>
 
             {/* Input Caja de Texto */}
-            <form onSubmit={handleEnviarRespuesta} className="p-4 border-t border-gray-850 bg-[#111827]/30 flex gap-3">
+            <form onSubmit={handleEnviarRespuesta} className="p-4 border-t border-gray-850 bg-dark-card/30 flex gap-3">
               <input
                 type="text"
                 value={nuevoMensaje}
                 onChange={(e) => setNuevoMensaje(e.target.value)}
                 placeholder="Escribe una respuesta manual..."
-                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-orange-500"
+                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-550 outline-none focus:ring-1 focus:ring-primary"
               />
               <button
                 type="submit"
                 disabled={enviando || !nuevoMensaje.trim()}
-                className="p-3 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                className="p-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
               >
                 <Send className="w-4 h-4 fill-current" />
               </button>
@@ -289,7 +313,7 @@ export default function TabMensajes() {
           </>
         ) : (
           <div className="flex-1 flex flex-col justify-center items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-orange-600/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+            <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <MessageSquare className="w-7 h-7" />
             </div>
             <div>

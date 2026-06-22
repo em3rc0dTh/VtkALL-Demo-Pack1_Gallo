@@ -4,7 +4,9 @@ import Taller from '../models/Taller.js';
 import Cliente from '../models/Cliente.js';
 import Cita from '../models/Cita.js';
 import Mensaje from '../models/Mensaje.js';
+import Producto from '../models/Producto.js';
 import { calcularSlots, formatearFechaEsp, formatearFechaHoraEsp } from '../utils/fechas.js';
+import { Connection, Client } from '@temporalio/client';
 
 // Inicializar cliente de Gemini si existe la API Key
 const apiKey = process.env.GEMINI_API_KEY || process.env.GCP_API_KEY;
@@ -60,21 +62,19 @@ const tools = [
     type: "function",
     function: {
       name: "agendar_cita",
-      description: "Crea una nueva cita en el sistema. Usar SOLO cuando el cliente haya confirmado explícitamente todos los datos: nombre, vehículo, servicio, fecha/hora, DNI y teléfono.",
+      description: "Crea una nueva cita en el sistema. Usar SOLO cuando el cliente haya confirmado explícitamente todos los datos: nombre, vehículo, servicio, fecha/hora, DNI (opcional) y teléfono.",
       parameters: {
         type: "object",
         properties: {
           numero_telefono:     { type: "string", description: "Número de teléfono real del cliente (ej: 999888777)" },
           nombre_cliente:      { type: "string", description: "Nombre completo del cliente" },
-          dni:                 { type: "string", description: "DNI (Documento Nacional de Identidad) del cliente (8 dígitos)" },
+          dni:                 { type: "string", description: "DNI (Documento Nacional de Identidad) del cliente (8 dígitos, opcional)" },
           servicio:            { type: "string", description: "Nombre del servicio a realizar" },
-          descripcion_trabajo: { type: "string", description: "Detalles del problema o lo que le pasa al auto" },
-          vehiculo_marca:      { type: "string", description: "Marca del vehículo (ej: Toyota)" },
-          vehiculo_modelo:     { type: "string", description: "Modelo del vehículo (ej: Yaris)" },
-          vehiculo_anio:       { type: "integer", description: "Año del vehículo (ej: 2018)" },
+          descripcion_trabajo: { type: "string", description: "Detalles del requerimiento general" },
+          detalles_extra:      { type: "string", description: "Objeto JSON en formato string con todos los detalles adicionales específicos solicitados por el comercio (ej. temática, porciones, sabor, talla, modelo, etc.)" },
           fecha_cita:          { type: "string", description: "Fecha y hora en formato ISO 8601 (ej: 2026-05-20T10:00:00)" }
         },
-        required: ["numero_telefono", "nombre_cliente", "dni", "servicio", "fecha_cita"]
+        required: ["numero_telefono", "nombre_cliente", "servicio", "fecha_cita"]
       }
     }
   },
@@ -98,6 +98,20 @@ const tools = [
       name: "obtener_servicios",
       description: "Devuelve la lista completa de servicios del taller con descripción, duración y precio. Usar cuando el cliente pregunta qué servicios ofrecen o cuánto cuesta un servicio específico.",
       parameters: { type: "object", properties: {}, required: [] }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "confirmar_cita",
+      description: "Confirma la asistencia del cliente a una cita pendiente de confirmación. Usar cuando el cliente confirme explícitamente (ej: 'Sí, confirmo', 'Allí estaré') a raíz de un recordatorio o pregunta.",
+      parameters: {
+        type: "object",
+        properties: {
+          id_cita: { type: "string", description: "ID de MongoDB de la cita a confirmar" }
+        },
+        required: ["id_cita"]
+      }
     }
   }
 ];
@@ -149,11 +163,12 @@ export const ejecutarTool = async (nombre, args) => {
           nombre_cliente,
           dni,
           servicio,
+          producto_id,
           descripcion_trabajo,
-          vehiculo_marca,
-          vehiculo_modelo,
-          vehiculo_anio,
+          detalles_extra,
           fecha_cita,
+          tipo_cita,
+          imagenes,
           _session_telefono
         } = args;
 
@@ -189,22 +204,18 @@ export const ejecutarTool = async (nombre, args) => {
           if (nombre_cliente && !cliente.nombre) cliente.nombre = nombre_cliente;
         }
         
-        // Agregar vehículo si no existe en su perfil
-        if (vehiculo_marca) {
-          const yaExiste = cliente.vehiculos.some(v => 
-            v.marca?.toLowerCase() === vehiculo_marca.toLowerCase() &&
-            v.modelo?.toLowerCase() === vehiculo_modelo?.toLowerCase()
-          );
-          if (!yaExiste) {
-            cliente.vehiculos.push({
-              marca: vehiculo_marca,
-              modelo: vehiculo_modelo,
-              anio: vehiculo_anio,
-              patente: ''
-            });
+        // Parsear detalles extra si es posible
+        let parsedDetalles = {};
+        if (detalles_extra) {
+          try {
+            parsedDetalles = JSON.parse(detalles_extra);
+          } catch (e) {
+            parsedDetalles = { info_adicional: detalles_extra };
           }
         }
-        
+
+        // Actualizar detalles_extra del cliente
+        cliente.detalles_extra = { ...cliente.detalles_extra, ...parsedDetalles };
         cliente.total_citas += 1;
         await cliente.save();
 
@@ -215,30 +226,68 @@ export const ejecutarTool = async (nombre, args) => {
           nombre_cliente,
           servicio,
           descripcion_trabajo: descripcion_trabajo || '',
-          vehiculo: {
-            marca: vehiculo_marca || '',
-            modelo: vehiculo_modelo || '',
-            anio: vehiculo_anio || null,
-            patente: ''
-          },
+          detalles_reserva: parsedDetalles,
           fecha_cita: fechaCitaDate,
-          estado: 'confirmada', // Confirmada por defecto
+          estado: 'pendiente', // Pendiente de validación
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
-          precio_estimado: 0
+          precio_estimado: 0,
+          tipo_cita: tipo_cita || 'Evaluación Presencial',
+          imagenes: imagenes || []
         });
 
-        // Buscar precio base del servicio en el taller
-        const taller = await Taller.findOne();
-        if (taller) {
-          const servInfo = taller.servicios.find(s => s.nombre.toLowerCase().includes(servicio.toLowerCase()));
-          if (servInfo) {
-            nuevaCita.precio_estimado = servInfo.precio_base;
-            nuevaCita.duracion_estimada_minutos = servInfo.duracion_minutos;
+        // Buscar precio base del servicio o producto
+        if (producto_id) {
+          try {
+            const prod = await Producto.findById(producto_id);
+            if (prod) {
+              nuevaCita.producto_id = prod._id;
+              nuevaCita.precio_estimado = prod.precio;
+              nuevaCita.duracion_estimada_minutos = prod.duracion_minutos || 60;
+            }
+          } catch (err) {
+            console.error('Error al obtener producto por ID:', err);
+          }
+        }
+
+        if (!nuevaCita.precio_estimado) {
+          const taller = await Taller.findOne();
+          if (taller) {
+            const servInfo = taller.servicios.find(s => s.nombre.toLowerCase().includes(servicio.toLowerCase()));
+            if (servInfo) {
+              nuevaCita.precio_estimado = servInfo.precio_base;
+              nuevaCita.duracion_estimada_minutos = servInfo.duracion_minutos;
+            }
           }
         }
 
         await nuevaCita.save();
         
+        // Iniciar Workflow Temporal
+        try {
+          const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS || 'localhost:7233' });
+          const client = new Client({ connection });
+          
+          const descripcionParaPastelero = [
+            `Servicio: ${servicio}`,
+            `Detalles: ${descripcion_trabajo}`,
+            `Requerimientos Extra: ${JSON.stringify(parsedDetalles)}`
+          ].join('\n');
+
+          await client.workflow.start('pastryOrderWorkflow', {
+            taskQueue: 'pasteleria-pedidos',
+            workflowId: `pedido-${nuevaCita._id}`,
+            args: [{
+              pedidoId: nuevaCita._id.toString(),
+              numeroWhatsApp: numero_telefono,
+              clienteNombre: nombre_cliente,
+              descripcionInicial: descripcionParaPastelero
+            }]
+          });
+          console.log(`✅ [Temporal] Workflow pastryOrderWorkflow iniciado para cita ${nuevaCita._id}`);
+        } catch (temporalErr) {
+          console.error('❌ Error al iniciar Workflow Temporal desde gemini.js:', temporalErr);
+        }
+
         return {
           ok: true,
           mensaje: 'Cita agendada con éxito',
@@ -269,6 +318,18 @@ export const ejecutarTool = async (nombre, args) => {
         if (!taller) return [];
         return taller.servicios.filter(s => s.activo);
       }
+
+      case 'confirmar_cita': {
+        const { id_cita } = args;
+        const cita = await Cita.findById(id_cita);
+        if (!cita) {
+          return { error: 'No se encontró la cita especificada' };
+        }
+        cita.estado = 'confirmada';
+        cita.estado_confirmacion = 'confirmada_cliente';
+        await cita.save();
+        return { ok: true, mensaje: 'Cita confirmada por el cliente con éxito', id_cita };
+      }
       
       default:
         return { error: 'Herramienta no implementada' };
@@ -298,14 +359,48 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
   }
 
   // 2. OBTENER SERVICIOS
-  if (msg.includes('servicio') || msg.includes('precio') || msg.includes('cuesta') || msg.includes('cuanto') || msg.includes('cuánto') || msg.includes('hacen')) {
+  const esSolicitudReserva = msg.includes('agendar') || msg.includes('reservar') || msg.includes('cita') || msg.includes('turno') || msg.includes('solicito') || msg.includes('interesa') || msg.includes('me interesa');
+  if (!esSolicitudReserva && (msg.includes('servicio') || msg.includes('precio') || msg.includes('cuesta') || msg.includes('cuanto') || msg.includes('cuánto') || msg.includes('hacen'))) {
     const servicios = await ejecutarTool('obtener_servicios');
     if (!servicios.length) return `Por el momento no tenemos servicios cargados en el sistema.`;
-    let res = `🔧 Nuestros Servicios Disponibles:\n\n`;
+    
+    // Buscar si el mensaje pregunta por un servicio específico
+    let servicioEspecifico = null;
+    for (const s of servicios) {
+      if (msg.includes(s.nombre.toLowerCase())) {
+        servicioEspecifico = s;
+        break;
+      }
+    }
+    
+    if (servicioEspecifico) {
+      let subserviciosMsg = '';
+      if (servicioEspecifico.productos && servicioEspecifico.productos.length > 0) {
+        const prodsList = servicioEspecifico.productos.map(p => `• **${p.nombre}**`).join('\n');
+        subserviciosMsg = `Para esto, contamos con las siguientes opciones en nuestro catálogo:\n${prodsList}\n\n`;
+      }
+      
+      // Preguntas diagnósticas interactivas según el servicio
+      let preguntaDiag = '¿Qué inconveniente presenta tu auto actualmente?';
+      const nameLow = servicioEspecifico.nombre.toLowerCase();
+      if (nameLow.includes('aceite') || nameLow.includes('preventiv') || nameLow.includes('mantenimiento')) {
+        preguntaDiag = '¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último mantenimiento?';
+      } else if (nameLow.includes('freno')) {
+        preguntaDiag = '¿Sientes algún ruido, vibración o chillido al frenar?';
+      } else if (nameLow.includes('planchado') || nameLow.includes('pintura')) {
+        preguntaDiag = '¿Tu auto necesita una reparación de pintura completa o es un toque más localizado por un golpe leve?';
+      } else if (nameLow.includes('detail') || nameLow.includes('cerámic')) {
+        preguntaDiag = '¿Buscas una corrección de pintura con brillo de exhibición o un lavado de salón completo?';
+      }
+
+      return `🔧 ¡Sí! Ofrecemos el servicio de **${servicioEspecifico.nombre}** ${servicioEspecifico.icono || '🔧'}. Es ideal para mantener tu vehículo en perfectas condiciones.\n\n${subserviciosMsg}${preguntaDiag}\n\n📌 Si lo deseas, puedes ver los precios detallados haciendo clic sobre su tarjeta en la sección de [Nuestras Especialidades](#servicios). ¡Luego vuelve aquí al chat para continuar!`;
+    }
+    
+    let res = `🔧 En **${taller.nombre_taller || 'nuestro taller'}** ofrecemos una gran variedad de especialidades para tu vehículo. Te destaco las principales:\n\n`;
     servicios.forEach(s => {
-      res += `${s.icono} ${s.nombre} - Precio base: S/. ${s.precio_base}\n${s.descripcion || ''} (Duración: ${s.duracion_minutos} min)\n\n`;
+      res += `${s.icono || '🔧'} **${s.nombre}**\n`;
     });
-    res += `¿Te gustaría reservar para alguno de estos? Dime qué día prefieres.`;
+    res += `\n📌 Te invito a deslizarte por la sección de [Nuestras Especialidades](#servicios) en la pantalla y **hacer clic en cualquiera de ellas** para ver el detalle completo de opciones, duraciones y precios base. ¡Una vez que los revises, regresa aquí al chat para ayudarte a agendar tu cita! 🚗`;
     return res;
   }
 
@@ -452,6 +547,13 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
     dni = dniMatch[0];
   }
 
+  // Extraer placa (patente) de forma acumulada
+  let patente = null;
+  const patenteMatch = textoAcumulado.match(/\b([a-zA-Z0-9]{3}-[a-zA-Z0-9]{3})\b/) || textoAcumulado.match(/\b([a-zA-Z0-9]{6})\b/);
+  if (patenteMatch) {
+    patente = patenteMatch[0].trim().toUpperCase();
+  }
+
   // Extraer teléfono real de 9 o más dígitos de forma acumulada si es sesión web
   let realPhone = null;
   if (numero_telefono.startsWith('web_')) {
@@ -505,19 +607,35 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
   const preguntoDiagnosticoGeneral = textoAsistenteAcumulado.includes('qué tipo de falla o mantenimiento');
 
   const preguntoDiagnostico = preguntoDiagnosticoAceite || preguntoDiagnosticoFrenos || preguntoDiagnosticoAlineacion || preguntoDiagnosticoGeneral;
-  const ofrecioAgendar = textoAsistenteAcumulado.includes('desea agendar una cita') || textoAsistenteAcumulado.includes('deseas agendar una cita');
+  const ofrecioAgendar = textoAsistenteAcumulado.includes('desea reservar una cita') || textoAsistenteAcumulado.includes('deseas reservar una cita') || textoAsistenteAcumulado.includes('desea agendar una cita') || textoAsistenteAcumulado.includes('deseas agendar una cita');
 
   const acabaDeResponderDiagnostico = preguntoDiagnostico && !ofrecioAgendar && !tieneTodos;
 
   if (acabaDeResponderDiagnostico) {
-    return `Entendido. ¿Deseas agendar una cita para realizar el servicio en el taller?`;
+    return `Entendido. ¿Deseas reservar una cita para realizar el servicio en el taller?`;
   }
 
   // 4c. FLUJO DE OBTENCIÓN DE DATOS Y CONFIRMACIÓN
-  const ofrecimosAgendar = ultimoMensajeAsistente.includes('desea agendar una cita') || ultimoMensajeAsistente.includes('deseas agendar una cita');
+  const ofrecimosAgendar = ultimoMensajeAsistente.includes('desea reservar una cita') || ultimoMensajeAsistente.includes('desea agendar una cita') || ultimoMensajeAsistente.includes('deseas agendar una cita');
   const aceptoAgendar = ofrecimosAgendar && (msg.includes('si') || msg.includes('sí') || msg.includes('deseo') || msg.includes('quiero') || msg.includes('dale') || msg.includes('ok') || msg.includes('aceptar'));
 
-  const flujoReservaActivo = aceptoAgendar || quiereTurno || (fechaStr && horaStr) || tieneTodos;
+  const ofrecimosCalendario = ultimoMensajeAsistente.includes('abrirte un calendario') || ultimoMensajeAsistente.includes('mostrarte las citas o las horas disponibles');
+  const aceptoCalendario = ofrecimosCalendario && (msg.includes('si') || msg.includes('sí') || msg.includes('deseo') || msg.includes('quiero') || msg.includes('dale') || msg.includes('ok') || msg.includes('aceptar') || msg.includes('abrir') || msg.includes('permito'));
+  const rechazoCalendario = ofrecimosCalendario && (msg.includes('no') || msg.includes('nunca') || msg.includes('prefiero escribir') || msg.includes('formato') || msg.includes('escribiendo'));
+
+  if (aceptoAgendar) {
+    return `¿Me permites abrirte un calendario para mostrarte las citas o las horas disponibles que tenga?`;
+  }
+
+  if (aceptoCalendario) {
+    return `¡Excelente! Te abro el calendario para que elijas tu turno: [ABRIR_CALENDARIO]`;
+  }
+
+  if (rechazoCalendario) {
+    return `De acuerdo. Por favor, introduce la fecha en el siguiente formato: AAAA-MM-DD (ej: 2026-05-25) y la hora deseada (ej: 11:00).`;
+  }
+
+  const flujoReservaActivo = quiereTurno || (fechaStr && horaStr) || tieneTodos || ultimoMensajeAsistente.includes('introduce la fecha en el siguiente formato') || ultimoMensajeAsistente.includes('datos faltantes');
 
   if (flujoReservaActivo) {
     if (!nombreCliente) {
@@ -533,7 +651,7 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
       }
     }
 
-    const tieneTodosActualizado = nombreCliente && servicioElegido && fechaStr && horaStr && dni && realPhone;
+    const tieneTodosActualizado = nombreCliente && servicioElegido && fechaStr && horaStr && patente && realPhone;
 
     if (tieneTodosActualizado) {
       // Agendar directamente
@@ -543,11 +661,12 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
       const res = await ejecutarTool('agendar_cita', {
         numero_telefono: realPhone,
         nombre_cliente: nombreCliente,
-        dni: dni,
+        dni: dni || '',
         servicio: servicioElegido,
         descripcion_trabajo: 'Agendado automáticamente vía chat simulado',
         vehiculo_marca: autoMod,
         vehiculo_modelo: 'Detalle',
+        vehiculo_patente: patente,
         vehiculo_anio: 2018,
         fecha_cita: ISOFecha,
         _session_telefono: numero_telefono
@@ -557,13 +676,13 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
         return `¡Upps! No pude agendar la cita. ${res.error}. ¿Elegimos otro horario? Puedes consultar los horarios libres.`;
       }
 
-      return `¡Genial ${nombreCliente}! Confirmé tu cita de ${servicioElegido} para el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (DNI: ${dni}, Teléfono: ${realPhone}). El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te esperamos! 🚗🔧`;
+      return `¡Genial ${nombreCliente}! He registrado tu solicitud de cita para ${servicioElegido} el día ${res.cita.fecha_formateada} para tu auto ${autoMod} (${patente ? 'Placa: ' + patente : ''}, Teléfono: ${realPhone}). Queda pendiente de confirmación por el administrador del taller. El precio estimado es S/. ${res.cita.precio_estimado}. ¡Te avisaremos pronto! 🚗🔧`;
     }
 
     // Si falta información, guiar de forma conversacional
     let faltantes = [];
     if (!nombreCliente) faltantes.push('tu nombre completo (ej: "Me llamo Juan Perez")');
-    if (!dni) faltantes.push('tu DNI (8 dígitos, ej: "mi DNI es 12345678")');
+    if (!patente) faltantes.push('la placa o patente de tu vehículo (ej: "mi placa es ABC-123")');
     if (numero_telefono.startsWith('web_') && !realPhone) {
       faltantes.push('tu número de teléfono celular real (9 dígitos, ej: "mi celular es 999888777")');
     }
@@ -587,8 +706,9 @@ const agenteSimulado = async (mensaje_usuario, numero_telefono) => {
 
     return `Para agendar tu cita de ${servicioElegido || 'servicio'}, por favor facilítame los siguientes datos faltantes:
 ${faltantes.map(f => `- ${f}`).join('\n')}${disponibilidadTexto}
+Pacientes sin DNI pueden dejar este campo vacío.
 
-Ejemplo: "Soy Juan Perez, DNI 12345678, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
+Ejemplo: "Soy Juan Perez, mi placa es ABC-123, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
   }
 
   // 5. RESPUESTA DE BIENVENIDA O SALUDO DEFAULT
@@ -599,8 +719,109 @@ Ejemplo: "Soy Juan Perez, DNI 12345678, celular 999888777, quiero un Cambio de A
     .replace(/Max/g, nombreAgente);
 };
 
+// LISTA DE MODELOS GEMINI DISPONIBLES CON CUOTA ACTIVA
+const MODELOS_FALLBACK = [
+  'gemini-2.5-flash',
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-2.5-flash-lite'
+];
+
+/**
+ * Realiza una llamada a chat.completions.create con reintentos automáticos
+ * usando una lista de modelos alternativos en caso de rate limits u otros errores.
+ */
+const llamarCompletionsConFallback = async (openaiClient, params) => {
+  let ultimoError = null;
+  for (const modelo of MODELOS_FALLBACK) {
+    try {
+      console.log(`🤖 [Gemini API] Intentando llamada con modelo: ${modelo}...`);
+      const respuesta = await openaiClient.chat.completions.create({
+        ...params,
+        model: modelo
+      });
+      console.log(`✅ [Gemini API] Éxito en llamada utilizando modelo: ${modelo}`);
+      return respuesta;
+    } catch (err) {
+      ultimoError = err;
+      console.warn(`⚠️ [Gemini API] Error al llamar con modelo ${modelo}: ${err.message || err}. Probando el siguiente...`);
+    }
+  }
+  throw ultimoError || new Error("Todos los modelos fallaron en llamarCompletionsConFallback");
+};
+
+// FALLBACK A OLLAMA (Capa 2 de Seguridad)
+const llamarOllamaFallback = async (systemPrompt, historial, mensajeUsuario) => {
+  try {
+    console.log("🤖 [Ollama Fallback] Intentando contactar al contenedor Ollama local...");
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...historial.map(m => ({ 
+        role: m.role, 
+        content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
+      })),
+      { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
+    ];
+
+    const ollamaUrl = process.env.OLLAMA_URL || "http://172.17.0.1:11434";
+    const response = await fetch(`${ollamaUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "qwen2.5:0.5b",
+        messages: messages,
+        stream: false
+      })
+    });
+
+    if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+    const data = await response.json();
+    console.log("✅ [Ollama Fallback] Respuesta generada con éxito");
+    return data.message.content;
+  } catch (error) {
+    console.warn("⚠️ [Ollama Fallback] Falló:", error.message);
+    throw error;
+  }
+};
+
 // CORE AGENT PROCESSOR
-export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
+export const procesarMensajeIA = async (numero_telefono, mensaje_usuario, adjuntos_nuevos = []) => {
+  const msgClean = mensaje_usuario.toLowerCase().trim();
+  const esConfirmacion = ['sí', 'si', 'confirmar', 'confirmo', 'correcto', 'ok', 'dale', 'afirmativo'].includes(msgClean) || msgClean === 'si' || msgClean === 'sí' || msgClean.startsWith('si ') || msgClean.startsWith('sí ') || msgClean.includes('confirmar') || msgClean.includes('confirmada') || msgClean.includes('confirmado');
+  const esCancelacion = ['no', 'cancelar', 'cancelo', 'rechazar', 'no iré', 'no ire', 'negativo'].includes(msgClean) || msgClean === 'no' || msgClean.startsWith('no ') || msgClean.includes('cancelar') || msgClean.includes('cancela') || msgClean.includes('cancelo');
+
+  if (esConfirmacion || esCancelacion) {
+    const numClean = numero_telefono.trim().replace(/[^0-9]/g, '');
+    let numPeruano = numClean;
+    if (numClean.length === 11 && numClean.startsWith('51')) {
+      numPeruano = numClean.substring(2);
+    }
+
+    // Buscar si hay una cita activa que tenga recordatorio enviado y confirmación pendiente
+    const citaRecordatorio = await Cita.findOne({
+      numero_telefono: { $in: [numero_telefono.trim(), numClean, numPeruano, '51' + numPeruano] },
+      recordatorio_enviado: true,
+      estado_confirmacion: 'pendiente',
+      estado: { $in: ['confirmada', 'pendiente_confirmacion'] }
+    }).sort({ fecha_cita: 1 });
+
+    if (citaRecordatorio) {
+      if (esConfirmacion) {
+        citaRecordatorio.estado_confirmacion = 'confirmada_cliente';
+        if (citaRecordatorio.estado === 'pendiente_confirmacion') {
+          citaRecordatorio.estado = 'confirmada';
+        }
+        await citaRecordatorio.save();
+        return `¡Muchas gracias! He revalidado tu cita para ${citaRecordatorio.servicio} el día ${formatearFechaHoraEsp(citaRecordatorio.fecha_cita)}. ¡Te esperamos en el taller! 🚗🔧`;
+      } else {
+        citaRecordatorio.estado = 'cancelada';
+        citaRecordatorio.estado_confirmacion = 'cancelada_cliente';
+        await citaRecordatorio.save();
+        return `Entendido. He cancelado tu cita para ${citaRecordatorio.servicio} el día ${formatearFechaHoraEsp(citaRecordatorio.fecha_cita)} y liberado el horario para otros clientes. Si deseas agendar en otro momento, no dudes en escribirme. 🔧`;
+      }
+    }
+  }
+
   const taller = await Taller.findOne();
   const nombreTaller = taller?.nombre_taller || 'MecánicaPro';
   const nombreAgente = taller?.config_agente?.nombre_agente || 'Max';
@@ -625,43 +846,67 @@ export const procesarMensajeIA = async (numero_telefono, mensaje_usuario) => {
     return await agenteSimulado(mensaje_usuario, numero_telefono);
   }
 
-  const systemPrompt = `Eres ${nombreAgente}, el asistente virtual de ${nombreTaller}. Eres amable, eficiente y conoces el mundo automotriz.
+  const camposRequeridosStr = (taller && taller.campos_dinamicos_reserva) 
+    ? taller.campos_dinamicos_reserva.join(', ') 
+    : 'los datos necesarios';
+
+  const fechaActual = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const systemPrompt = `Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
+HOY ES: ${fechaActual} (Hora de Perú). Úsalo como referencia estricta para agendar citas.
 
 TU ROL ES:
-- Responder preguntas sobre el taller, servicios, horarios y ubicación.
-- Ayudar a los clientes a agendar, consultar y cancelar citas.
+ - Responder preguntas sobre el taller, servicios, horarios y ubicación.
+- Ayudar a los clientes a agendar, consultar, confirmar y cancelar citas.
 - Ser cálido, conciso y profesional.
 - Usar español latinoamericano (Perú). Evita hablar con modismos o acentos argentinos (no uses voseo como "decime", "querés", "preferís", "escribime"). Usa formas como "dime", "quieres", "prefieres", "escríbeme".
 - Usar la moneda oficial de Perú, que es el Sol (S/.).
 - Usar emojis moderadamente 🔧.
+- REGLA DE EVITAR CHATS LARGOS Y FOMENTAR LA INTERACCIÓN: Para mantener la conversación fluida y evitar mensajes ineficientemente largos en el chat, NUNCA listes todos los servicios, descripciones y precios a la vez.
+  - Si te preguntan de forma general por el catálogo, precios o qué servicios ofrecen, menciona como máximo 3 especialidades y pídele al usuario dirigirse a la sección en pantalla usando el enlace Markdown: [Nuestras Especialidades](#servicios). Explícale que al hacer clic en cualquiera de las tarjetas de especialidad, se abrirá un modal interactivo con el detalle completo de sub-servicios y precios.
+  - Si te preguntan por un servicio específico (ej. planchado y pintura, detailing, cambio de aceite, etc.) de manera general (es decir, sin indicar intención de agendar), responde de manera muy natural y conversacional: describe brevemente el servicio con empatía, menciona los productos/sub-servicios específicos que incluye (ej. para planchado y pintura, menciona Planchado Básico y Planchado Especial) y plantéale de inmediato una pregunta de diagnóstico interactiva y empática. Invítalo también a hacer clic en su tarjeta dentro de [Nuestras Especialidades](#servicios) para ver todos los precios y opciones.
+  - SIEMPRE que indiques dirigirse a la sección en pantalla para consultas generales, recuérdale explícitamente al cliente: "Una vez que revises la información en la pantalla, recuerda volver a este chat para continuar con tu reserva o hacerme más preguntas."
+  - REGLA DE RESERVAS DIRECTAS (SIN REDUNDANCIAS): Si el cliente ya viene con la intención directa de agendar o ya seleccionó un servicio/producto específico (por ejemplo, si su mensaje dice "Hola, me interesa agendar una cita para..." o menciona un paquete de reserva como "Afinamiento Menor"), él ya conoce la información de precios y detalles. NUNCA le digas que puede ver los detalles en la sección de especialidades ni le envíes el link '#servicios'. Simplemente valida su elección con entusiasmo (ej: "¡Qué excelente elección! Es fantástico que te preocupes por el mantenimiento preventivo de tu auto..."), hazle directamente la pregunta diagnóstica de seguimiento si aplica (ej: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último afinamiento?"), e inicia directamente el flujo para recopilar sus datos o guiarlo a abrir el calendario para concretar la reserva.
 
 DIÁLOGO DE DIAGNÓSTICO Y CONVERSACIÓN:
 - Entabla una conversación corta e interactiva cuando el cliente mencione un problema o mantenimiento.
 - Por ejemplo, si te dicen "necesito cambio de aceite" o "revisar frenos", haz una pregunta corta de seguimiento útil antes de agendar, como: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último cambio de aceite?" o "¿Sientes algún ruido o vibración al frenar?".
-- Si el cliente no sabe qué responder o decides concluir las preguntas de diagnóstico, ofrece directamente agendar la cita diciendo algo como: "¿Deseas agendar una cita para revisarlo en el taller?".
+- Si el cliente no sabe qué responder o decides concluir las preguntas de diagnóstico, debes preguntarle: "¿Deseas reservar una cita para realizar el servicio en el taller?".
+
+FLUJO DE CALENDARIO INTERACTIVO (REGLA CRÍTICA):
+- Cuando ofrezcas agendar/reservar una cita y el cliente te responda de manera afirmativa ("sí", "dale", "me gustaría", "quiero", etc.), debes preguntarle exactamente:
+  "¿Me permites abrirte un calendario para mostrarte las citas o las horas disponibles que tenga?"
+- Si el cliente responde afirmativamente a esta pregunta ("sí", "por favor", "dale", etc.), debes responder con un mensaje amigable que termine incluyendo EXACTAMENTE la etiqueta "[ABRIR_CALENDARIO]" al final del texto. Por ejemplo: "¡Excelente! Te abro el calendario para que elijas tu turno: [ABRIR_CALENDARIO]" o "Perfecto, aquí tienes el calendario para elegir: [ABRIR_CALENDARIO]".
+- Si el cliente responde que no o prefiere no usar el calendario ("no", "prefiero escribir", "no abras nada", etc.), debes decirle amablemente: "De acuerdo. Por favor, introduce la fecha en el siguiente formato: AAAA-MM-DD (ej: 2026-05-25) y la hora deseada (ej: 11:00)." y continuar con la recopilación manual de datos por chat.
 
 DATOS PARA AGENDAR UNA CITA:
 - Para confirmar y agendar la cita, necesitas obligatoriamente los siguientes datos mínimos:
   1. Nombre completo del cliente
-  2. DNI (Documento Nacional de Identidad, 8 dígitos) -> ¡MUY IMPORTANTE!
+  2. Placa o patente del vehículo (¡MUY IMPORTANTE!)
   3. Número de teléfono real (para podernos comunicar con ellos)
   4. Marca, modelo y año del vehículo
   5. Fecha y hora preferida (siempre valida disponibilidad antes con 'consultar_disponibilidad')
   6. Servicio o motivo de la cita
+  * Nota: El DNI (Documento Nacional de Identidad) es opcional. Si el cliente lo brinda, puedes guardarlo, pero no lo exijas de forma obligatoria para agendar.
 
 DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 - El identificador actual de la sesión del cliente es: ${numero_telefono}.
-- Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real y su DNI para completar la reserva.
-- Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro, además del DNI y los otros datos.
+- Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real para completar la reserva (el DNI es opcional).
+- Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro.
 
 REGLAS IMPORTANTES:
 - Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).
-- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y el DNI).
+- Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y la placa/patente).
+- Al agendar la cita con 'agendar_cita', aclara al cliente que su cita queda registrada como **pendiente de confirmación** y que el administrador la validará pronto.
 - Nunca inventes precios, fechas ni datos que no tengas.
 - Si el cliente pregunta algo que no puedes resolver, ofrece: "¿Quieres que te contacte alguien de nuestro equipo directamente?"
 - Si el cliente está enojado: reconoce el inconveniente, sé empático y ofrece una solución concreta.
 - Si el cliente cancela, usa la tool 'cancelar_cita' con el id correspondiente.
-- Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.`;
+- Si el cliente confirma su asistencia (a raíz de un recordatorio o pregunta), usa la tool 'confirmar_cita' con el id correspondiente.
+- Si te piden horarios ocupados o disponibles para un día, usa 'consultar_disponibilidad'.
+
+REGLAS PERSONALIZADAS DEL TALLER:
+${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? taller.config_agente.instrucciones_base : 'Actúa según tu mejor criterio profesional.'}`;
 
   try {
     // 1. Obtener historial de mensajes de DB (últimos 20)
@@ -672,18 +917,37 @@ REGLAS IMPORTANTES:
     // Invertir para que quede en orden cronológico
     historialDB.reverse();
     
-    const historial = historialDB.map(m => ({
-      role: m.remitente === 'cliente' ? 'user' : 'assistant',
-      content: m.contenido
-    }));
+    const historial = historialDB.map(m => {
+      if (m.adjuntos && m.adjuntos.length > 0) {
+        const contentArray = [{ type: 'text', text: m.contenido }];
+        m.adjuntos.forEach(adj => {
+          contentArray.push({ type: 'image_url', image_url: { url: adj } });
+        });
+        return {
+          role: m.remitente === 'cliente' ? 'user' : 'assistant',
+          content: contentArray
+        };
+      }
+      return {
+        role: m.remitente === 'cliente' ? 'user' : 'assistant',
+        content: m.contenido
+      };
+    });
 
-    // 2. Primera llamada a Gemini
-    const respuesta = await geminiClient.chat.completions.create({
-      model: "gemini-2.5-flash",
+    let currentUserContent = mensaje_usuario;
+    if (adjuntos_nuevos && adjuntos_nuevos.length > 0) {
+      currentUserContent = [{ type: 'text', text: mensaje_usuario }];
+      adjuntos_nuevos.forEach(adj => {
+        currentUserContent.push({ type: 'image_url', image_url: { url: adj } });
+      });
+    }
+
+    // 2. Primera llamada a Gemini con fallback de modelos
+    const respuesta = await llamarCompletionsConFallback(geminiClient, {
       messages: [
         { role: "system", content: systemPrompt },
         ...historial,
-        { role: "user", content: mensaje_usuario }
+        { role: "user", content: currentUserContent }
       ],
       tools: tools,
       tool_choice: "auto"
@@ -721,14 +985,13 @@ REGLAS IMPORTANTES:
         });
       }
 
-      // Segunda llamada enviando los resultados
+      // Segunda llamada enviando los resultados con fallback de modelos
       try {
-        const respuestaFinal = await geminiClient.chat.completions.create({
-          model: "gemini-2.5-flash",
+        const respuestaFinal = await llamarCompletionsConFallback(geminiClient, {
           messages: [
             { role: "system", content: systemPrompt },
             ...historial,
-            { role: "user", content: mensaje_usuario },
+            { role: "user", content: currentUserContent },
             choice.message,
             ...resultadosTools
           ]
@@ -764,6 +1027,15 @@ REGLAS IMPORTANTES:
           }
         }
 
+        // Buscar si se ejecutó confirmar_cita
+        const toolConfirmar = resultadosTools.find(r => r.name === 'confirmar_cita');
+        if (toolConfirmar) {
+          const resObj = JSON.parse(toolConfirmar.content);
+          if (resObj.ok) {
+            return `¡Excelente! He confirmado tu asistencia para la cita. ¡Te esperamos! 🚗🔧`;
+          }
+        }
+
         // Buscar si se ejecutó consultar_disponibilidad
         const toolDisp = resultadosTools.find(r => r.name === 'consultar_disponibilidad');
         if (toolDisp) {
@@ -776,20 +1048,31 @@ REGLAS IMPORTANTES:
         }
 
         // Fallback genérico si no se reconoce la tool
-        return await agenteSimulado(mensaje_usuario, numero_telefono);
+        try {
+          return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+        } catch (ollamaErr) {
+          return await agenteSimulado(mensaje_usuario, numero_telefono);
+        }
       }
     }
 
     const firstContent = choice.message.content;
     if (!firstContent || firstContent.trim() === '') {
-      console.log('⚠️ Primera llamada a Gemini de retorno vacío o nulo. Usando fallback simulado...');
-      return await agenteSimulado(mensaje_usuario, numero_telefono);
+      console.log('⚠️ Primera llamada a Gemini de retorno vacío o nulo. Intentando Ollama...');
+      try {
+        return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+      } catch (ollamaErr) {
+        return await agenteSimulado(mensaje_usuario, numero_telefono);
+      }
     }
     return firstContent;
   } catch (error) {
     console.error('🔴 Error en llamada a Gemini API:', error);
-    // Si la API falla por cuota o key inválida, hacer fallback al agente simulado
-    console.log('🤖 Reintentando con agente simulado por error en API...');
-    return await agenteSimulado(mensaje_usuario, numero_telefono);
+    try {
+      return await llamarOllamaFallback(systemPrompt, historial, currentUserContent);
+    } catch (ollamaErr) {
+      console.log('🤖 Reintentando con agente simulado por error en API y Ollama...');
+      return await agenteSimulado(mensaje_usuario, numero_telefono);
+    }
   }
 };
