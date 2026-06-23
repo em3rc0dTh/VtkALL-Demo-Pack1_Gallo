@@ -142,6 +142,26 @@ export const api = {
   actualizarConfiguracion: (data) => request('/configuracion', { method: 'PUT', body: data }),
   obtenerVerticalConfig: () => request('/vertical-config'),
 
+  // Cases / Operaciones
+  obtenerCases: (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
+    });
+    const qs = params.toString();
+    return request(`/cases${qs ? `?${qs}` : ''}`);
+  },
+  obtenerCasePorId: (id) => request(`/cases/${id}`),
+  crearCase: (data) => request('/cases', { method: 'POST', body: data }),
+  actualizarCaseStatus: (id, status) => request(`/cases/${id}/status`, { method: 'PATCH', body: { status } }),
+  aplicarExpertReview: (id, data) => request(`/cases/${id}/expert-review`, { method: 'POST', body: data }),
+  prepararCaseQuote: (id, data) => request(`/cases/${id}/quote`, { method: 'POST', body: data }),
+  obtenerCaseQuote: (id) => request(`/cases/${id}/quote`),
+  aprobarCase: (id, data = {}) => request(`/cases/${id}/approve`, { method: 'POST', body: data }),
+  rechazarCase: (id, data = {}) => request(`/cases/${id}/reject`, { method: 'POST', body: data }),
+
   // Historial Clínico y Mantenimiento de Vehículos
   agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
   actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
