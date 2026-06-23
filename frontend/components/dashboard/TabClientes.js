@@ -28,6 +28,9 @@ import {
 import EstadoBadge from "../ui/EstadoBadge.js";
 import CloseModalButton from "../ui/CloseModalButton.js";
 import Swal from "sweetalert2";
+import { PageHeader } from "../ui/PageHeader.js";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card.js";
+import { Button } from "../ui/Button.js";
 
 const formatRelativeTime = (dateString) => {
   if (!dateString) return "";
@@ -658,11 +661,70 @@ export default function TabClientes() {
     }
   };
 
+  // Cálculos de métricas seguras (basadas en la vista actual y totales del server)
+  const clientesListados = clientesFiltrados.length;
+  const conTelefono = clientesFiltrados.filter(c => c.numero_telefono && c.numero_telefono.trim() !== '').length;
+  const conDetalles = clientesFiltrados.filter(c => c.vehiculos && c.vehiculos.length > 0).length;
+
   return (
     <div className="space-y-6">
+      
+      <PageHeader 
+        title="Directorio de Clientes"
+        description="Gestiona cartera de clientes, historial de atenciones, medios de contacto y actividad comercial."
+        actions={
+          <Button variant="outline" icon={Clipboard} onClick={() => {}} className="cursor-not-allowed opacity-50">
+            Descargar CSV
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Total en Base</CardTitle>
+            <Users className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{total}</div>
+            <p className="text-xs text-gray-500 mt-1">Registros históricos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Listados Hoy</CardTitle>
+            <Activity className="w-4 h-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{clientesListados}</div>
+            <p className="text-xs text-gray-500 mt-1">En la vista actual</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Contactables</CardTitle>
+            <MessageCircle className="w-4 h-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{conTelefono}</div>
+            <p className="text-xs text-gray-500 mt-1">Con teléfono (vista actual)</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Con Historial</CardTitle>
+            <Star className="w-4 h-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{conDetalles}</div>
+            <p className="text-xs text-gray-500 mt-1">Con detalles adicionales</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Buscador y Filtros */}
       <div className="sticky top-0 z-20 bg-dark-bg/90 backdrop-blur-md pb-4 pt-2 -mt-2">
-        <div className="flex flex-col gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800 shadow-sm">
+        <div className="flex flex-col gap-4 bg-gray-950/40 p-4 rounded-2xl border border-gray-800 shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex flex-1 items-center gap-3">
               <div className="relative w-full max-w-sm">
@@ -677,27 +739,15 @@ export default function TabClientes() {
                     setBusqueda(e.target.value);
                     setPagina(1);
                   }}
-                  className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-950 border border-gray-850 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
+                  className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:ring-1 focus:ring-primary outline-none transition-all duration-200"
                 />
               </div>
               <button
                 onClick={() => setFiltrosExpandidos(!filtrosExpandidos)}
-                className="p-2.5 bg-gray-900 border border-gray-800 rounded-xl hover:bg-gray-800 text-gray-400 transition-colors"
+                className={`p-2.5 rounded-xl border transition-colors ${filtrosExpandidos ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-gray-900 border-gray-800 hover:bg-gray-800 text-gray-400'}`}
                 title="Mostrar/Ocultar Filtros"
               >
-                {filtrosExpandidos ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="text-xs text-gray-500 font-medium hidden sm:block">
-                Total: {clientesFiltrados.length} listados de {total}
-              </div>
-              <button
-                className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 border border-gray-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-not-allowed"
-                title="Próximamente"
-              >
-                <Clipboard className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Descargar CSV</span>
+                {filtrosExpandidos ? <Filter className="w-4 h-4" /> : <Filter className="w-4 h-4" />}
               </button>
             </div>
           </div>
@@ -708,7 +758,7 @@ export default function TabClientes() {
               <select
                 value={filtroTipo}
                 onChange={(e) => setFiltroTipo(e.target.value)}
-                className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 border border-gray-800 text-gray-300 rounded-xl px-3 py-2 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:border-gray-700 transition-colors"
               >
                 <option value="todos">Todos (Leads y Clientes)</option>
                 <option value="con_vehiculo">Solo Clientes (Con Detalles Adicionales)</option>
@@ -717,7 +767,7 @@ export default function TabClientes() {
               <select
                 value={filtroDni}
                 onChange={(e) => setFiltroDni(e.target.value)}
-                className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 border border-gray-800 text-gray-300 rounded-xl px-3 py-2 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:border-gray-700 transition-colors"
               >
                 <option value="todos">Cualquier Estado DNI</option>
                 <option value="con_dni">Con DNI Registrado</option>
@@ -726,7 +776,7 @@ export default function TabClientes() {
               <select
                 value={filtroOrden}
                 onChange={(e) => setFiltroOrden(e.target.value)}
-                className="bg-gray-950 border border-gray-850 text-gray-300 rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 border border-gray-800 text-gray-300 rounded-xl px-3 py-2 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:border-gray-700 transition-colors"
               >
                 <option value="recientes">Más Recientes (Defecto)</option>
                 <option value="citas">Mayor Cantidad de Citas</option>
@@ -738,9 +788,9 @@ export default function TabClientes() {
       </div>
 
       {loading ? (
-        <LoadingSpinner />
+        <LoadingSpinner text="Cargando clientes..." />
       ) : (
-        <div className="overflow-x-auto border border-gray-850 rounded-2xl bg-gray-950/20">
+        <div className="overflow-x-auto border border-gray-800 rounded-2xl bg-gray-950/40 shadow-sm">
           {clientes.length === 0 ? (
             <div className="text-center py-12 text-sm text-gray-500">
               No se encontraron clientes.

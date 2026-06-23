@@ -5,6 +5,10 @@ import { Calendar, List, Clock, Video, Phone, User, CheckCircle2, AlertCircle, P
 import Swal from 'sweetalert2';
 import CloseModalButton from '../ui/CloseModalButton.js';
 import { api } from '../../lib/api';
+import { PageHeader } from '../ui/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
+import EstadoBadge from '../ui/EstadoBadge';
 
 export default function TabCitas() {
   const [vista, setVista] = useState('slots'); // 'slots' | 'lista'
@@ -145,13 +149,13 @@ export default function TabCitas() {
   const renderSlot = (slot) => {
     if (slot.estado === 'disponible') {
       return (
-        <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-800 border-dashed bg-gray-900/20 hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer group">
-          <div className="w-16 font-mono text-gray-500 font-bold mt-1 group-hover:text-primary">{slot.hora}</div>
+        <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-700/50 border-dashed bg-dark-card/20 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer group" onClick={() => handleNuevaReserva(slot.hora)}>
+          <div className="w-16 font-mono text-gray-500 font-bold mt-0.5 group-hover:text-primary">{slot.hora}</div>
           <div className="flex-1 flex items-center justify-between">
             <span className="text-xs text-gray-500 font-medium">Slot Disponible</span>
-            <button onClick={() => handleNuevaReserva(slot.hora)} className="text-[10px] bg-gray-800 text-gray-400 px-3 py-1.5 rounded-lg font-bold group-hover:bg-primary group-hover:text-white transition-colors">
+            <Button variant="ghost" size="sm" className="text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
               + AGENDAR
-            </button>
+            </Button>
           </div>
         </div>
       );
@@ -159,8 +163,8 @@ export default function TabCitas() {
     
     if (slot.estado === 'bloqueado') {
       return (
-        <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-850 bg-gray-950 opacity-60">
-          <div className="w-16 font-mono text-gray-600 font-bold mt-1">{slot.hora}</div>
+        <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-800 bg-gray-900/50 opacity-60">
+          <div className="w-16 font-mono text-gray-600 font-bold mt-0.5">{slot.hora}</div>
           <div className="flex-1 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-gray-500" />
             <span className="text-xs text-gray-500 font-medium">Bloqueado: {slot.notas}</span>
@@ -171,41 +175,46 @@ export default function TabCitas() {
 
     // Ocupado (Cita)
     return (
-      <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-700 bg-gray-900 shadow-md">
-        <div className="w-16 font-mono text-white font-bold mt-1">{slot.hora}</div>
+      <div key={slot.hora} className="flex gap-4 p-4 rounded-xl border border-gray-700/60 bg-dark-card/60 shadow-sm hover:border-gray-500/50 transition-colors">
+        <div className="w-16 font-mono text-white font-bold mt-0.5">{slot.hora}</div>
         <div className="flex-1">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2 mb-1">
-              {renderIconoTipo(slot.tipo)}
-              <span className="text-xs font-bold text-white">{slot.tipo}</span>
+            <div className="flex flex-col gap-1.5 mb-2">
+              <span className="text-sm font-bold text-white">{slot.cliente}</span>
+              <div className="flex items-center gap-2">
+                {renderIconoTipo(slot.tipo)}
+                <span className="text-[10px] font-medium text-gray-400">{slot.tipo}</span>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button 
+            <div className="flex flex-col items-end gap-2">
+              <EstadoBadge estado={slot.citaOriginal.estado} />
+              <Button 
+                variant="outline" size="sm" 
                 onClick={() => { 
                   setCitaDetalle(slot.citaOriginal); 
                   setEditEstado(slot.citaOriginal.estado); 
                   setEditPrecio(slot.citaOriginal.precio_final || ''); 
                   setModalCitaOpen(true); 
                 }} 
-                className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded font-bold hover:bg-blue-500 hover:text-white transition-colors"
+                className="text-[10px] h-6 py-0 px-2 font-bold"
               >
-                Editar / Status
-              </button>
+                Editar
+              </Button>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">Cliente: <span className="font-semibold text-gray-300">{slot.cliente}</span></p>
+          
           {slot.citaOriginal?.detalles_reserva && Object.keys(slot.citaOriginal.detalles_reserva).length > 0 && (
-            <div className="mt-2 text-[10px] bg-gray-800/50 p-2 rounded-lg border border-gray-700/50">
+            <div className="mt-3 text-[10px] bg-gray-900/50 p-2.5 rounded-lg border border-gray-800/50 grid grid-cols-2 gap-2">
               {Object.entries(slot.citaOriginal.detalles_reserva).map(([key, value]) => (
-                <div key={key}><span className="text-gray-400 capitalize">{key.replace(/_/g, ' ')}:</span> <span className="text-gray-200">{value}</span></div>
+                <div key={key}><span className="text-gray-500 uppercase tracking-wide">{key.replace(/_/g, ' ')}:</span> <span className="text-gray-300 font-medium">{value}</span></div>
               ))}
             </div>
           )}
           {slot.citaOriginal?.imagenes && slot.citaOriginal.imagenes.length > 0 && (
-            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
               {slot.citaOriginal.imagenes.map((img, idx) => (
                 <a key={idx} href={img} target="_blank" rel="noreferrer" className="shrink-0">
-                  <img src={img} alt="Ref" className="w-12 h-12 object-cover rounded-lg shadow-sm border border-gray-700 hover:scale-105 transition-transform" />
+                  <img src={img} alt="Ref" className="w-12 h-12 object-cover rounded-md shadow-sm border border-gray-700 hover:scale-105 transition-transform" />
                 </a>
               ))}
             </div>
@@ -215,90 +224,179 @@ export default function TabCitas() {
     );
   };
 
+  const citasHoy = citasReal.length;
+  const confirmadas = citasReal.filter(c => c.estado === 'confirmada' || c.estado === 'completada').length;
+  const pendientes = citasReal.filter(c => c.estado === 'pendiente' || c.estado === 'evaluacion_en_curso').length;
+  const canceladas = citasReal.filter(c => c.estado === 'cancelada').length;
+
   return (
     <div className="space-y-6">
       
-      {/* Barra superior de navegación */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
-        <div className="flex items-center gap-2 bg-gray-950 p-1 rounded-xl border border-gray-800">
-          <button
-            onClick={() => setVista('slots')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-              vista === 'slots' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Clock className="w-4 h-4" /> Time Slots (Motor de Reservas)
-          </button>
-          <button
-            onClick={() => setVista('lista')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-              vista === 'lista' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <List className="w-4 h-4" /> Todas las citas
-          </button>
-        </div>
+      <PageHeader 
+        title="Agenda y Citas"
+        description="Organiza reservas, confirmaciones y atención diaria."
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-gray-900/50 p-1 rounded-lg border border-gray-800">
+              <button
+                onClick={() => setVista('slots')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${vista === 'slots' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <Clock className="w-4 h-4" /> Motor de Reservas
+              </button>
+              <button
+                onClick={() => setVista('lista')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${vista === 'lista' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <List className="w-4 h-4" /> Todas las citas
+              </button>
+            </div>
+            <Button variant="primary" icon={Plus} onClick={() => handleNuevaReserva()}>
+              Nueva reserva
+            </Button>
+          </div>
+        }
+      />
 
-        <button onClick={() => handleNuevaReserva()} className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-btn-primary cursor-pointer">
-          <Plus className="w-4 h-4" /> NUEVA RESERVA
-        </button>
+      {/* Métricas superiores */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Citas hoy</CardTitle>
+            <Calendar className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{citasHoy}</div>
+            <p className="text-xs text-gray-500 mt-1">Total del día</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Confirmadas</CardTitle>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{confirmadas}</div>
+            <p className="text-xs text-gray-500 mt-1">Aseguradas</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Pendientes</CardTitle>
+            <Clock className="w-4 h-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{pendientes}</div>
+            <p className="text-xs text-gray-500 mt-1">Requieren atención</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Canceladas</CardTitle>
+            <AlertCircle className="w-4 h-4 text-red-400/70" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{canceladas}</div>
+            <p className="text-xs text-gray-500 mt-1">Rechazadas</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* VISTA SLOTS (Motor de Reservas para Expertos) */}
       {vista === 'slots' && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Panel Lateral: Selector de Experto y Filtros */}
+          {/* Grilla de Disponibilidad (Agenda) */}
+          <div className="lg:col-span-3">
+            <Card className="flex flex-col overflow-hidden h-full">
+              <CardHeader className="bg-gray-900/30 border-b border-gray-800 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle>Agenda del día</CardTitle>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => {
+                        const d = new Date(fechaFiltro);
+                        d.setDate(d.getDate() - 1);
+                        setFechaFiltro(d.toISOString().split('T')[0]);
+                      }} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <input type="date" className="bg-gray-950 border border-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-lg outline-none font-semibold" value={fechaFiltro} onChange={e => setFechaFiltro(e.target.value)} />
+                    <button onClick={() => {
+                        const d = new Date(fechaFiltro);
+                        d.setDate(d.getDate() + 1);
+                        setFechaFiltro(d.toISOString().split('T')[0]);
+                      }} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar bg-dark-card/10">
+                  {timeSlots.map(renderSlot)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Panel Lateral: Selector de Experto y Resumen */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-gray-950/40 border border-gray-850 p-5 rounded-2xl">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">Experto a consultar</h4>
-              <div className="space-y-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Experto a consultar</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
                 {expertos.map(exp => (
                   <button 
                     key={exp._id}
                     onClick={() => setExpertoActivo(exp._id)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                      expertoActivo === exp._id ? 'bg-primary/10 border-primary text-white' : 'bg-gray-900 border-gray-800 text-gray-400 hover:bg-gray-800'
+                      expertoActivo === exp._id ? 'bg-primary/10 border-primary shadow-sm shadow-primary/20 text-white' : 'bg-gray-900/50 border-gray-800 text-gray-400 hover:bg-gray-800'
                     }`}
                   >
                     <UserCircle className={`w-5 h-5 ${expertoActivo === exp._id ? 'text-primary' : 'text-gray-500'}`} />
                     <span className="text-xs font-bold">{exp.nombre}</span>
                   </button>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="bg-gray-950/40 border border-gray-850 p-5 rounded-2xl">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">Leyenda de Citas</h4>
-              <ul className="space-y-3 text-[10px] text-gray-400">
-                <li className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-blue-400" /> Evaluación Presencial (Taller)</li>
-                <li className="flex items-center gap-2"><Video className="w-3.5 h-3.5 text-purple-400" /> Evaluación con Fotos (Remoto)</li>
-                <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-green-400" /> Llamada Directa (Sin Fotos)</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Grilla de Disponibilidad */}
-          <div className="lg:col-span-3">
-            <div className="bg-gray-950/20 border border-gray-850 rounded-2xl overflow-hidden flex flex-col">
-              
-              {/* Header Día */}
-              <div className="bg-gray-900 border-b border-gray-800 p-4 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <button className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-                  <h3 className="text-sm font-black text-white w-40 text-center">Jueves, 26 Mayo</h3>
-                  <button className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Resumen del día</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-1 text-xs">
+                      <span className="text-gray-400 font-medium">Confirmadas</span>
+                      <span className="text-gray-400 font-mono">{confirmadas}</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-emerald-500 h-1.5 rounded-full transition-all" style={{ width: `${citasHoy > 0 ? (confirmadas/citasHoy)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1 text-xs">
+                      <span className="text-gray-400 font-medium">Pendientes</span>
+                      <span className="text-gray-400 font-mono">{pendientes}</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-yellow-500 h-1.5 rounded-full transition-all" style={{ width: `${citasHoy > 0 ? (pendientes/citasHoy)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1 text-xs">
+                      <span className="text-gray-400 font-medium">Canceladas</span>
+                      <span className="text-gray-400 font-mono">{canceladas}</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-red-500 h-1.5 rounded-full transition-all" style={{ width: `${citasHoy > 0 ? (canceladas/citasHoy)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
                 </div>
-                <input type="date" className="bg-gray-950 border border-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded-lg outline-none" value={fechaFiltro} onChange={e => setFechaFiltro(e.target.value)} />
-              </div>
-
-              {/* Lista de Slots */}
-              <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
-                {timeSlots.map(renderSlot)}
-              </div>
-
-            </div>
+              </CardContent>
+            </Card>
           </div>
+
         </div>
       )}
 

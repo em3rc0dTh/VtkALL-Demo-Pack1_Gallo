@@ -235,7 +235,7 @@ export default function TabMensajes() {
                 <div>
                   <h4 className="text-xs font-bold text-white flex items-center gap-2">
                     {activeCliente?.nombre || 'Cliente Nuevo'}
-                    <span title="Contexto: El auto del cliente está en la planta" className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] flex items-center gap-1 cursor-default">{if is lead or just prospect say it. Not only sale "En Taller"}🚗 En Taller</span>
+                    <span title="Contexto: El auto del cliente está en la planta" className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] flex items-center gap-1 cursor-default">🚗 En Taller</span>
                   </h4>
                   <span className="text-[10px] text-gray-500 font-mono">{activeNro}</span>
                 </div>

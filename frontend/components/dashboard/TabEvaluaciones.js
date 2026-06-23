@@ -8,6 +8,11 @@ import OperationalCard from './OperationalCard';
 import { api } from "../../lib/api.js";
 import Swal from 'sweetalert2';
 import CloseModalButton from "../ui/CloseModalButton.js";
+import { PageHeader } from '../ui/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { EmptyState } from '../ui/EmptyState';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const mapBackendToUi = (estado) => {
   switch (estado) {
@@ -439,50 +444,81 @@ export default function TabEvaluaciones() {
     horasDia.push(`${i}:00`);
   }
 
+  const leadsCount = evaluaciones.filter(e => e.estado === 'reserva').length;
+  const porEvaluarCount = evaluaciones.filter(e => e.estado === 'validado' || e.estado === 'pendiente_confirmacion').length;
+  const diagnosticoCount = evaluaciones.filter(e => e.estado === 'confirmada' || e.estado === 'evaluacion_en_curso').length;
+  const canceladasCount = evaluaciones.filter(e => e.estado === 'cancelada').length;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
-              <Calendar className="w-5 h-5 text-primary" />
+      <PageHeader 
+        title="Admisión y Diagnóstico"
+        description="Gestiona el flujo operativo desde lead hasta diagnóstico y cotización."
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-gray-900/50 p-1 rounded-lg border border-gray-800">
+              <button
+                onClick={() => setVista('kanban')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${vista === 'kanban' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <LayoutGrid className="w-4 h-4" /> Kanban
+              </button>
+              <button
+                onClick={() => setVista('calendario')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${vista === 'calendario' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <CalendarIcon className="w-4 h-4" /> Agenda
+              </button>
             </div>
-            Evaluation Workspace
-          </h1>
-          <p className="text-sm text-gray-400 mt-2">Admisión, validación y tasación de vehículos (CRM Operacional)</p>
-        </div>
-        
-        {/* Toggle Vistas y Botón Nuevo Ingreso */}
-        <div className="flex items-center gap-3">
-          <button
-            title="Crear una evaluación manualmente sin usar el Bot"
-            onClick={() => setModalNuevoIngreso(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide shadow-sm cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> Ingreso Manual
-          </button>
-          
-          <div className="flex items-center gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800">
-            <button
-              title="Vista de Tablero (Kanban)"
-              onClick={() => setVista('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                vista === 'kanban' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" /> Flujo de Admisión
-            </button>
-            <button
-              title="Vista de Calendario y Agenda"
-              onClick={() => setVista('calendario')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                vista === 'calendario' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <CalendarIcon className="w-4 h-4" /> Agenda
-            </button>
+            <Button variant="primary" icon={Plus} onClick={() => setModalNuevoIngreso(true)}>
+              Ingreso Manual
+            </Button>
           </div>
-        </div>
+        }
+      />
+
+      {/* Métricas superiores */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Leads / Ingresos</CardTitle>
+            <AlertCircle className="w-4 h-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{leadsCount}</div>
+            <p className="text-xs text-gray-500 mt-1">Por verificar manual</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Por agendar</CardTitle>
+            <MessageCircle className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{porEvaluarCount}</div>
+            <p className="text-xs text-gray-500 mt-1">Esperando confirmación WP</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">En Taller</CardTitle>
+            <Wrench className="w-4 h-4 text-cyan-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{diagnosticoCount}</div>
+            <p className="text-xs text-gray-500 mt-1">En diagnóstico/cotización</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Descartados</CardTitle>
+            <XCircle className="w-4 h-4 text-red-400/70" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{canceladasCount}</div>
+            <p className="text-xs text-gray-500 mt-1">Rechazados o no show</p>
+          </CardContent>
+        </Card>
       </div>
 
       {vista === 'kanban' ? (
@@ -490,7 +526,7 @@ export default function TabEvaluaciones() {
         <div className="flex gap-4 overflow-x-auto pb-4">
           
           {/* Columna 1: Reservas Nuevas */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Leads recién captados, en espera de validación manual.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-500 flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5"/> Evaluation Requested
@@ -517,7 +553,7 @@ export default function TabEvaluaciones() {
           </div>
 
           {/* Columna 2: Validados */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Leads verificados listos para agendar en planta.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5"/> Evaluation Scheduled
@@ -544,7 +580,7 @@ export default function TabEvaluaciones() {
           </div>
 
           {/* Columna 3: Pendientes WP */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Esperando que el cliente confirme su asistencia por WhatsApp.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
                 <MessageCircle className="w-3.5 h-3.5"/> Waiting Customer
@@ -571,7 +607,7 @@ export default function TabEvaluaciones() {
           </div>
 
           {/* Columna 4: Confirmadas */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Clientes confirmados para asistir al taller hoy/mañana.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-green-400 flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5"/> Appointment Confirmed
@@ -598,7 +634,7 @@ export default function TabEvaluaciones() {
           </div>
 
           {/* Columna 5: Evaluación en Curso */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px]">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Autos en planta esperando armado del presupuesto/cotización.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
                 <Wrench className="w-3.5 h-3.5"/> Evaluating & Quoting
@@ -625,7 +661,7 @@ export default function TabEvaluaciones() {
           </div>
 
           {/* Columna 6: Canceladas */}
-          <div className="min-w-[280px] max-w-[320px] p-4 rounded-2xl bg-gray-950/40 border border-gray-800 flex flex-col min-h-[400px] opacity-70 hover:opacity-100 transition-opacity">
+          <div className="min-w-[280px] max-w-[320px] p-4 rounded-xl bg-dark-card/40 backdrop-blur-sm border border-gray-700/50 flex flex-col min-h-[400px] shadow-sm shadow-black/10 opacity-70 hover:opacity-100 transition-opacity">
             <div className="flex items-center justify-between mb-4 border-b border-gray-850 pb-2 cursor-help" title="Citas que no se concretaron o fueron rechazadas.">
               <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
                 <XCircle className="w-3.5 h-3.5"/> Discarded / No Show
