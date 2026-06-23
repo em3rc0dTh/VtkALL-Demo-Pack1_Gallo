@@ -1,6 +1,7 @@
 import express from 'express';
 import { Connection, Client } from '@temporalio/client';
 import Cita from '../models/Cita.js'; // Model para pedidos
+import { env } from '../config/env.js';
 
 const router = express.Router();
 
@@ -8,11 +9,22 @@ let temporalClient = null;
 
 async function getTemporalClient() {
   if (!temporalClient) {
-    const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS || 'localhost:7233' });
+    const connection = await Connection.connect({ address: env.temporalAddress });
     temporalClient = new Client({ connection });
   }
   return temporalClient;
 }
+
+router.use((req, res, next) => {
+  if (!env.enableTemporal) {
+    return res.status(503).json({
+      ok: false,
+      error: 'Temporal está desactivado por configuración.'
+    });
+  }
+
+  next();
+});
 
 // Iniciar el workflow (llamado por la IA cuando capta el lead)
 router.post('/start', async (req, res) => {

@@ -121,7 +121,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.INITIAL_ADMIN_PASSWORD
 
 Referencia: `backend/utils/jwt.js:3`
 
-Si `JWT_SECRET` falta, el sistema usa `supersecrettoken1234!`.
+Si `JWT_SECRET` falta, el sistema usa un secreto hardcodeado inseguro.
 
 Severidad: Critica.  
 Riesgo: falsificacion de cookies JWT.  

@@ -140,6 +140,7 @@ export const api = {
   // Configuración del taller
   getConfiguracion: () => request('/configuracion'),
   actualizarConfiguracion: (data) => request('/configuracion', { method: 'PUT', body: data }),
+  obtenerVerticalConfig: () => request('/vertical-config'),
 
   // Historial Clínico y Mantenimiento de Vehículos
   agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),

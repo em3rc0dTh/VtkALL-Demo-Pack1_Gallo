@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { env } from '../config/env.js';
 import Cliente from '../models/Cliente.js';
 
 export const crearRespuestaTwiML = (mensaje) => {
@@ -23,9 +24,9 @@ export const crearRespuestaTwiML = (mensaje) => {
  * Si las credenciales son de prueba (mock) o no están configuradas, simula el envío en la consola.
  */
 export const enviarMensajeWhatsApp = async (numero_telefono, mensaje, clienteId = null, originalLid = null) => {
-  const openwaUrl = process.env.OPENWA_API_URL;
-  const openwaKey = process.env.OPENWA_API_KEY;
-  const openwaSession = process.env.OPENWA_SESSION_NAME || 'mecanica-bot';
+  const openwaUrl = env.openwaApiUrl;
+  const openwaKey = env.openwaApiKey;
+  const openwaSession = env.openwaSessionName;
 
   if (openwaUrl) {
     try {
@@ -140,9 +141,9 @@ export const enviarMensajeWhatsApp = async (numero_telefono, mensaje, clienteId 
     }
   }
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const phone = process.env.TWILIO_PHONE_NUMBER || '+14155238886'; // default Twilio sandbox number
+  const accountSid = env.twilioAccountSid;
+  const authToken = env.twilioAuthToken;
+  const phone = env.twilioPhoneNumber; // default Twilio sandbox number
 
   const esMock = !accountSid || accountSid.includes('xxxxx') || accountSid.includes('ACxxxxx') || !authToken || authToken.includes('xxxxx');
 

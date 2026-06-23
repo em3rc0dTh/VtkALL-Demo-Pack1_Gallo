@@ -1,9 +1,10 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcrypt';
 import { conectarDB } from './config/db.js';
+import { env } from './config/env.js';
+import { corsOptions } from './config/appConfig.js';
 import { procesarRecordatoriosYCancelaciones } from './services/recordatorios.js';
 
 // Modelos
@@ -29,17 +30,14 @@ import disponibilidadRoutes from './routes/disponibilidad.js';
 import configuracionRoutes from './routes/configuracion.js';
 import uploadRoutes from './routes/upload.js';
 import temporalRoutes from './routes/temporal.js';
+import verticalConfigRoutes from './routes/verticalConfig.js';
 import path from 'path';
 
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:3000', // Next.js port
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -61,6 +59,7 @@ app.use('/api/disponibilidad', disponibilidadRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/temporal', temporalRoutes);
+app.use('/api/vertical-config', verticalConfigRoutes);
 
 // Endpoint de Diagnóstico
 app.get('/health', (req, res) => {
@@ -249,14 +248,22 @@ const inicializarDatos = async () => {
 // Iniciar Servidor
 const arrancarServidor = async () => {
   await conectarDB();
-  await inicializarDatos();
-  
-  // Ejecutar recordatorios en el arranque y configurar intervalo de 1 hora
-  procesarRecordatoriosYCancelaciones();
-  setInterval(procesarRecordatoriosYCancelaciones, 60 * 60 * 1000);
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Backend listo en http://localhost:${PORT}`);
+  if (env.enableAutoSeed && env.seedProfile !== 'none') {
+    await inicializarDatos();
+  } else {
+    console.log('🌱 Seed automático desactivado por configuración.');
+  }
+  
+  if (env.enableRecordatorios) {
+    procesarRecordatoriosYCancelaciones();
+    setInterval(procesarRecordatoriosYCancelaciones, 60 * 60 * 1000);
+  } else {
+    console.log('⏰ Recordatorios desactivados por configuración.');
+  }
+
+  app.listen(env.port, () => {
+    console.log(`🚀 Backend listo en http://localhost:${env.port}`);
   });
 };
 
