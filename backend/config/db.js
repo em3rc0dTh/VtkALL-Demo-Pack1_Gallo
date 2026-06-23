@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
+import { env } from './env.js';
 
 export const conectarDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mecanica-pro');
+    const conn = await mongoose.connect(env.mongodbUri);
     console.log(`🟢 MongoDB Conectado: ${conn.connection.host}`);
   } catch (error) {
     console.error(`🔴 Error de conexión a MongoDB: ${error.message}`);

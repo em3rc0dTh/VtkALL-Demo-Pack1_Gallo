@@ -4,8 +4,17 @@ import path from 'path';
 import fs from 'fs';
 import Cliente from '../models/Cliente.js';
 import { protegerRuta } from '../middleware/auth.js';
+import { env } from '../config/env.js';
 
 const router = express.Router();
+
+const permitirUploadPublico = (req, res, next) => {
+  if (!env.enablePublicUpload) {
+    return res.status(403).json({ error: 'Uploads públicos desactivados.' });
+  }
+
+  next();
+};
 
 // Configurar storage local con multer
 const storage = multer.diskStorage({
@@ -92,7 +101,7 @@ router.post('/general', protegerRuta, upload.single('imagen'), async (req, res) 
 });
 
 // POST /api/upload/public (public upload of evidence photos by customers)
-router.post('/public', upload.single('imagen'), async (req, res) => {
+router.post('/public', permitirUploadPublico, upload.single('imagen'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se subió ninguna imagen' });

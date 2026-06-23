@@ -114,9 +114,23 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
+      - NODE_ENV=development
       - PORT=4000
+      - FRONTEND_ORIGIN=http://localhost:${FRONTEND_PORT}
+      - VERTIKALL_BUSINESS=${VERTIKALL_BUSINESS:-turagua}
+      - VERTIKALL_VERTICAL=${VERTIKALL_VERTICAL:-vehicle_service}
+      - VERTIKALL_CONFIG_STRICT=${VERTIKALL_CONFIG_STRICT:-false}
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-local}
+      - JWT_COOKIE_NAME=${JWT_COOKIE_NAME:-token}
+      - JWT_COOKIE_MAX_AGE_HOURS=${JWT_COOKIE_MAX_AGE_HOURS:-24}
+      - JWT_COOKIE_SAMESITE=${JWT_COOKIE_SAMESITE:-strict}
+      - ENABLE_TEMPORAL=false
       - TEMPORAL_ADDRESS=temporal:7233
-      - OPENWA_URL=http://openwa:2785
+      - ENABLE_AUTO_SEED=true
+      - SEED_PROFILE=legacy
+      - ENABLE_RECORDATORIOS=true
+      - ENABLE_PUBLIC_UPLOAD=true
+      - OPENWA_API_URL=http://openwa:2785
       - MONGODB_URI=mongodb://admin:admin@mongo:27017/${PROJECT_NAME}?authSource=admin
     depends_on:
       - openwa

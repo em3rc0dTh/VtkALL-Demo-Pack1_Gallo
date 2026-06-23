@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import OpenAI from 'openai';
 import Taller from '../models/Taller.js';
 import Cliente from '../models/Cliente.js';
@@ -7,9 +6,11 @@ import Mensaje from '../models/Mensaje.js';
 import Producto from '../models/Producto.js';
 import { calcularSlots, formatearFechaEsp, formatearFechaHoraEsp } from '../utils/fechas.js';
 import { Connection, Client } from '@temporalio/client';
+import { env } from '../config/env.js';
+import { getActivePrompt } from './promptRegistryService.js';
 
 // Inicializar cliente de Gemini si existe la API Key
-const apiKey = process.env.GEMINI_API_KEY || process.env.GCP_API_KEY;
+const apiKey = env.geminiApiKey;
 let geminiClient = null;
 
 if (apiKey && apiKey !== 'YOUR_GEMINI_API_KEY' && apiKey !== 'YOUR_GCP_API_KEY' && apiKey.trim() !== '') {
@@ -263,29 +264,33 @@ export const ejecutarTool = async (nombre, args) => {
         await nuevaCita.save();
         
         // Iniciar Workflow Temporal
-        try {
-          const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS || 'localhost:7233' });
-          const client = new Client({ connection });
+        if (env.enableTemporal) {
+          try {
+            const connection = await Connection.connect({ address: env.temporalAddress });
+            const client = new Client({ connection });
           
-          const descripcionParaPastelero = [
-            `Servicio: ${servicio}`,
-            `Detalles: ${descripcion_trabajo}`,
-            `Requerimientos Extra: ${JSON.stringify(parsedDetalles)}`
-          ].join('\n');
+            const descripcionParaPastelero = [
+              `Servicio: ${servicio}`,
+              `Detalles: ${descripcion_trabajo}`,
+              `Requerimientos Extra: ${JSON.stringify(parsedDetalles)}`
+            ].join('\n');
 
-          await client.workflow.start('pastryOrderWorkflow', {
-            taskQueue: 'pasteleria-pedidos',
-            workflowId: `pedido-${nuevaCita._id}`,
-            args: [{
-              pedidoId: nuevaCita._id.toString(),
-              numeroWhatsApp: numero_telefono,
-              clienteNombre: nombre_cliente,
-              descripcionInicial: descripcionParaPastelero
-            }]
-          });
-          console.log(`✅ [Temporal] Workflow pastryOrderWorkflow iniciado para cita ${nuevaCita._id}`);
-        } catch (temporalErr) {
-          console.error('❌ Error al iniciar Workflow Temporal desde gemini.js:', temporalErr);
+            await client.workflow.start('pastryOrderWorkflow', {
+              taskQueue: 'pasteleria-pedidos',
+              workflowId: `pedido-${nuevaCita._id}`,
+              args: [{
+                pedidoId: nuevaCita._id.toString(),
+                numeroWhatsApp: numero_telefono,
+                clienteNombre: nombre_cliente,
+                descripcionInicial: descripcionParaPastelero
+              }]
+            });
+            console.log(`✅ [Temporal] Workflow pastryOrderWorkflow iniciado para cita ${nuevaCita._id}`);
+          } catch (temporalErr) {
+            console.error('❌ Error al iniciar Workflow Temporal desde gemini.js:', temporalErr);
+          }
+        } else {
+          console.log('⏭️ Temporal desactivado; se omite inicio de workflow.');
         }
 
         return {
@@ -763,7 +768,7 @@ const llamarOllamaFallback = async (systemPrompt, historial, mensajeUsuario) => 
       { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
     ];
 
-    const ollamaUrl = process.env.OLLAMA_URL || "http://172.17.0.1:11434";
+    const ollamaUrl = env.ollamaUrl;
     const response = await fetch(`${ollamaUrl}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -852,7 +857,10 @@ export const procesarMensajeIA = async (numero_telefono, mensaje_usuario, adjunt
 
   const fechaActual = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const systemPrompt = `Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
+  const verticalPrompt = getActivePrompt();
+  const systemPrompt = `${verticalPrompt}
+
+Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
 HOY ES: ${fechaActual} (Hora de Perú). Úsalo como referencia estricta para agendar citas.
 
 TU ROL ES:

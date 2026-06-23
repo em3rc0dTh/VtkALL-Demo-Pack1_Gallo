@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Edit3, Trash2, Shield, UserCog, Clock, CalendarDays, Wrench } from 'lucide-react';
 import Swal from 'sweetalert2';
 import CloseModalButton from '../ui/CloseModalButton.js';
+import { PageHeader } from '../ui/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 import { api } from '../../lib/api';
 
@@ -14,6 +18,12 @@ export default function TabTeam() {
   const [trabajadores, setTrabajadores] = useState([]);
   const [equipos, setEquipos] = useState([]);
   const [cargando, setCargando] = useState(true);
+
+  // Cálculos de métricas
+  const totalTrabajadores = trabajadores.length;
+  const totalEquipos = equipos.length;
+  const asignados = trabajadores.filter(t => t.team).length;
+  const sinEquipo = trabajadores.filter(t => !t.team).length;
 
   // UI States
   const [equipoActivo, setEquipoActivo] = useState(null);
@@ -240,22 +250,59 @@ export default function TabTeam() {
     return t.team?._id === equipoActivo;
   });
 
+  if (cargando) {
+    return <div className="py-20"><LoadingSpinner size="lg" text="Cargando equipo..." /></div>;
+  }
+
   return (
     <div className="space-y-6">
-      {/* HEADER */}
-      <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800">
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" /> Especialidades y Personal
-          </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Administra tus grupos de trabajo y asigna a tus técnicos.</p>
-        </div>
-        <button 
-          onClick={() => { setEquipoNombre(''); setModalEquipoOpen(true); }} 
-          className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all uppercase tracking-wide cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /> AGREGAR EQUIPO
-        </button>
+      <PageHeader 
+        title="Equipo y Personal"
+        description="Gestiona grupos de trabajo, asignaciones y disponibilidad operativa."
+        actions={
+          <Button variant="primary" icon={Plus} onClick={() => { setEquipoNombre(''); setModalEquipoOpen(true); }}>
+            Nuevo Equipo
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Total Personal</CardTitle>
+            <Users className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{totalTrabajadores}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Equipos de Trabajo</CardTitle>
+            <Shield className="w-4 h-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{totalEquipos}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Técnicos Asignados</CardTitle>
+            <UserCog className="w-4 h-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{asignados}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Sin Equipo</CardTitle>
+            <Clock className="w-4 h-4 text-orange-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{sinEquipo}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* GRID LAYOUT */}
@@ -267,56 +314,62 @@ export default function TabTeam() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
             {/* "TODOS" TILE */}
-            <div 
+            <Card 
               onClick={() => setEquipoActivo('todos')}
-              className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
-                equipoActivo === 'todos' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+              className={`cursor-pointer transition-all ${
+                equipoActivo === 'todos' ? 'border-blue-500 bg-blue-500/5' : 'hover:border-gray-700'
               }`}
             >
-              <h5 className={`font-bold text-sm ${equipoActivo === 'todos' ? 'text-blue-400' : 'text-gray-500'}`}>Todos los Trabajadores</h5>
-              <p className="text-[10px] text-gray-600 mt-1">Ver lista completa</p>
-            </div>
+              <CardContent className="p-4">
+                <h5 className={`font-bold text-sm ${equipoActivo === 'todos' ? 'text-blue-400' : 'text-gray-300'}`}>Todos los Trabajadores</h5>
+                <p className="text-[10px] text-gray-500 mt-1">Ver lista completa</p>
+              </CardContent>
+            </Card>
 
             {equipos.map((eq) => (
-              <div 
+              <Card 
                 key={eq._id} 
                 onClick={() => setEquipoActivo(eq._id)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
-                  equipoActivo === eq._id ? 'border-primary bg-primary/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+                className={`cursor-pointer transition-all ${
+                  equipoActivo === eq._id ? 'border-primary bg-primary/5' : 'hover:border-gray-700'
                 }`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h5 className={`font-bold text-sm ${equipoActivo === eq._id ? 'text-white' : 'text-gray-400'}`}>{eq.nombre}</h5>
-                    <p className="text-[10px] text-gray-500 mt-1">Horario: {eq.horario_referencial || 'No configurado'}</p>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h5 className={`font-bold text-sm ${equipoActivo === eq._id ? 'text-white' : 'text-gray-300'}`}>{eq.nombre}</h5>
+                      <p className="text-[10px] text-gray-500 mt-1">Horario: {eq.horario_referencial || 'No configurado'}</p>
+                    </div>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleAbrirHorario(eq); }} 
+                      className="p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-blue-400 hover:border-blue-500/30 transition-colors cursor-pointer" 
+                      title="Configurar Horario"
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleAbrirHorario(eq); }} 
-                    className="p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-blue-400 hover:border-blue-500/30 transition-colors" 
-                    title="Configurar Horario"
-                  >
-                    <CalendarDays className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
 
             {/* "SIN EQUIPO" TILE */}
-            <div 
+            <Card 
               onClick={() => setEquipoActivo('sin_equipo')}
-              className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
-                equipoActivo === 'sin_equipo' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-850 bg-gray-950/40 hover:border-gray-700'
+              className={`cursor-pointer transition-all ${
+                equipoActivo === 'sin_equipo' ? 'border-orange-500 bg-orange-500/5' : 'hover:border-gray-700'
               }`}
             >
-              <h5 className={`font-bold text-sm ${equipoActivo === 'sin_equipo' ? 'text-orange-400' : 'text-gray-500'}`}>Sin Equipo Asignado</h5>
-              <p className="text-[10px] text-gray-600 mt-1">Técnicos libres o por asignar</p>
-            </div>
+              <CardContent className="p-4">
+                <h5 className={`font-bold text-sm ${equipoActivo === 'sin_equipo' ? 'text-orange-400' : 'text-gray-300'}`}>Sin Equipo Asignado</h5>
+                <p className="text-[10px] text-gray-500 mt-1">Técnicos libres o por asignar</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* COLUMNA DERECHA: TRABAJADORES DEL EQUIPO */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="flex items-center justify-between mb-4 px-1 pb-3 border-b border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4 px-1 pb-3 border-b border-gray-800">
             <div>
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <UserCog className="w-4 h-4 text-gray-400" /> 
@@ -324,45 +377,42 @@ export default function TabTeam() {
               </h4>
               <p className="text-[10px] text-gray-500 mt-0.5">{trabajadoresFiltrados.length} miembros encontrados</p>
             </div>
-            <button 
-              onClick={abrirModalCrearTrabajador}
-              className="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition-colors cursor-pointer text-xs font-bold flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" /> AÑADIR TRABAJADOR
-            </button>
+            <Button size="sm" icon={Plus} onClick={abrirModalCrearTrabajador} className="shrink-0 text-[10px] uppercase">
+              Añadir Personal
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-max">
             {trabajadoresFiltrados.length === 0 ? (
-              <div className="sm:col-span-2 p-12 text-center flex flex-col items-center justify-center bg-gray-950/20 rounded-2xl border border-gray-850 border-dashed">
+              <div className="sm:col-span-2 p-12 text-center flex flex-col items-center justify-center bg-gray-950/40 rounded-2xl border border-gray-850 border-dashed">
                 <UserCog className="w-8 h-8 text-gray-700 mb-3" />
-                <p className="text-xs text-gray-500 italic">No hay trabajadores registrados en esta lista.</p>
+                <p className="text-xs text-gray-500">No hay trabajadores registrados en esta vista.</p>
               </div>
             ) : trabajadoresFiltrados.map((t) => (
-              <div key={t._id} className="p-4 rounded-2xl border border-gray-850 bg-gray-950/20 hover:bg-gray-900/40 transition-all flex flex-col justify-between h-full group shadow-sm">
-                <div>
-                  <div className="flex justify-between items-start mb-3">
+              <Card key={t._id} className="hover:border-gray-700 transition-all flex flex-col justify-between h-full shadow-sm">
+                <CardContent className="p-4 flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
                       <span className="block font-bold text-white text-sm">{t.nombre}</span>
-                      <span className="text-[10px] text-gray-400">{t.rol || 'Sin rol'}</span>
+                      <span className="text-[11px] font-mono text-gray-400 mt-0.5 block">{t.rol || 'Rol no especificado'}</span>
                     </div>
-                    <span className={`px-2 py-1 rounded text-[9px] font-bold ${
+                    <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider ${
                       t.contrato === 'Planilla' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                     }`}>
                       {t.contrato}
                     </span>
                   </div>
-                </div>
-                
-                <div className="pt-3 mt-2 border-t border-gray-850 flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button title="Editar" aria-label="Editar Trabajador" onClick={() => abrirModalEditarTrabajador(t)} className="p-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-primary cursor-pointer border border-gray-850 transition-colors flex items-center gap-1.5 text-[10px] font-bold">
-                    <Edit3 className="w-3.5 h-3.5" /> EDITAR
-                  </button>
-                  <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-2 rounded-lg bg-gray-900 hover:bg-red-500/10 text-gray-500 hover:text-red-500 cursor-pointer border border-gray-850 transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+                  
+                  <div className="mt-auto pt-4 border-t border-gray-800/60 flex justify-end gap-2">
+                    <Button variant="outline" size="sm" icon={Edit3} onClick={() => abrirModalEditarTrabajador(t)} className="h-7 text-[10px] font-bold uppercase">
+                      Editar
+                    </Button>
+                    <button title="Eliminar" aria-label="Eliminar Trabajador" onClick={() => handleEliminarTrabajador(t._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 cursor-pointer transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>

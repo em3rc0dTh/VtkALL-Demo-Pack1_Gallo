@@ -1,4 +1,5 @@
 import express from 'express';
+import { env } from '../config/env.js';
 import Cliente from '../models/Cliente.js';
 import Mensaje from '../models/Mensaje.js';
 import Taller from '../models/Taller.js';
@@ -54,9 +55,9 @@ router.post('/whatsapp', rateLimiter('telefono', 15, 60000), async (req, res) =>
               numeroTelefono = bestClient.numero_telefono;
             } else {
               // 2. Si no está en DB, hacer fallback consultando a la API de OpenWA
-              const openwaUrl = process.env.OPENWA_API_URL;
-              const openwaKey = process.env.OPENWA_API_KEY;
-              const openwaSession = process.env.OPENWA_SESSION_NAME || 'mecanica-bot';
+              const openwaUrl = env.openwaApiUrl;
+              const openwaKey = env.openwaApiKey;
+              const openwaSession = env.openwaSessionName;
               
               if (openwaUrl) {
                 // Resolver UUID de la sesión

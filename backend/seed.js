@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { conectarDB } from './config/db.js';
 import mongoose from 'mongoose';
 import Servicio from './models/Servicio.js';

@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import Usuario from '../models/Usuario.js';
 import { generarToken } from '../utils/jwt.js';
 import { protegerRuta } from '../middleware/auth.js';
+import { env } from '../config/env.js';
+import { cookieOptions } from '../config/appConfig.js';
 
 const router = express.Router();
 
@@ -27,12 +29,7 @@ router.post('/login', async (req, res) => {
 
     const token = generarToken(usuario);
     
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: false, // Desactivado para local dev HTTP
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 horas
-    });
+    res.cookie(env.jwtCookieName, token, cookieOptions);
 
     usuario.ultimo_login = new Date();
     await usuario.save();
@@ -53,10 +50,10 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  res.cookie('token', '', {
-    httpOnly: true,
+  res.cookie(env.jwtCookieName, '', {
+    ...cookieOptions,
     expires: new Date(0),
-    sameSite: 'strict'
+    maxAge: 0
   });
   res.json({ ok: true });
 });

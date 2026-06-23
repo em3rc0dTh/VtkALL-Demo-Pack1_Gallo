@@ -1,7 +1,8 @@
 import { verificarToken } from '../utils/jwt.js';
+import { env } from '../config/env.js';
 
 export const protegerRuta = (req, res, next) => {
-  const token = req.cookies.token;
+  const token = req.cookies[env.jwtCookieName];
   
   if (!token) {
     return res.status(401).json({ error: 'No autorizado - No hay token' });

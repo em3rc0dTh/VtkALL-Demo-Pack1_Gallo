@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit3, Trash2, Box, Users, ChevronDown, ChevronRight, PackagePlus, X, Save } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { PageHeader } from '../ui/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 import { api } from '../../lib/api';
 
@@ -12,6 +16,13 @@ export default function TabServicios() {
   const [servicios, setServicios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [moneda, setMoneda] = useState('PEN');
+
+  // Cálculos de métricas
+  const totalCategorias = servicios.length;
+  const todosProductos = servicios.flatMap(s => s.productos || []);
+  const totalProductos = todosProductos.length;
+  const precioPromedio = totalProductos > 0 ? (todosProductos.reduce((acc, curr) => acc + (curr.precio || 0), 0) / totalProductos).toFixed(2) : '0.00';
+  const categoriasConEquipo = servicios.filter(s => s.team_asignado).length;
 
   // Modal States
   const [modalOpen, setModalOpen] = useState(false);
@@ -156,30 +167,69 @@ export default function TabServicios() {
 
   const symbol = CURRENCY_SYMBOLS[moneda] || moneda;
 
+  if (cargando) {
+    return <div className="py-20"><LoadingSpinner size="lg" text="Cargando catálogo..." /></div>;
+  }
+
   return (
     <div className="space-y-6">
       
-      {/* Barra superior */}
-      <div className="flex justify-between items-center bg-dark-card/40 p-4 rounded-2xl border border-gray-800 shadow-sm">
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-            <Box className="w-4 h-4 text-primary" /> Catálogo de Servicios y Variantes
-          </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Define los conjuntos (Servicios) y sus variantes/tamaños específicos (Kilometraje, Aceite).</p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={() => openModal('servicio', 'create', { icono: '🔧' })} 
-            className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md"
-          >
-            <Plus className="w-4 h-4" /> NUEVA CATEGORÍA
-          </button>
-        </div>
+      <PageHeader 
+        title="Catálogo de Servicios"
+        description="Define servicios, categorías, precios y disponibilidad."
+        actions={
+          <Button variant="primary" icon={Plus} onClick={() => openModal('servicio', 'create', { icono: '🔧' })}>
+            Nueva Categoría
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Variantes</CardTitle>
+            <Box className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{totalProductos}</div>
+            <p className="text-xs text-gray-500 mt-1">Servicios listados</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Categorías</CardTitle>
+            <PackagePlus className="w-4 h-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{totalCategorias}</div>
+            <p className="text-xs text-gray-500 mt-1">Grupos activos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Precio prom.</CardTitle>
+            <span className="text-yellow-500 font-bold">{symbol}</span>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{precioPromedio}</div>
+            <p className="text-xs text-gray-500 mt-1">Ticket base</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
+            <CardTitle className="text-sm font-medium text-gray-400">Delegación</CardTitle>
+            <Users className="w-4 h-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{categoriasConEquipo}</div>
+            <p className="text-xs text-gray-500 mt-1">Equipos técnicos asig.</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         {servicios.map((s) => (
-          <div key={s._id} className="rounded-2xl bg-gray-950/40 border border-gray-850 overflow-hidden transition-all duration-300 hover:border-gray-700 shadow-sm">
+          <Card key={s._id} className="overflow-hidden transition-all duration-300 hover:border-gray-600/50">
             
             {/* Header del Servicio (Categoría) */}
             <div 
@@ -226,40 +276,45 @@ export default function TabServicios() {
 
             {/* Lista de Productos (Variantes) */}
             {s.expandido && (
-              <div className="border-t border-gray-850 bg-gray-900/10 p-4">
+              <div className="border-t border-gray-800/60 bg-gray-900/40 p-4">
                 <div className="flex justify-between items-center mb-3 px-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Productos / Paquetes Disponibles</span>
-                  <button title="Añade un nuevo servicio o variante a esta categoría" onClick={() => openModal('producto', 'create', { servicio_padre: s._id })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-[10px] text-primary hover:bg-primary/10 hover:border-primary hover:text-white font-bold transition-all cursor-pointer">
-                    <PackagePlus className="w-3.5 h-3.5" /> AÑADIR SERVICIO
-                  </button>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Variantes Disponibles</span>
+                  <Button variant="outline" size="sm" icon={PackagePlus} onClick={() => openModal('producto', 'create', { servicio_padre: s._id })} className="text-[10px] uppercase font-bold h-7 py-0">
+                    Añadir Variante
+                  </Button>
                 </div>
                 
                 <div className="space-y-2">
                   {s.productos && s.productos.map(p => (
-                    <div key={p._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors gap-3">
+                    <div key={p._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-gray-950/50 border border-gray-800 hover:border-gray-700 transition-colors gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary/50"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/70"></div>
                         <span className="text-xs font-bold text-white">{p.nombre}</span>
                       </div>
-                      <div className="flex items-center gap-6 self-end sm:self-auto">
-                        <span className="text-[10px] text-gray-500 bg-gray-950 px-2.5 py-1 rounded-md border border-gray-800">
-                          <b className="text-gray-300">{p.duracion_minutos}</b> min
+                      <div className="flex items-center gap-4 sm:gap-6 self-end sm:self-auto">
+                        <span className="text-[10px] text-gray-400 bg-gray-900/50 px-2 py-1.5 rounded-md border border-gray-800 font-mono">
+                          <b className="text-gray-300 mr-1">{p.duracion_minutos}</b>min
                         </span>
-                        <span className="text-xs font-black text-green-400 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
+                        <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 font-mono">
                           {symbol} {p.precio.toFixed(2)}
                         </span>
                         <div className="flex gap-1 border-l border-gray-800 pl-4">
-                           <button title="Editar servicio" aria-label="Editar" onClick={() => openModal('producto', 'edit', p)} className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                           <button title="Eliminar servicio" aria-label="Eliminar" onClick={() => handleEliminarProducto(p._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-gray-800 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                           <button title="Editar variante" aria-label="Editar" onClick={() => openModal('producto', 'edit', p)} className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-800 transition-colors"><Edit3 className="w-4 h-4" /></button>
+                           <button title="Eliminar variante" aria-label="Eliminar" onClick={() => handleEliminarProducto(p._id)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-gray-800 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </div>
                     </div>
                   ))}
+                  {(!s.productos || s.productos.length === 0) && (
+                    <div className="text-center py-6 border border-dashed border-gray-800 rounded-xl bg-gray-900/20">
+                      <p className="text-xs text-gray-500">No hay variantes en esta categoría. Añade la primera.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             
-          </div>
+          </Card>
         ))}
       </div>
 
