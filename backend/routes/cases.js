@@ -1,6 +1,7 @@
 import express from 'express';
 import { protegerRuta } from '../middleware/auth.js';
 import { createCase, getCaseById, listCases, updateCaseStatus, CaseServiceError } from '../services/caseService.js';
+import { applyExpertReview } from '../services/expertReviewService.js';
 
 const router = express.Router();
 
@@ -32,6 +33,15 @@ router.post('/', protegerRuta, async (req, res) => {
   try {
     const data = await createCase(req.body);
     res.status(201).json({ ok: true, data });
+  } catch (error) {
+    handleCaseError(res, error);
+  }
+});
+
+router.post('/:id/expert-review', protegerRuta, async (req, res) => {
+  try {
+    const data = await applyExpertReview(req.params.id, req.body);
+    res.json({ ok: true, data });
   } catch (error) {
     handleCaseError(res, error);
   }
