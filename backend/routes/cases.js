@@ -2,6 +2,12 @@ import express from 'express';
 import { protegerRuta } from '../middleware/auth.js';
 import { createCase, getCaseById, listCases, updateCaseStatus, CaseServiceError } from '../services/caseService.js';
 import { applyExpertReview } from '../services/expertReviewService.js';
+import {
+  approveCaseQuote,
+  getCaseQuote,
+  prepareCaseQuote,
+  rejectCaseQuote
+} from '../services/quoteService.js';
 
 const router = express.Router();
 
@@ -41,6 +47,42 @@ router.post('/', protegerRuta, async (req, res) => {
 router.post('/:id/expert-review', protegerRuta, async (req, res) => {
   try {
     const data = await applyExpertReview(req.params.id, req.body);
+    res.json({ ok: true, data });
+  } catch (error) {
+    handleCaseError(res, error);
+  }
+});
+
+router.post('/:id/quote', protegerRuta, async (req, res) => {
+  try {
+    const data = await prepareCaseQuote(req.params.id, req.body);
+    res.json({ ok: true, data });
+  } catch (error) {
+    handleCaseError(res, error);
+  }
+});
+
+router.get('/:id/quote', protegerRuta, async (req, res) => {
+  try {
+    const data = await getCaseQuote(req.params.id);
+    res.json({ ok: true, data });
+  } catch (error) {
+    handleCaseError(res, error);
+  }
+});
+
+router.post('/:id/approve', protegerRuta, async (req, res) => {
+  try {
+    const data = await approveCaseQuote(req.params.id, req.body);
+    res.json({ ok: true, data });
+  } catch (error) {
+    handleCaseError(res, error);
+  }
+});
+
+router.post('/:id/reject', protegerRuta, async (req, res) => {
+  try {
+    const data = await rejectCaseQuote(req.params.id, req.body);
     res.json({ ok: true, data });
   } catch (error) {
     handleCaseError(res, error);
