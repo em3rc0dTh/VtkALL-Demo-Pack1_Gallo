@@ -119,6 +119,77 @@ export const buildManagedEntityFromCita = (cita, verticalConfig = getActiveVerti
   };
 };
 
+const buildLegacyDetailsReserva = (caseInput = {}) => {
+  const details = {};
+  const description = typeof caseInput.description === 'string'
+    ? caseInput.description.trim()
+    : caseInput.description;
+  const managedEntity = normalizeObject(caseInput.managedEntity);
+
+  if (description) {
+    details.description = description;
+  }
+
+  if (managedEntity.summary) {
+    details.managedEntitySummary = managedEntity.summary;
+  }
+
+  if (managedEntity.type) {
+    details.managedEntityType = managedEntity.type;
+  }
+
+  if (caseInput.source) {
+    details.source = caseInput.source;
+  }
+
+  return details;
+};
+
+const legacyOriginFromSource = (source) => {
+  const allowedOrigins = new Set(['whatsapp', 'dashboard', 'web']);
+  return allowedOrigins.has(source) ? source : 'dashboard';
+};
+
+const fallbackServiceName = (verticalConfig) => (
+  verticalConfig?.labels?.case ||
+  verticalConfig?.labels?.service ||
+  'Caso'
+);
+
+export const mapCaseInputToCitaPayload = (caseInput = {}, options = {}) => {
+  const verticalConfig = options.verticalConfig || getActiveVerticalConfig();
+  const customer = normalizeObject(caseInput.customer);
+  const managedEntity = normalizeObject(caseInput.managedEntity);
+  const cliente = options.cliente || null;
+  const description = typeof caseInput.description === 'string'
+    ? caseInput.description.trim()
+    : caseInput.description;
+  const scheduledDate = options.scheduledDate || new Date();
+  const serviceName = options.serviceName || options.productName || fallbackServiceName(verticalConfig);
+  const payload = {
+    cliente: idOf(cliente || customer.id),
+    numero_telefono: cliente?.numero_telefono || customer.phone,
+    nombre_cliente: cliente?.nombre || customer.name || 'Cliente',
+    detalles_reserva: buildLegacyDetailsReserva(caseInput),
+    servicio: serviceName,
+    descripcion_trabajo: description || managedEntity.summary || '',
+    fecha_cita: scheduledDate,
+    estado: options.legacyStatus,
+    origen: legacyOriginFromSource(caseInput.source),
+    tipo_cita: 'Evaluación Presencial',
+    producto_id: options.productId || null,
+    vehiculo: {}
+  };
+
+  if (verticalConfig.vertical === 'vehicle_service' || verticalConfig.vertical === 'technical_repair') {
+    payload.vehiculo = normalizeObject(managedEntity.data);
+  }
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+};
+
 export const mapCitaToCase = (cita, options = {}) => {
   const source = toPlainObject(cita) || {};
   const verticalConfig = options.verticalConfig || getActiveVerticalConfig();

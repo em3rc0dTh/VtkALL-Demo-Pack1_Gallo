@@ -1,7 +1,15 @@
 import Cita from '../models/Cita.js';
+import Cliente from '../models/Cliente.js';
+import Producto from '../models/Producto.js';
+import Servicio from '../models/Servicio.js';
 import mongoose from 'mongoose';
-import { mapCitaToCase, mapPublicCaseStatusToLegacyStatus } from '../mappers/caseMapper.js';
+import {
+  mapCaseInputToCitaPayload,
+  mapCitaToCase,
+  mapPublicCaseStatusToLegacyStatus
+} from '../mappers/caseMapper.js';
 import { isValidLegacyCitaStatus, isValidPublicCaseStatus } from './statusService.js';
+import { getActiveVerticalConfig } from './verticalConfigService.js';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 50;
@@ -96,6 +104,149 @@ const ensureValidId = (id) => {
   }
 };
 
+const safeString = (value) => (typeof value === 'string' ? value.trim() : value);
+
+const validateOptionalObjectId = (id, label) => {
+  if (id && !mongoose.isValidObjectId(id)) {
+    throw new CaseServiceError(`Invalid ${label}`, 400);
+  }
+};
+
+const fillMissingCustomerFields = (cliente, customer = {}) => {
+  let changed = false;
+
+  if (!cliente.nombre && customer.name) {
+    cliente.nombre = customer.name;
+    changed = true;
+  }
+
+  if (!cliente.dni && customer.dni) {
+    cliente.dni = customer.dni;
+    changed = true;
+  }
+
+  if (!cliente.email && customer.email) {
+    cliente.email = customer.email;
+    changed = true;
+  }
+
+  return changed;
+};
+
+const isDuplicateKeyError = (error) => error?.code === 11000;
+
+const resolveOrCreateCliente = async (customer = {}) => {
+  const customerId = safeString(customer.id);
+  const phone = safeString(customer.phone);
+  const customerName = safeString(customer.name);
+
+  if (!customerId && !phone) {
+    throw new CaseServiceError('Customer phone or customer id is required', 400);
+  }
+
+  if (!customerId && !customerName) {
+    throw new CaseServiceError('Customer name is required when customer id is not provided', 400);
+  }
+
+  if (customerId) {
+    ensureValidId(customerId);
+    const cliente = await Cliente.findById(customerId);
+    if (!cliente) {
+      throw new CaseServiceError('Customer not found', 404);
+    }
+
+    if (fillMissingCustomerFields(cliente, customer)) {
+      await cliente.save();
+    }
+
+    return cliente;
+  }
+
+  let cliente = await Cliente.findOne({ numero_telefono: phone });
+  if (cliente) {
+    if (fillMissingCustomerFields(cliente, customer)) {
+      await cliente.save();
+    }
+    return cliente;
+  }
+
+  try {
+    return await Cliente.create({
+      nombre: customerName,
+      numero_telefono: phone,
+      dni: safeString(customer.dni) || '',
+      email: safeString(customer.email) || ''
+    });
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      cliente = await Cliente.findOne({ numero_telefono: phone });
+      if (cliente) return cliente;
+      throw new CaseServiceError('Duplicate customer phone conflict', 409);
+    }
+
+    throw error;
+  }
+};
+
+const validateCreateCaseInput = (caseInput = {}) => {
+  const description = safeString(caseInput.description);
+
+  if (!caseInput.customer || typeof caseInput.customer !== 'object') {
+    throw new CaseServiceError('Customer is required', 400);
+  }
+
+  if (!description && !caseInput.serviceId && !caseInput.productId) {
+    throw new CaseServiceError('Description, serviceId or productId is required', 400);
+  }
+
+  const status = safeString(caseInput.status) || 'intake';
+  if (!isValidPublicCaseStatus(status)) {
+    throw new CaseServiceError('Invalid case status', 400);
+  }
+
+  let scheduledDate = null;
+  if (caseInput.scheduledDate) {
+    scheduledDate = new Date(caseInput.scheduledDate);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      throw new CaseServiceError('Invalid scheduledDate', 400);
+    }
+  }
+
+  validateOptionalObjectId(caseInput.serviceId, 'serviceId');
+  validateOptionalObjectId(caseInput.productId, 'productId');
+
+  return {
+    status,
+    scheduledDate: scheduledDate || new Date()
+  };
+};
+
+const resolveServiceAndProduct = async ({ serviceId, productId }) => {
+  let service = null;
+  let product = null;
+
+  if (serviceId) {
+    service = await Servicio.findById(serviceId);
+    if (!service) {
+      throw new CaseServiceError('Service not found', 404);
+    }
+  }
+
+  if (productId) {
+    product = await Producto.findById(productId);
+    if (!product) {
+      throw new CaseServiceError('Product not found', 404);
+    }
+  }
+
+  return {
+    service,
+    product,
+    serviceName: service?.nombre || null,
+    productName: product?.nombre || null
+  };
+};
+
 export const listCases = async (filters = {}) => {
   const page = parsePositiveInteger(filters.page, DEFAULT_PAGE);
   const requestedLimit = parsePositiveInteger(filters.limit, DEFAULT_LIMIT);
@@ -146,6 +297,36 @@ export const updateCaseStatus = async (id, status) => {
 
   cita.estado = mapPublicCaseStatusToLegacyStatus(status);
   await cita.save();
+
+  return getCaseById(cita._id);
+};
+
+export const createCase = async (caseInput = {}) => {
+  const verticalConfig = getActiveVerticalConfig();
+  const { status, scheduledDate } = validateCreateCaseInput(caseInput);
+  const legacyStatus = mapPublicCaseStatusToLegacyStatus(status);
+  const cliente = await resolveOrCreateCliente(caseInput.customer);
+  const { serviceName, productName } = await resolveServiceAndProduct({
+    serviceId: caseInput.serviceId,
+    productId: caseInput.productId
+  });
+  const citaPayload = mapCaseInputToCitaPayload(caseInput, {
+    verticalConfig,
+    cliente,
+    legacyStatus,
+    serviceName,
+    productName,
+    productId: caseInput.productId || null,
+    scheduledDate
+  });
+
+  const cita = await Cita.create(citaPayload);
+
+  try {
+    await Cliente.findByIdAndUpdate(cliente._id, { $inc: { total_citas: 1 } });
+  } catch (error) {
+    console.warn('[WARN] Case created but Cliente.total_citas could not be incremented:', error.message);
+  }
 
   return getCaseById(cita._id);
 };
