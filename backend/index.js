@@ -31,6 +31,7 @@ import configuracionRoutes from './routes/configuracion.js';
 import uploadRoutes from './routes/upload.js';
 import temporalRoutes from './routes/temporal.js';
 import verticalConfigRoutes from './routes/verticalConfig.js';
+import casesRoutes from './routes/cases.js';
 import path from 'path';
 
 
@@ -60,6 +61,7 @@ app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/temporal', temporalRoutes);
 app.use('/api/vertical-config', verticalConfigRoutes);
+app.use('/api/cases', casesRoutes);
 
 // Endpoint de Diagnóstico
 app.get('/health', (req, res) => {

@@ -13,6 +13,16 @@ const handleUnknownStatus = (status, context) => {
 
 export const getCanonicalStatuses = () => getActiveVerticalConfig().statuses.canonical;
 
+const getCanonicalKeyByValue = (publicStatus) => {
+  const canonicalStatuses = getCanonicalStatuses();
+  return Object.entries(canonicalStatuses).find(([, value]) => value === publicStatus)?.[0];
+};
+
+const getPublicStatusValueByKey = (canonicalKeyOrValue) => {
+  const canonicalStatuses = getCanonicalStatuses();
+  return canonicalStatuses[canonicalKeyOrValue] || canonicalKeyOrValue;
+};
+
 export const toLegacyCitaStatus = (canonicalStatus) => {
   const { canonical, toLegacyCita } = getActiveVerticalConfig().statuses;
   const canonicalKey = toLegacyCita[canonicalStatus]
@@ -35,4 +45,22 @@ export const isValidCanonicalStatus = (status) => {
 export const isValidLegacyCitaStatus = (status) => {
   const { fromLegacyCita } = getActiveVerticalConfig().statuses;
   return Object.keys(fromLegacyCita).includes(status);
+};
+
+export const getPublicCaseStatuses = () => Object.values(getCanonicalStatuses());
+
+export const isValidPublicCaseStatus = (status) => getPublicCaseStatuses().includes(status);
+
+export const toLegacyCitaStatusValue = (publicStatus) => {
+  const canonicalKey = getCanonicalKeyByValue(publicStatus);
+  if (!canonicalKey) {
+    return handleUnknownStatus(publicStatus, 'public case');
+  }
+
+  return toLegacyCitaStatus(canonicalKey);
+};
+
+export const fromLegacyCitaStatusValue = (legacyStatus) => {
+  const canonicalKey = fromLegacyCitaStatus(legacyStatus);
+  return getPublicStatusValueByKey(canonicalKey);
 };
