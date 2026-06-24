@@ -543,39 +543,55 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
         <div className="w-[calc(100vw-32px)] sm:w-[360px] h-[500px] max-h-[calc(100vh-60px)] rounded-3xl overflow-hidden border border-gray-200 bg-white shadow-2xl flex flex-col transition-all duration-300">
           
           {/* Header */}
-          <div className="bg-light-panel p-4 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {taller.config_agente?.avatar_url ? (
-                <img 
-                  src={taller.config_agente.avatar_url} 
-                  alt={nombreAgente} 
-                  className="w-10 h-10 rounded-full object-cover border border-primary/20 bg-slate-100"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
-                  }}
-                />
+          <div className="bg-white border-b border-gray-200 relative pt-16 pb-4">
+            {/* Banner superior (Fondo) */}
+            <div className="absolute top-0 left-0 w-full h-24 bg-slate-100 overflow-hidden">
+              {taller.config_agente?.banner_url ? (
+                <img src={taller.config_agente.banner_url} alt="Banner" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-white text-sm">
-                  🤖
-                </div>
+                <div className="w-full h-full bg-gradient-to-r from-slate-100 to-slate-200"></div>
               )}
-              <div>
-                <h4 className="text-sm font-bold text-navy">{nombreAgente}</h4>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="text-[10px] text-[#7A7A7A]">Activo ahora</span>
-                </div>
-              </div>
             </div>
             
-            <div className="flex items-center gap-1.5">
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-[#7A7A7A] hover:text-navy hover:bg-slate-100 transition-colors"
-                title="Minimizar chat"
-              >
-                <Minimize2 className="w-4.5 h-4.5" />
-              </button>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-white bg-black/20 hover:bg-black/40 backdrop-blur-sm transition-colors z-20"
+              title="Minimizar chat"
+            >
+              <Minimize2 className="w-5 h-5" />
+            </button>
+
+            {/* Contenido (Avatar alineado a la izquierda) */}
+            <div className="relative z-10 flex items-end px-5 gap-4">
+              <div className="shrink-0 -mt-8">
+                {taller.config_agente?.avatar_url ? (
+                  <img 
+                    src={taller.config_agente.avatar_url} 
+                    alt={nombreAgente} 
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white bg-white shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_12px_35px_rgb(0,0,0,0.2)] hover:-translate-y-1 transition-all duration-300"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=100';
+                    }}
+                  />
+                ) : (
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white bg-primary shadow-[0_8px_30px_rgb(0,0,0,0.15)] flex items-center justify-center font-bold text-white text-3xl hover:-translate-y-1 transition-all duration-300">
+                    🤖
+                  </div>
+                )}
+              </div>
+              
+              <div className="pb-1.5 drop-shadow-sm">
+                <h4 
+                  className="text-lg font-bold leading-tight"
+                  style={{ color: taller.config_agente?.color_nombre_agente || '#0f172a' }}
+                >
+                  {nombreAgente}
+                </h4>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-xs font-medium text-[#7A7A7A]">Activo ahora</span>
+                </div>
+              </div>
             </div>
           </div>
 

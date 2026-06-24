@@ -82,6 +82,8 @@ router.put('/', protegerRuta, async (req, res) => {
       if (datos.config_agente.mensaje_bienvenida !== undefined) taller.config_agente.mensaje_bienvenida = datos.config_agente.mensaje_bienvenida;
       if (datos.config_agente.instrucciones_base !== undefined) taller.config_agente.instrucciones_base = datos.config_agente.instrucciones_base;
       if (datos.config_agente.avatar_url !== undefined) taller.config_agente.avatar_url = datos.config_agente.avatar_url;
+      if (datos.config_agente.banner_url !== undefined) taller.config_agente.banner_url = datos.config_agente.banner_url;
+      if (datos.config_agente.color_nombre_agente !== undefined) taller.config_agente.color_nombre_agente = datos.config_agente.color_nombre_agente;
       
       // Nombre de agente solo editable por soporte
       if (req.usuario.rol === 'soporte' && datos.config_agente.nombre_agente !== undefined) {

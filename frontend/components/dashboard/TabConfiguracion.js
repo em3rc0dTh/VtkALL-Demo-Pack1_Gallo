@@ -35,6 +35,8 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [mensajeBienvenida, setMensajeBienvenida] = useState('');
   const [instruccionesBase, setInstruccionesBase] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [colorNombreAgente, setColorNombreAgente] = useState('#0f172a');
 
   // Configuración de citas
   const [horaInicioCitas, setHoraInicioCitas] = useState('11:00');
@@ -47,6 +49,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [brochureUrl, setBrochureUrl] = useState('');
   const [promociones, setPromociones] = useState([]);
   const fileInputRef = useRef(null);
+  const bannerFileInputRef = useRef(null);
 
   useEffect(() => {
     cargarConfig();
@@ -81,6 +84,8 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           setMensajeBienvenida(res.config_agente.mensaje_bienvenida || '');
           setInstruccionesBase(res.config_agente.instrucciones_base || '');
           setAvatarUrl(res.config_agente.avatar_url || '');
+          setBannerUrl(res.config_agente.banner_url || '');
+          setColorNombreAgente(res.config_agente.color_nombre_agente || '#0f172a');
         }
 
         if (res.config_citas) {
@@ -157,7 +162,9 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           nombre_agente: nombreAgente,
           mensaje_bienvenida: mensajeBienvenida,
           instrucciones_base: instruccionesBase,
-          avatar_url: avatarUrl
+          avatar_url: avatarUrl,
+          banner_url: bannerUrl,
+          color_nombre_agente: colorNombreAgente
         },
         config_citas: {
           hora_inicio: horaInicioCitas,
@@ -200,6 +207,21 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBannerFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        setMensajeError('La imagen del banner debe ser menor a 3MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerUrl(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -693,6 +715,71 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                       className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Banner del Header (Opcional)</label>
+                <p className="text-[10px] text-gray-500 mb-2">Imagen que se mostrará en el fondo superior del chat del agente.</p>
+                
+                {bannerUrl && (
+                  <div className="mb-4">
+                    <img 
+                      src={bannerUrl} 
+                      alt="Banner Preview" 
+                      className="w-full h-24 object-cover rounded-xl border border-gray-700"
+                    />
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Opción A: Subir Imagen</span>
+                    <button 
+                      type="button"
+                      onClick={() => bannerFileInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-gray-700 bg-gray-900 hover:border-primary hover:bg-gray-800 cursor-pointer text-xs font-semibold text-primary transition-all"
+                    >
+                      <Image className="w-4 h-4" /> Seleccionar Imagen (Máx 3MB)
+                    </button>
+                    <input 
+                      ref={bannerFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerFileChange}
+                      className="hidden"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Opción B: URL Personalizada</span>
+                    <input
+                      type="text"
+                      value={bannerUrl}
+                      onChange={(e) => setBannerUrl(e.target.value)}
+                      placeholder="https://ejemplo.com/banner.png"
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color del Nombre del Agente</label>
+                <p className="text-[10px] text-gray-500 mb-2">Ajusta el color del nombre si el banner de fondo es muy oscuro o muy claro.</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={colorNombreAgente}
+                    onChange={(e) => setColorNombreAgente(e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <input
+                    type="text"
+                    value={colorNombreAgente}
+                    onChange={(e) => setColorNombreAgente(e.target.value)}
+                    className="w-32 bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
                 </div>
               </div>
 
