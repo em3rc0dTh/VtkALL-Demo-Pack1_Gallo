@@ -16,7 +16,7 @@
         "pasteleria:worker": "ts-node src/pasteleria/worker.ts"
     },
     "dependencies": {
-        "@swc/core-linux-x64-gnu": "^1.15.18",
+        "@swc/core": "^1.15.18",
         "@temporalio/activity": "^1.11.7",
         "@temporalio/client": "^1.11.7",
         "@temporalio/common": "^1.11.7",

@@ -38,6 +38,7 @@ const populateCaseRefs = (query) => query
 
 const buildListQuery = (filters = {}) => {
   const query = {};
+  const andClauses = [];
 
   if (filters.legacyStatus) {
     if (!isValidLegacyCitaStatus(filters.legacyStatus)) {
@@ -73,18 +74,39 @@ const buildListQuery = (filters = {}) => {
     }
   }
 
+  if (filters.vehiclePlate) {
+    const plate = String(filters.vehiclePlate).trim();
+    if (plate) {
+      const regex = new RegExp(`^${escapeRegex(plate)}$`, 'i');
+      andClauses.push({
+        $or: [
+          { 'vehiculo.placa': regex },
+          { 'vehiculo.patente': regex }
+        ]
+      });
+    }
+  }
+
   if (filters.search) {
     const regex = new RegExp(escapeRegex(filters.search), 'i');
-    query.$or = [
-      { nombre_cliente: regex },
-      { numero_telefono: regex },
-      { servicio: regex },
-      { descripcion_trabajo: regex },
-      { 'vehiculo.marca': regex },
-      { 'vehiculo.modelo': regex },
-      { 'vehiculo.patente': regex },
-      { 'vehiculo.placa': regex }
-    ];
+    andClauses.push({
+      $or: [
+        { nombre_cliente: regex },
+        { numero_telefono: regex },
+        { servicio: regex },
+        { descripcion_trabajo: regex },
+        { 'vehiculo.marca': regex },
+        { 'vehiculo.modelo': regex },
+        { 'vehiculo.patente': regex },
+        { 'vehiculo.placa': regex }
+      ]
+    });
+  }
+
+  if (andClauses.length === 1) {
+    Object.assign(query, andClauses[0]);
+  } else if (andClauses.length > 1) {
+    query.$and = andClauses;
   }
 
   return query;

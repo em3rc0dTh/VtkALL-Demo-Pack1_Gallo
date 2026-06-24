@@ -68,6 +68,20 @@ const evidenceType = (url) => {
   return 'file';
 };
 
+const normalizeEvidenceUrls = (value) => {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+
+  return value
+    .map((url) => (typeof url === 'string' ? url.trim() : ''))
+    .filter(Boolean)
+    .filter((url) => {
+      if (seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
+};
+
 export const mapLegacyStatusToPublicCaseStatus = (legacyStatus) => fromLegacyCitaStatusValue(legacyStatus);
 
 export const mapPublicCaseStatusToLegacyStatus = (status) => toLegacyCitaStatusValue(status);
@@ -183,6 +197,11 @@ export const mapCaseInputToCitaPayload = (caseInput = {}, options = {}) => {
 
   if (verticalConfig.vertical === 'vehicle_service' || verticalConfig.vertical === 'technical_repair') {
     payload.vehiculo = normalizeObject(managedEntity.data);
+  }
+
+  const evidenceUrls = normalizeEvidenceUrls(caseInput.evidenceUrls);
+  if (evidenceUrls.length > 0) {
+    payload.imagenes = evidenceUrls;
   }
 
   return Object.fromEntries(

@@ -4,7 +4,7 @@ import './globals.css';
 export async function generateMetadata() {
   try {
     const res = await fetch('http://localhost:4000/api/configuracion', {
-      next: { revalidate: 10 } // Revalidar cada 10 segundos
+      cache: 'no-store'
     });
     if (res.ok) {
       const config = await res.json();
