@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, Clock, AlertCircle, PlayCircle, CheckCircle, 
-  CarFront, LayoutGrid, AlertTriangle, Search, Info, MapPin, ChevronLeft, ChevronRight, XCircle, UploadCloud, Image as ImageIcon, Wrench, User
+  CarFront, LayoutGrid, AlertTriangle, Search, Info, MapPin, ChevronLeft, ChevronRight, X, XCircle, UploadCloud, Image as ImageIcon, Wrench, User
 } from 'lucide-react';
 import OperationalCard from './OperationalCard';
 import { api } from "../../lib/api.js";

@@ -77,7 +77,7 @@ export default function DashboardPage() {
 
   const navItems = [
     { id: 'dashboard', label: 'Resumen Operativo', icon: LayoutGrid },
-    { id: 'cases', label: 'Operaciones Case', icon: ClipboardList },
+    { id: 'cases', label: 'Órdenes de Taller', icon: ClipboardList },
     { id: 'evaluaciones', label: 'Admisión y Diagnóstico', icon: Calendar },
     { id: 'ejecuciones', label: 'Bahías y Ejecución', icon: Activity },
     { id: 'clientes', label: 'Cartera de Clientes', icon: Users },

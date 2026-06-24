@@ -4,9 +4,11 @@ const phoneRequests = new Map();
 export const rateLimiter = (tipo = 'ip', limiteMax = 60, ventanaMs = 60000) => {
   return (req, res, next) => {
     let key = req.ip;
+    let isWeb = false;
     
     if (tipo === 'telefono') {
-      const fromField = req.body.From || '';
+      const fromField = req.body.From || req.body.from || '';
+      if (req.body.from) isWeb = true;
       key = fromField.replace('whatsapp:', '').trim() || req.ip;
     }
 
@@ -23,6 +25,9 @@ export const rateLimiter = (tipo = 'ip', limiteMax = 60, ventanaMs = 60000) => {
     
     if (validos.length >= limiteMax) {
       if (tipo === 'telefono') {
+        if (isWeb) {
+          return res.status(429).json({ ok: false, error: 'Has enviado demasiados mensajes seguidos. Espera un minuto antes de volver a escribir.' });
+        }
         // Formato TwiML de error o limitación
         res.set('Content-Type', 'text/xml');
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>

@@ -73,7 +73,11 @@ const tools = [
           servicio:            { type: "string", description: "Nombre del servicio a realizar" },
           descripcion_trabajo: { type: "string", description: "Detalles del requerimiento general" },
           detalles_extra:      { type: "string", description: "Objeto JSON en formato string con todos los detalles adicionales específicos solicitados por el comercio (ej. temática, porciones, sabor, talla, modelo, etc.)" },
-          fecha_cita:          { type: "string", description: "Fecha y hora en formato ISO 8601 (ej: 2026-05-20T10:00:00)" }
+          fecha_cita:          { type: "string", description: "Fecha y hora en formato ISO 8601 (ej: 2026-05-20T10:00:00)" },
+          vehiculo_marca:      { type: "string", description: "Marca del vehículo (ej: Toyota, Kia)" },
+          vehiculo_modelo:     { type: "string", description: "Modelo del vehículo (ej: Yaris, Rio)" },
+          vehiculo_patente:    { type: "string", description: "Placa o patente del vehículo" },
+          vehiculo_anio:       { type: "number", description: "Año del vehículo (opcional)" }
         },
         required: ["numero_telefono", "nombre_cliente", "servicio", "fecha_cita"]
       }
@@ -170,7 +174,11 @@ export const ejecutarTool = async (nombre, args) => {
           fecha_cita,
           tipo_cita,
           imagenes,
-          _session_telefono
+          _session_telefono,
+          vehiculo_marca,
+          vehiculo_modelo,
+          vehiculo_patente,
+          vehiculo_anio
         } = args;
 
         const fechaCitaDate = new Date(fecha_cita);
@@ -233,7 +241,13 @@ export const ejecutarTool = async (nombre, args) => {
           origen: _session_telefono && _session_telefono.startsWith('web_') ? 'web' : 'whatsapp',
           precio_estimado: 0,
           tipo_cita: tipo_cita || 'Evaluación Presencial',
-          imagenes: imagenes || []
+          imagenes: imagenes || [],
+          vehiculo: {
+            marca: vehiculo_marca || '',
+            modelo: vehiculo_modelo || '',
+            patente: vehiculo_patente || '',
+            anio: vehiculo_anio || ''
+          }
         });
 
         // Buscar precio base del servicio o producto
@@ -270,6 +284,7 @@ export const ejecutarTool = async (nombre, args) => {
             const client = new Client({ connection });
           
             const descripcionParaPastelero = [
+              `Vehículo: ${vehiculo_marca || ''} ${vehiculo_modelo || ''} (Placa: ${vehiculo_patente || 'N/A'}, Año: ${vehiculo_anio || 'N/A'})`,
               `Servicio: ${servicio}`,
               `Detalles: ${descripcion_trabajo}`,
               `Requerimientos Extra: ${JSON.stringify(parsedDetalles)}`
