@@ -12,7 +12,8 @@ import TabTeam from '../../../components/dashboard/TabTeam.js';
 import TabServicios from '../../../components/dashboard/TabServicios.js';
 import TabMensajes from '../../../components/dashboard/TabMensajes.js';
 import TabConfiguracion from '../../../components/dashboard/TabConfiguracion.js';
-import { Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, Activity, Wrench, LayoutGrid } from 'lucide-react';
+import TabCaseOperations from '../../../components/dashboard/TabCaseOperations.js';
+import { Calendar, Users, MessageSquare, Briefcase, Settings, LogOut, Shield, Activity, Wrench, LayoutGrid, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../lib/api.js';
 
@@ -76,6 +77,7 @@ export default function DashboardPage() {
 
   const navItems = [
     { id: 'dashboard', label: 'Resumen Operativo', icon: LayoutGrid },
+    { id: 'cases', label: 'Operaciones Case', icon: ClipboardList },
     { id: 'evaluaciones', label: 'Admisión y Diagnóstico', icon: Calendar },
     { id: 'ejecuciones', label: 'Bahías y Ejecución', icon: Activity },
     { id: 'clientes', label: 'Cartera de Clientes', icon: Users },
@@ -190,6 +192,7 @@ export default function DashboardPage() {
         {/* Contenedor dinámico */}
         <div className="flex-1 p-6 lg:p-8 overflow-y-auto relative z-10">
           {activeTab === 'dashboard' && <TabDashboard />}
+          {activeTab === 'cases' && <TabCaseOperations />}
           {activeTab === 'evaluaciones' && <TabEvaluaciones />}
           {activeTab === 'ejecuciones' && <TabEjecuciones />}
           {activeTab === 'clientes' && <TabClientes />}

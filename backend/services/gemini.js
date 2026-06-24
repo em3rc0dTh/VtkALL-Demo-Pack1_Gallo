@@ -726,10 +726,10 @@ Ejemplo: "Soy Juan Perez, mi placa es ABC-123, celular 999888777, quiero un Camb
 
 // LISTA DE MODELOS GEMINI DISPONIBLES CON CUOTA ACTIVA
 const MODELOS_FALLBACK = [
-  'gemini-2.5-flash',
-  'gemini-3.5-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-2.5-flash-lite'
+  'gemini-2.5-flash-lite',   // 15 RPM, 500 RPD ← más cuota
+  'gemini-2.5-flash',        // 5 RPM, 20 RPD
+  'gemini-3.0-flash',        // 5 RPM, 20 RPD (verifica el string exacto)
+  'gemini-3.1-flash-lite',   // 15 RPM, 500 RPD ← más cuota
 ];
 
 /**
