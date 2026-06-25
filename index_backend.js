@@ -39,8 +39,8 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://turagua.thradex.com', 'https://turagua.thradex.com'], // Next.js port
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Servir archivos estáticos de uploads

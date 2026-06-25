@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ['*.ngrok-free.dev', 'localhost:3000'],
+  allowedDevOrigins: ['*.ngrok-free.dev', 'localhost:3000', '192.168.18.92'],
   experimental: {
     turbo: {
       root: '..',
