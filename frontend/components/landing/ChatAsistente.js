@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Wrench, Calendar, Clock, User, ChevronLeft, ChevronRight, Minimize2, Paperclip } from 'lucide-react';
+import { MessageSquare, X, Send, Wrench, Calendar, Clock, User, ChevronLeft, ChevronRight, Minimize2, Paperclip, Camera } from 'lucide-react';
 import { api } from '../../lib/api.js';
 import BookingFlow from './BookingFlow';
 
@@ -14,6 +14,8 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
   const [escribiendo, setEscribiendo] = useState(false);
   const [imagenesAdjuntas, setImagenesAdjuntas] = useState([]);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Client info loaded from DB
   const [clienteData, setClienteData] = useState({
@@ -49,6 +51,7 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
   // Inicializar identificador único de sesión web al montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      setIsMobile(/Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768);
       let saved = localStorage.getItem('mecanica_web_session');
       if (!saved) {
         saved = `web_${Math.random().toString(36).substring(2, 11)}`;
@@ -562,7 +565,7 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             </button>
 
             {/* Contenido (Avatar alineado a la izquierda) */}
-            <div className="relative z-10 flex items-end px-5 gap-4">
+            <div className="relative z-10 flex items-end pl-2 pr-5 gap-4">
               <div className="shrink-0 -mt-8">
                 {taller.config_agente?.avatar_url ? (
                   <img 
@@ -683,9 +686,17 @@ export default function ChatAsistente({ taller = {}, triggerOpenMessage, setTrig
             )}
             <div className="p-3 flex items-center gap-2">
               <input type="file" accept="image/*" multiple ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-              <button onClick={() => fileInputRef.current?.click()} className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors cursor-pointer" title="Adjuntar foto">
+              <button onClick={() => fileInputRef.current?.click()} className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors cursor-pointer" title="Adjuntar galería">
                 <Paperclip className="w-5 h-5" />
               </button>
+              {isMobile && (
+                <>
+                  <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleFileChange} className="hidden" />
+                  <button onClick={() => cameraInputRef.current?.click()} className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors cursor-pointer" title="Tomar foto">
+                    <Camera className="w-5 h-5" />
+                  </button>
+                </>
+              )}
               <input
                 type="text"
                 placeholder="Escribe un mensaje..."

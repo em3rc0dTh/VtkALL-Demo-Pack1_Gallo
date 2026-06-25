@@ -770,38 +770,77 @@ const llamarCompletionsConFallback = async (openaiClient, params) => {
   throw ultimoError || new Error("Todos los modelos fallaron en llamarCompletionsConFallback");
 };
 
+// Cola de concurrencia para evitar colapsar Ollama con 150 peticiones simultáneas
+const MAX_CONCURRENT_OLLAMA = 1; // 1 estricto para evitar que Ollama rechace por falta de VRAM o timeout interno
+let activeOllamaRequests = 0;
+const ollamaQueue = [];
+
+const processOllamaQueue = async () => {
+  if (activeOllamaRequests >= MAX_CONCURRENT_OLLAMA || ollamaQueue.length === 0) return;
+  activeOllamaRequests++;
+  const { task, resolve, reject } = ollamaQueue.shift();
+  try {
+    const res = await task();
+    resolve(res);
+  } catch (err) {
+    reject(err);
+  } finally {
+    activeOllamaRequests--;
+    processOllamaQueue();
+  }
+};
+
+const enqueueOllamaTask = (task) => {
+  return new Promise((resolve, reject) => {
+    ollamaQueue.push({ task, resolve, reject });
+    processOllamaQueue();
+  });
+};
+
 // FALLBACK A OLLAMA (Capa 2 de Seguridad)
 const llamarOllamaFallback = async (systemPrompt, historial, mensajeUsuario) => {
-  try {
-    console.log("🤖 [Ollama Fallback] Intentando contactar al contenedor Ollama local...");
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...historial.map(m => ({ 
-        role: m.role, 
-        content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
-      })),
-      { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
-    ];
-
-    const ollamaUrl = env.ollamaUrl;
-    const response = await fetch(`${ollamaUrl}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "qwen2.5:0.5b",
-        messages: messages,
-        stream: false
-      })
-    });
-
-    if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
-    const data = await response.json();
-    console.log("✅ [Ollama Fallback] Respuesta generada con éxito");
-    return data.message.content;
-  } catch (error) {
-    console.warn("⚠️ [Ollama Fallback] Falló:", error.message);
-    throw error;
+  // EVITAR HEAD-OF-LINE BLOCKING: Si la cola está muy llena, rechazar rápido para que entre el Default (Capa 3)
+  // y evitar que el frontend de Next.js arroje Timeout / Socket Hang Up esperando 5 minutos.
+  if (ollamaQueue.length >= 10) {
+    throw new Error("La cola de Ollama está saturada (más de 10 peticiones). Saltando a Capa 3 para evitar Timeout.");
   }
+
+  const task = async () => {
+    let retries = 5;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...historial.map(m => ({ 
+            role: m.role, 
+            content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
+          })),
+          { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
+        ];
+
+        const ollamaUrl = env.ollamaUrl;
+        const response = await fetch(`${ollamaUrl}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "qwen2.5:0.5b",
+            messages: messages,
+            stream: false
+          }),
+          signal: AbortSignal.timeout(90000)
+        });
+
+        if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+        const data = await response.json();
+        return data.message.content;
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await new Promise(res => setTimeout(res, 2000));
+      }
+    }
+  };
+
+  return enqueueOllamaTask(task);
 };
 
 // CORE AGENT PROCESSOR
@@ -931,6 +970,9 @@ REGLAS IMPORTANTES:
 REGLAS PERSONALIZADAS DEL TALLER:
 ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? taller.config_agente.instrucciones_base : 'Actúa según tu mejor criterio profesional.'}`;
 
+  let historial = [];
+  let currentUserContent = mensaje_usuario;
+
   try {
     // 1. Obtener historial de mensajes de DB (últimos 20)
     const historialDB = await Mensaje.find({ numero_telefono })
@@ -940,7 +982,7 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
     // Invertir para que quede en orden cronológico
     historialDB.reverse();
     
-    const historial = historialDB.map(m => {
+    historial = historialDB.map(m => {
       if (m.adjuntos && m.adjuntos.length > 0) {
         const contentArray = [{ type: 'text', text: m.contenido }];
         m.adjuntos.forEach(adj => {
@@ -957,7 +999,6 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
       };
     });
 
-    let currentUserContent = mensaje_usuario;
     if (adjuntos_nuevos && adjuntos_nuevos.length > 0) {
       currentUserContent = [{ type: 'text', text: mensaje_usuario }];
       adjuntos_nuevos.forEach(adj => {

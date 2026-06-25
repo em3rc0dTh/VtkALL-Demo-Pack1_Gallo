@@ -281,6 +281,19 @@ export default function TabMensajes() {
                             {deAdminManual ? 'Tú (Manual)' : `${nombreAgente} (IA Agent)`}
                           </span>
                         )}
+                        {m.adjuntos && m.adjuntos.length > 0 && (
+                          <div className="flex gap-2 mb-2 flex-wrap">
+                            {m.adjuntos.map((adj, i) => (
+                              <img 
+                                key={i} 
+                                src={adj} 
+                                alt="Adjunto del usuario" 
+                                className="w-24 h-24 object-cover rounded-lg border border-gray-700/50 shadow-sm cursor-pointer hover:scale-105 transition-transform" 
+                                onClick={() => window.open(adj, '_blank')}
+                              />
+                            ))}
+                          </div>
+                        )}
                         <p className="whitespace-pre-wrap">{m.contenido}</p>
                         <span className="block text-[8px] text-gray-500 text-right mt-1.5">
                           {f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
