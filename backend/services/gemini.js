@@ -731,6 +731,29 @@ Pacientes sin DNI pueden dejar este campo vacío.
 Ejemplo: "Soy Juan Perez, mi placa es ABC-123, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
   }
 
+  if (numero_telefono.startsWith('web_')) {
+    try {
+      const historialDB = await Mensaje.find({ numero_telefono }).sort({ recibido_en: -1 }).limit(8);
+      const mensajesCliente = historialDB.filter(m => m.remitente === 'cliente');
+      const asistenteYaPidioIdentidad = historialDB.some(m =>
+        m.remitente === 'asistente' &&
+        (m.contenido.toLowerCase().includes('telefono, dni o placa') ||
+          m.contenido.toLowerCase().includes('telefono celular') ||
+          m.contenido.toLowerCase().includes('tu nombre completo'))
+      );
+
+      if (mensajesCliente.length >= 3 && !asistenteYaPidioIdentidad) {
+        const clienteExistente = await Cliente.findOne({ numero_telefono });
+        if (!clienteExistente?.nombre) {
+          return 'La conversación está avanzando bien. Para atenderte mejor, dime tu nombre, por favor.';
+        }
+        return 'Para que pueda guardar esta conversación y retomarla desde cualquier dispositivo, envíame tu teléfono, DNI o placa.';
+      }
+    } catch (identityPromptError) {
+      console.error('Error al evaluar solicitud progresiva de identidad:', identityPromptError);
+    }
+  }
+
   // 5. RESPUESTA DE BIENVENIDA O SALUDO DEFAULT
   let bienvenida = taller.config_agente?.mensaje_bienvenida || '¡Hola! 👋 Soy {nombre_agente}, el asistente de {nombre_taller}. ¿En qué te puedo ayudar hoy?';
   return bienvenida
@@ -961,6 +984,13 @@ DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 - El identificador actual de la sesión del cliente es: ${numero_telefono}.
 - Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real para completar la reserva (el DNI es opcional).
 - Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro.
+
+IDENTIDAD PROGRESIVA Y CONTINUIDAD ENTRE DISPOSITIVOS:
+- Si el cliente solo saluda o hace una pregunta casual, responde directo sin pedir datos personales.
+- Si la conversación web ya toma hilo (2 a 3 interacciones, diagnóstico o reserva), pide primero su nombre de forma natural.
+- Luego, si conviene guardar continuidad o retomar historial, pide teléfono o placa. Puedes mencionar que eso permite continuar desde cualquier dispositivo.
+- El DNI es solo un identificador alternativo y sensible: pídelo al final, nunca como requisito principal.
+- Nunca recuperes ni fusiones historial solo por nombre, porque puede haber homónimos. Para historial previo, usa teléfono, DNI o placa exactos.
 
 REGLAS IMPORTANTES:
 - Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).

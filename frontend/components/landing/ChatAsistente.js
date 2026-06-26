@@ -84,14 +84,7 @@ export default function ChatAsistente({
 
       // Auto-open logic after 5 seconds
       const autoOpenTimer = setTimeout(() => {
-        if (
-          /Mobi|Android/i.test(navigator.userAgent) ||
-          window.innerWidth <= 768
-        ) {
-          setShowMobileNotification(true);
-        } else {
-          setIsOpen(true);
-        }
+        setShowMobileNotification(true);
       }, 5000);
 
       return () => clearTimeout(autoOpenTimer);
@@ -709,8 +702,8 @@ export default function ChatAsistente({
         </button>
       )}
 
-      {/* Mobile Notification Push */}
-      {!isOpen && showMobileNotification && isMobile && (
+      {/* Notification Push */}
+      {!isOpen && showMobileNotification && (
         <div className="absolute bottom-20 right-0 w-[280px] bg-white border border-gray-200 rounded-2xl p-4 shadow-2xl animate-fade-in-up">
           <button
             onClick={() => setShowMobileNotification(false)}

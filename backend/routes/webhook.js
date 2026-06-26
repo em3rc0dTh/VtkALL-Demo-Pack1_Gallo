@@ -246,11 +246,11 @@ const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, es
           }
         } else {
           // No se encontró ninguna cita pendiente para confirmar/cancelar
-          respuestaFinalIA = `Para cualquier consulta o reprogramación, por favor ingresa a nuestra página web o comunícate con ${nombreAgente}, parte de nuestro equipo de soporte al cliente.`;
+          respuestaFinalIA = `El asistente trabaja desde la web. Para cualquier consulta o gestión, por favor dirígete a nuestra página web: ${env.frontendOrigin}`;
         }
       } else {
         // Cualquier otro mensaje diferente de Sí/No
-        respuestaFinalIA = `Para cualquier consulta o reprogramación, por favor ingresa a nuestra página web o comunícate con ${nombreAgente}, parte de nuestro equipo de soporte al cliente.`;
+        respuestaFinalIA = `El asistente trabaja desde la web. Para cualquier consulta o gestión, por favor dirígete a nuestra página web: ${env.frontendOrigin}`;
       }
     } else {
       // Flujo conversacional completo con Gemini (para el simulador local)
