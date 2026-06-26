@@ -37,6 +37,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
   const [colorNombreAgente, setColorNombreAgente] = useState('#0f172a');
+  const [alineacionAvatarChat, setAlineacionAvatarChat] = useState('Derecha');
 
   // Configuración de citas
   const [horaInicioCitas, setHoraInicioCitas] = useState('11:00');
@@ -86,6 +87,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           setAvatarUrl(res.config_agente.avatar_url || '');
           setBannerUrl(res.config_agente.banner_url || '');
           setColorNombreAgente(res.config_agente.color_nombre_agente || '#0f172a');
+          setAlineacionAvatarChat(res.config_agente.alineacion_avatar_chat || 'Derecha');
         }
 
         if (res.config_citas) {
@@ -164,7 +166,8 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
           instrucciones_base: instruccionesBase,
           avatar_url: avatarUrl,
           banner_url: bannerUrl,
-          color_nombre_agente: colorNombreAgente
+          color_nombre_agente: colorNombreAgente,
+          alineacion_avatar_chat: alineacionAvatarChat
         },
         config_citas: {
           hora_inicio: horaInicioCitas,
@@ -784,6 +787,20 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
               </div>
 
               <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Alineación del Avatar en Chat</label>
+                <p className="text-[10px] text-gray-500 mb-2">Decide en qué posición se mostrará la imagen del agente y su nombre en la cabecera (Izquierda, Centro o Derecha).</p>
+                <select
+                  value={alineacionAvatarChat}
+                  onChange={(e) => setAlineacionAvatarChat(e.target.value)}
+                  className="w-full sm:w-1/2 bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                >
+                  <option value="Izquierda">Izquierda</option>
+                  <option value="Centro">Centro</option>
+                  <option value="Derecha">Derecha</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Instrucciones de System Prompt / Personalidad</label>
                 <p className="text-[10px] text-gray-500 mb-2">Define las directivas de comportamiento del agente para Gemini (cómo presentarse, consultar la agenda, etc.).</p>
                 <textarea
@@ -946,18 +963,30 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color Temático</label>
-                            <select
-                              value={promo.color_fondo || 'primary'}
-                              onChange={(e) => {
-                                const updated = [...promociones];
-                                updated[index].color_fondo = e.target.value;
-                                setPromociones(updated);
-                              }}
-                              className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
-                            >
-                              <option value="primary">Azul (Primary)</option>
-                              <option value="navy">Gris Oscuro (Navy)</option>
-                            </select>
+                            <div className="flex gap-2">
+                              <input
+                                type="color"
+                                value={promo.color_fondo && promo.color_fondo.startsWith('#') ? promo.color_fondo : '#00aeef'}
+                                onChange={(e) => {
+                                  const updated = [...promociones];
+                                  updated[index].color_fondo = e.target.value;
+                                  setPromociones(updated);
+                                }}
+                                className="w-10 h-10 rounded-lg cursor-pointer bg-gray-900 border border-gray-800"
+                                title="Seleccionar color"
+                              />
+                              <input
+                                type="text"
+                                value={promo.color_fondo || ''}
+                                onChange={(e) => {
+                                  const updated = [...promociones];
+                                  updated[index].color_fondo = e.target.value;
+                                  setPromociones(updated);
+                                }}
+                                className="flex-1 bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary font-mono uppercase"
+                                placeholder="#00AEEF o primary"
+                              />
+                            </div>
                           </div>
 
                           <div className="flex items-center gap-2 pt-5">

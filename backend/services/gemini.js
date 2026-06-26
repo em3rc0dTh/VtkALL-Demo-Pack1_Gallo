@@ -731,6 +731,29 @@ Pacientes sin DNI pueden dejar este campo vacío.
 Ejemplo: "Soy Juan Perez, mi placa es ABC-123, celular 999888777, quiero un Cambio de Aceite para mi Ford el 2026-05-25 a las 10:00"`;
   }
 
+  if (numero_telefono.startsWith('web_')) {
+    try {
+      const historialDB = await Mensaje.find({ numero_telefono }).sort({ recibido_en: -1 }).limit(8);
+      const mensajesCliente = historialDB.filter(m => m.remitente === 'cliente');
+      const asistenteYaPidioIdentidad = historialDB.some(m =>
+        m.remitente === 'asistente' &&
+        (m.contenido.toLowerCase().includes('telefono, dni o placa') ||
+          m.contenido.toLowerCase().includes('telefono celular') ||
+          m.contenido.toLowerCase().includes('tu nombre completo'))
+      );
+
+      if (mensajesCliente.length >= 3 && !asistenteYaPidioIdentidad) {
+        const clienteExistente = await Cliente.findOne({ numero_telefono });
+        if (!clienteExistente?.nombre) {
+          return 'La conversación está avanzando bien. Para atenderte mejor, dime tu nombre, por favor.';
+        }
+        return 'Para que pueda guardar esta conversación y retomarla desde cualquier dispositivo, envíame tu teléfono, DNI o placa.';
+      }
+    } catch (identityPromptError) {
+      console.error('Error al evaluar solicitud progresiva de identidad:', identityPromptError);
+    }
+  }
+
   // 5. RESPUESTA DE BIENVENIDA O SALUDO DEFAULT
   let bienvenida = taller.config_agente?.mensaje_bienvenida || '¡Hola! 👋 Soy {nombre_agente}, el asistente de {nombre_taller}. ¿En qué te puedo ayudar hoy?';
   return bienvenida
@@ -770,38 +793,77 @@ const llamarCompletionsConFallback = async (openaiClient, params) => {
   throw ultimoError || new Error("Todos los modelos fallaron en llamarCompletionsConFallback");
 };
 
+// Cola de concurrencia para evitar colapsar Ollama con 150 peticiones simultáneas
+const MAX_CONCURRENT_OLLAMA = 1; // 1 estricto para evitar que Ollama rechace por falta de VRAM o timeout interno
+let activeOllamaRequests = 0;
+const ollamaQueue = [];
+
+const processOllamaQueue = async () => {
+  if (activeOllamaRequests >= MAX_CONCURRENT_OLLAMA || ollamaQueue.length === 0) return;
+  activeOllamaRequests++;
+  const { task, resolve, reject } = ollamaQueue.shift();
+  try {
+    const res = await task();
+    resolve(res);
+  } catch (err) {
+    reject(err);
+  } finally {
+    activeOllamaRequests--;
+    processOllamaQueue();
+  }
+};
+
+const enqueueOllamaTask = (task) => {
+  return new Promise((resolve, reject) => {
+    ollamaQueue.push({ task, resolve, reject });
+    processOllamaQueue();
+  });
+};
+
 // FALLBACK A OLLAMA (Capa 2 de Seguridad)
 const llamarOllamaFallback = async (systemPrompt, historial, mensajeUsuario) => {
-  try {
-    console.log("🤖 [Ollama Fallback] Intentando contactar al contenedor Ollama local...");
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...historial.map(m => ({ 
-        role: m.role, 
-        content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
-      })),
-      { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
-    ];
-
-    const ollamaUrl = env.ollamaUrl;
-    const response = await fetch(`${ollamaUrl}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "qwen2.5:0.5b",
-        messages: messages,
-        stream: false
-      })
-    });
-
-    if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
-    const data = await response.json();
-    console.log("✅ [Ollama Fallback] Respuesta generada con éxito");
-    return data.message.content;
-  } catch (error) {
-    console.warn("⚠️ [Ollama Fallback] Falló:", error.message);
-    throw error;
+  // EVITAR HEAD-OF-LINE BLOCKING: Si la cola está muy llena, rechazar rápido para que entre el Default (Capa 3)
+  // y evitar que el frontend de Next.js arroje Timeout / Socket Hang Up esperando 5 minutos.
+  if (ollamaQueue.length >= 10) {
+    throw new Error("La cola de Ollama está saturada (más de 10 peticiones). Saltando a Capa 3 para evitar Timeout.");
   }
+
+  const task = async () => {
+    let retries = 5;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...historial.map(m => ({ 
+            role: m.role, 
+            content: typeof m.content === 'string' ? m.content : (m.content.find(c => c.type === 'text')?.text || "") 
+          })),
+          { role: "user", content: typeof mensajeUsuario === 'string' ? mensajeUsuario : (mensajeUsuario.find(c => c.type === 'text')?.text || "") }
+        ];
+
+        const ollamaUrl = env.ollamaUrl;
+        const response = await fetch(`${ollamaUrl}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "qwen2.5:0.5b",
+            messages: messages,
+            stream: false
+          }),
+          signal: AbortSignal.timeout(90000)
+        });
+
+        if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+        const data = await response.json();
+        return data.message.content;
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await new Promise(res => setTimeout(res, 2000));
+      }
+    }
+  };
+
+  return enqueueOllamaTask(task);
 };
 
 // CORE AGENT PROCESSOR
@@ -891,6 +953,12 @@ TU ROL ES:
   - SIEMPRE que indiques dirigirse a la sección en pantalla para consultas generales, recuérdale explícitamente al cliente: "Una vez que revises la información en la pantalla, recuerda volver a este chat para continuar con tu reserva o hacerme más preguntas."
   - REGLA DE RESERVAS DIRECTAS (SIN REDUNDANCIAS): Si el cliente ya viene con la intención directa de agendar o ya seleccionó un servicio/producto específico (por ejemplo, si su mensaje dice "Hola, me interesa agendar una cita para..." o menciona un paquete de reserva como "Afinamiento Menor"), él ya conoce la información de precios y detalles. NUNCA le digas que puede ver los detalles en la sección de especialidades ni le envíes el link '#servicios'. Simplemente valida su elección con entusiasmo (ej: "¡Qué excelente elección! Es fantástico que te preocupes por el mantenimiento preventivo de tu auto..."), hazle directamente la pregunta diagnóstica de seguimiento si aplica (ej: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último afinamiento?"), e inicia directamente el flujo para recopilar sus datos o guiarlo a abrir el calendario para concretar la reserva.
 
+REGLAS PARA MANEJO DE ARCHIVOS Y PDFs:
+- Si el cliente te envía un documento PDF (ej. una cotización de otro mecánico, resultados de escáner o diagnóstico, etc.) o una imagen, DEBES leerlo y analizarlo detenidamente.
+- IMPORTANTE: Solo debes aceptar información de documentos o PDFs que estén ESTRICTAMENTE RELACIONADOS A VEHÍCULOS, autos, cotizaciones de talleres, mecánica o escáneres vehiculares.
+- Si te envían un documento o archivo que NO tiene relación con autos o mecánica (por ejemplo, una receta médica, una tarea escolar, un documento legal, etc.), DEBES rechazarlo amablemente explicando que tu sistema solo está capacitado para procesar documentos vehiculares y de mecánica.
+- Usa la información del documento para darle una mejor recomendación, ajustar tu cotización o responderle de manera técnica y precisa.
+
 DIÁLOGO DE DIAGNÓSTICO Y CONVERSACIÓN:
 - Entabla una conversación corta e interactiva cuando el cliente mencione un problema o mantenimiento.
 - Por ejemplo, si te dicen "necesito cambio de aceite" o "revisar frenos", haz una pregunta corta de seguimiento útil antes de agendar, como: "¿Hace cuánto tiempo o cuántos kilómetros realizaste tu último cambio de aceite?" o "¿Sientes algún ruido o vibración al frenar?".
@@ -917,6 +985,13 @@ DETECCIÓN DE CLIENTES WEB VS WHATSAPP:
 - Si el identificador actual empieza con 'web_', significa que el cliente está chateando desde el sitio web (no desde WhatsApp). Por ende, NO asumamos ese 'web_' como su número de teléfono real. Pídele amablemente su número de teléfono celular real para completar la reserva (el DNI es opcional).
 - Si el identificador NO empieza con 'web_' (es un número de teléfono real), puedes asumir que ese es su teléfono de contacto y solo pídele confirmar si es correcto o si prefiere dar otro.
 
+IDENTIDAD PROGRESIVA Y CONTINUIDAD ENTRE DISPOSITIVOS:
+- Si el cliente solo saluda o hace una pregunta casual, responde directo sin pedir datos personales.
+- Si la conversación web ya toma hilo (2 a 3 interacciones, diagnóstico o reserva), pide primero su nombre de forma natural.
+- Luego, si conviene guardar continuidad o retomar historial, pide teléfono o placa. Puedes mencionar que eso permite continuar desde cualquier dispositivo.
+- El DNI es solo un identificador alternativo y sensible: pídelo al final, nunca como requisito principal.
+- Nunca recuperes ni fusiones historial solo por nombre, porque puede haber homónimos. Para historial previo, usa teléfono, DNI o placa exactos.
+
 REGLAS IMPORTANTES:
 - Eres libre de usar formato Markdown básico en tus respuestas: puedes destacar texto importante en negrita con doble asterisco (**) y estructurar listas usando viñetas con guiones (-), ya que nuestra interfaz de chat ahora renderiza este formato de manera correcta. Evita el uso de otros símbolos markdown complejos (como numerales # para títulos o tablas).
 - Nunca confirmes una cita sin ejecutar la tool 'agendar_cita' enviando todos los campos requeridos (incluyendo el número de teléfono real y la placa/patente).
@@ -931,6 +1006,9 @@ REGLAS IMPORTANTES:
 REGLAS PERSONALIZADAS DEL TALLER:
 ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? taller.config_agente.instrucciones_base : 'Actúa según tu mejor criterio profesional.'}`;
 
+  let historial = [];
+  let currentUserContent = mensaje_usuario;
+
   try {
     // 1. Obtener historial de mensajes de DB (últimos 20)
     const historialDB = await Mensaje.find({ numero_telefono })
@@ -940,7 +1018,7 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
     // Invertir para que quede en orden cronológico
     historialDB.reverse();
     
-    const historial = historialDB.map(m => {
+    historial = historialDB.map(m => {
       if (m.adjuntos && m.adjuntos.length > 0) {
         const contentArray = [{ type: 'text', text: m.contenido }];
         m.adjuntos.forEach(adj => {
@@ -957,7 +1035,6 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
       };
     });
 
-    let currentUserContent = mensaje_usuario;
     if (adjuntos_nuevos && adjuntos_nuevos.length > 0) {
       currentUserContent = [{ type: 'text', text: mensaje_usuario }];
       adjuntos_nuevos.forEach(adj => {

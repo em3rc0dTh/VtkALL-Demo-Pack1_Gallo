@@ -108,6 +108,10 @@ export const api = {
     });
   },
   getHistorialPublico: (telefono) => request(`/webhook/historial/${telefono}`),
+  identificarConversacion: (sessionId, identifier) => request('/webhook/identify', {
+    method: 'POST',
+    body: { sessionId, identifier }
+  }),
   getDisponibilidadPublica: (fecha) => request(`/webhook/disponibilidad?fecha=${fecha}`),
   agendarCitaPublica: (data) => request('/webhook/agendar', { method: 'POST', body: data }),
 

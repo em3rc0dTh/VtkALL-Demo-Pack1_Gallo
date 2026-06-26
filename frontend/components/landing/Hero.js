@@ -79,9 +79,33 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
     }
   };
 
+  const getCardStyle = (color) => {
+    if (color?.startsWith('#')) {
+      return { 
+        isHex: true,
+        styleBg: { background: `linear-gradient(135deg, ${color}, #1e293b)` },
+        styleBadge: { backgroundColor: 'rgba(0,0,0,0.3)', color: '#fff' },
+        styleBtn: { backgroundColor: color, color: '#fff' },
+        bg: 'text-white hover:shadow-lg border border-white/10',
+        badge: '',
+        btn: 'hover:opacity-90 transition-opacity',
+        btnText: 'OBTENER'
+      };
+    }
+    switch(color) {
+      case 'primary': return { bg: 'bg-gradient-to-br from-primary to-[#4F46E5] text-white hover:shadow-[0_12px_24px_rgba(0,174,239,0.3)]', badge: 'bg-secondary text-white', btn: 'text-white bg-secondary hover:bg-white hover:text-primary', btnText: 'AGENDAR' };
+      case 'emerald': return { bg: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:shadow-[0_12px_24px_rgba(16,185,129,0.3)]', badge: 'bg-emerald-900 text-white', btn: 'text-white bg-emerald-900 hover:bg-white hover:text-emerald-700', btnText: 'OBTENER' };
+      case 'rose': return { bg: 'bg-gradient-to-br from-rose-500 to-rose-700 text-white hover:shadow-[0_12px_24px_rgba(244,63,94,0.3)]', badge: 'bg-rose-900 text-white', btn: 'text-white bg-rose-900 hover:bg-white hover:text-rose-700', btnText: 'OBTENER' };
+      case 'amber': return { bg: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white hover:shadow-[0_12px_24px_rgba(245,158,11,0.3)]', badge: 'bg-amber-900 text-white', btn: 'text-white bg-amber-900 hover:bg-white hover:text-amber-700', btnText: 'OBTENER' };
+      case 'purple': return { bg: 'bg-gradient-to-br from-purple-500 to-purple-700 text-white hover:shadow-[0_12px_24px_rgba(168,85,247,0.3)]', badge: 'bg-purple-900 text-white', btn: 'text-white bg-purple-900 hover:bg-white hover:text-purple-700', btnText: 'OBTENER' };
+      case 'navy':
+      default: return { bg: 'bg-gradient-to-br from-navy to-[#1E293B] text-white border border-primary/20 hover:shadow-[0_12px_24px_rgba(17,24,39,0.4)]', badge: 'bg-primary text-white', btn: 'text-white bg-primary hover:bg-white hover:text-navy', btnText: 'OBTENER' };
+    }
+  };
+
   // Helper para renderizar una card individual
   const renderCard = (promo, index, compact = false) => {
-    const isPrimary = promo.color_fondo === 'primary';
+    const styles = getCardStyle(promo.color_fondo);
     return (
       <motion.div
         key={promo._id || index}
@@ -92,17 +116,17 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
         className={`${
           compact ? 'p-3.5' : 'p-5 lg:p-6'
         } rounded-[20px] relative overflow-hidden shadow-md group cursor-pointer hover:scale-[1.02] active:scale-[0.99] transition-all duration-300 ${
-          isPrimary
-            ? 'bg-gradient-to-br from-primary to-[#4F46E5] text-white hover:shadow-[0_12px_24px_rgba(0,174,239,0.3)]'
-            : 'bg-gradient-to-br from-navy to-[#1E293B] text-white border border-primary/20 hover:shadow-[0_12px_24px_rgba(17,24,39,0.4)]'
+          styles.bg
         } ${promosLayout === 'columnas' ? 'flex-1 min-w-[220px] max-w-[340px]' : 'w-full max-w-[340px]'}`}
+        style={styles.styleBg || {}}
       >
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-28 h-28 rounded-full bg-white/5 blur-xl pointer-events-none" />
         <div className="flex flex-col h-full justify-between gap-3.5 relative z-10">
           <div>
-            <span className={`inline-block px-2 py-0.5 rounded font-mono font-black text-[8px] uppercase tracking-widest mb-2 shadow-sm ${
-              isPrimary ? 'bg-secondary text-white' : 'bg-primary text-white'
-            }`}>
+            <span 
+              className={`inline-block px-2 py-0.5 rounded font-mono font-black text-[8px] uppercase tracking-widest mb-2 shadow-sm ${styles.badge}`}
+              style={styles.styleBadge || {}}
+            >
               {promo.etiqueta}
             </span>
             <h3
@@ -113,18 +137,44 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
             </h3>
           </div>
           <button
-            onClick={() => onOpenChat(promo.mensaje_chat || `Hola, me interesa la promoción: ${promo.titulo}`)}
-            className={`w-full py-2 rounded-xl text-[10px] lg:text-xs font-bold tracking-wider transition-all duration-300 cursor-pointer text-center uppercase ${
-              isPrimary
-                ? 'text-white bg-secondary hover:bg-white hover:text-primary'
-                : 'text-white bg-primary hover:bg-white hover:text-navy'
-            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenChat(promo.mensaje_chat || `Hola, me interesa la promoción: ${promo.titulo}`);
+            }}
+            className={`w-full py-2 rounded-xl text-[10px] lg:text-xs font-bold tracking-wider transition-all duration-300 cursor-pointer text-center uppercase ${styles.btn}`}
+            style={styles.styleBtn || {}}
           >
-            {isPrimary ? 'AGENDAR' : 'OBTENER'}
+            {styles.btnText}
           </button>
         </div>
       </motion.div>
     );
+  };
+
+  const getModalBg = (color) => {
+    if (color?.startsWith('#')) return 'text-white'; // the background style will be applied inline
+    switch(color) {
+      case 'primary': return 'bg-gradient-to-br from-primary via-[#4F46E5] to-indigo-900 border border-primary/20';
+      case 'emerald': return 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-900 border border-emerald-500/20';
+      case 'rose': return 'bg-gradient-to-br from-rose-500 via-rose-600 to-rose-900 border border-rose-500/20';
+      case 'amber': return 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-900 border border-amber-500/20';
+      case 'purple': return 'bg-gradient-to-br from-purple-500 via-purple-600 to-purple-900 border border-purple-500/20';
+      case 'navy':
+      default: return 'bg-gradient-to-br from-navy via-[#1E293B] to-slate-900 border border-gray-800';
+    }
+  };
+  
+  const getModalBadge = (color) => {
+    if (color?.startsWith('#')) return 'text-white border border-white/20';
+    switch(color) {
+      case 'primary': return 'bg-secondary text-white';
+      case 'emerald': return 'bg-emerald-900 text-white';
+      case 'rose': return 'bg-rose-900 text-white';
+      case 'amber': return 'bg-amber-900 text-white';
+      case 'purple': return 'bg-purple-900 text-white';
+      case 'navy':
+      default: return 'bg-primary text-white';
+    }
   };
 
   return (
@@ -303,11 +353,8 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white ${
-                selectedPromo.color_fondo === 'primary'
-                  ? 'bg-gradient-to-br from-primary via-[#4F46E5] to-indigo-900 border border-primary/20'
-                  : 'bg-gradient-to-br from-navy via-[#1E293B] to-slate-900 border border-gray-800'
-              }`}
+              className={`w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white ${getModalBg(selectedPromo.color_fondo)}`}
+              style={selectedPromo.color_fondo?.startsWith('#') ? { background: `linear-gradient(135deg, ${selectedPromo.color_fondo}, #1e293b)` } : {}}
             >
               {/* Decorative backgrounds */}
               <div className="absolute top-0 right-0 -mt-20 -mr-20 w-44 h-44 rounded-full bg-white/5 blur-2xl pointer-events-none" />
@@ -323,9 +370,10 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
 
               {/* Contenido */}
               <div className="relative z-10 flex flex-col items-center text-center mt-4">
-                <span className={`inline-block px-3 py-1 rounded-full font-mono font-black text-[10px] uppercase tracking-widest mb-4 shadow-md ${
-                  selectedPromo.color_fondo === 'primary' ? 'bg-secondary text-white' : 'bg-primary text-white'
-                }`}>
+                <span 
+                  className={`inline-block px-3 py-1 rounded-full font-mono font-black text-[10px] uppercase tracking-widest mb-4 shadow-md ${getModalBadge(selectedPromo.color_fondo)}`}
+                  style={selectedPromo.color_fondo?.startsWith('#') ? { backgroundColor: 'rgba(0,0,0,0.3)' } : {}}
+                >
                   {selectedPromo.etiqueta}
                 </span>
 
@@ -348,9 +396,12 @@ export default function Hero({ taller = {}, onOpenChat, conf = {} }) {
                     onOpenChat(selectedPromo.mensaje_chat || `Hola, me interesa la promoción: ${selectedPromo.titulo}`);
                     setSelectedPromo(null);
                   }}
-                  className="w-full py-4 bg-white text-navy font-bold text-xs md:text-sm tracking-widest rounded-2xl hover:bg-gray-100 active:scale-95 transition-all duration-300 shadow-xl cursor-pointer text-center uppercase flex items-center justify-center gap-2"
+                  className={`w-full py-4 font-bold text-xs md:text-sm tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-xl cursor-pointer text-center uppercase flex items-center justify-center gap-2 ${
+                    selectedPromo.color_fondo?.startsWith('#') ? '' : 'bg-white text-navy hover:bg-gray-100'
+                  }`}
+                  style={selectedPromo.color_fondo?.startsWith('#') ? { backgroundColor: selectedPromo.color_fondo, color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)' } : {}}
                 >
-                  <MessageSquare className="w-4 h-4 text-primary fill-current" />
+                  <MessageSquare className={`w-4 h-4 ${selectedPromo.color_fondo?.startsWith('#') ? 'text-white' : 'text-primary'}`} fill="currentColor" />
                   RESERVAR OFERTA AHORA
                 </button>
               </div>

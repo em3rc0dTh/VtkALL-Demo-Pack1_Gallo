@@ -39,6 +39,7 @@ const TallerSchema = new Schema({
     avatar_url:          { type: String, default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200' },
     banner_url:          { type: String, default: '' },
     color_nombre_agente: { type: String, default: '#0f172a' },
+    alineacion_avatar_chat: { type: String, default: 'Derecha' },
     instrucciones_base:  { type: String, default: '' }
   },
   campos_dinamicos_reserva: { 

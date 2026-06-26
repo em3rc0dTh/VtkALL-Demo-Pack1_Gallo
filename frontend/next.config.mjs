@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ['*.ngrok-free.dev', 'localhost:3000'],
+  allowedDevOrigins: ['*.ngrok-free.dev', 'localhost:3000', '192.168.18.92', '192.168.18.41'],
   experimental: {
+    middlewareClientMaxBodySize: '50mb',
     turbo: {
       root: '..',
     },
