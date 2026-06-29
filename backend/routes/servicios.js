@@ -27,11 +27,11 @@ router.get('/', async (req, res) => {
 // POST /api/servicios
 router.post('/', protegerRuta, async (req, res) => {
   try {
-    const { nombre, descripcion, icono, team_asignado } = req.body;
+    const { nombre, descripcion, icono, ideal_para, team_asignado } = req.body;
     if (!nombre) {
       return res.status(400).json({ error: 'El nombre es requerido' });
     }
-    const servicio = new Servicio({ nombre, descripcion, icono, team_asignado });
+    const servicio = new Servicio({ nombre, descripcion, icono, ideal_para, team_asignado });
     await servicio.save();
     res.status(201).json({ ok: true, servicio: { ...servicio.toObject(), productos: [] } });
   } catch (error) {

@@ -114,7 +114,10 @@ export default function ChatAsistente({
       try {
         const res = await api.getHistorialPublico(telefono);
         if (res && res.ok) {
-          setMensajes(res.mensajes || []);
+          setMensajes(prev => {
+            const tempMessages = prev.filter(m => typeof m._id === 'string' && (m._id.startsWith('cliente-') || m._id.startsWith('asistente-') || m._id.startsWith('error-')));
+            return [...(res.mensajes || []), ...tempMessages];
+          });
           if (res.cliente) {
             const firstVehiculo =
               res.cliente.vehiculos && res.cliente.vehiculos[0]
@@ -165,13 +168,21 @@ export default function ChatAsistente({
   }, [isCalendarOpen, clienteData, telefono]);
 
   useEffect(() => {
+    let timer;
     if (triggerOpenMessage) {
       setIsOpen(true);
-      setTimeout(() => {
-        enviarMensaje(triggerOpenMessage);
-        setTriggerOpenMessage("");
+      timer = setTimeout(() => {
+        if (typeof triggerOpenMessage === 'object') {
+          enviarMensaje(triggerOpenMessage.texto, triggerOpenMessage.audio);
+        } else {
+          enviarMensaje(triggerOpenMessage);
+        }
+        setTriggerOpenMessage(null);
       }, 300);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [triggerOpenMessage]);
 
   useEffect(() => {
@@ -239,9 +250,23 @@ export default function ChatAsistente({
   };
 
   const renderAdjunto = (adj, i) => {
+    if (typeof adj !== 'string') return null;
     const isPDF =
       adj.startsWith("data:application/pdf") ||
       adj.toLowerCase().endsWith(".pdf");
+    const isAudio = adj.startsWith("data:audio/");
+    
+    if (isAudio) {
+      return (
+        <audio
+          key={i}
+          controls
+          src={adj}
+          className="max-w-[200px] sm:max-w-xs mt-2 rounded-lg"
+        />
+      );
+    }
+    
     if (isPDF) {
       return (
         <a
@@ -249,7 +274,7 @@ export default function ChatAsistente({
           href={adj}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 p-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-300 hover:bg-slate-200 transition-colors w-full sm:w-auto"
+          className="flex items-center gap-2 p-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-300 hover:bg-slate-200 transition-colors w-full sm:w-auto mt-2"
           download="documento.pdf"
         >
           <svg
@@ -271,7 +296,7 @@ export default function ChatAsistente({
         src={adj}
         alt="adjunto"
         onClick={() => setExpandedImage(adj)}
-        className="w-24 h-24 object-cover rounded-lg border border-white/20 shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
+        className="w-24 h-24 object-cover rounded-lg border border-white/20 shadow-sm cursor-pointer hover:opacity-80 transition-opacity mt-2"
       />
     );
   };
@@ -280,16 +305,22 @@ export default function ChatAsistente({
     setImagenesAdjuntas((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const enviarMensaje = async (textoOverride = "") => {
+  const isSendingRef = useRef(false);
+
+  const enviarMensaje = async (textoOverride = "", audioOverride = null) => {
+    if (escribiendo || isSendingRef.current) return;
     const texto = (textoOverride || nuevoMensaje).trim();
-    if (!texto && imagenesAdjuntas.length === 0) return;
+    if (!texto && imagenesAdjuntas.length === 0 && !audioOverride) return;
 
     if (!textoOverride) setNuevoMensaje("");
 
     const adjuntosToSend = [...imagenesAdjuntas];
+    if (audioOverride) {
+      adjuntosToSend.push(audioOverride);
+    }
     setImagenesAdjuntas([]);
 
-    const temporalId = `cliente-${Date.now()}`;
+    const temporalId = `cliente-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const nuevoMsgCliente = {
       _id: temporalId,
       remitente: "cliente",
@@ -300,6 +331,7 @@ export default function ChatAsistente({
 
     setMensajes((prev) => [...prev, nuevoMsgCliente]);
     setEscribiendo(true);
+    isSendingRef.current = true;
 
     try {
       const res = await api.enviarMensajeSimulado(
@@ -357,6 +389,7 @@ export default function ChatAsistente({
       ]);
     } finally {
       setEscribiendo(false);
+      isSendingRef.current = false;
     }
   };
 

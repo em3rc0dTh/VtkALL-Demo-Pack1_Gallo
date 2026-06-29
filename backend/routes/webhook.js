@@ -132,10 +132,13 @@ const procesarSimulacionInterna = async (from, body, res, adjuntos = []) => {
 const procesarMensajeCompleto = async (numeroTelefono, mensajeContenido, res, esXML, enviarProactivo = false, adjuntos = [], originalLid = null) => {
   try {
     // Normalizar número de teléfono (quitar caracteres no numéricos y prefijo 51 de país si existe para la búsqueda)
-    const numeroLimpio = numeroTelefono.replace(/[^0-9]/g, '');
-    let numeroPeruano = numeroLimpio;
-    if (numeroLimpio.length === 11 && numeroLimpio.startsWith('51')) {
-      numeroPeruano = numeroLimpio.substring(2);
+    let numeroPeruano = numeroTelefono;
+    if (!numeroTelefono.startsWith('web_')) {
+      const numeroLimpio = numeroTelefono.replace(/[^0-9]/g, '');
+      numeroPeruano = numeroLimpio;
+      if (numeroLimpio.length === 11 && numeroLimpio.startsWith('51')) {
+        numeroPeruano = numeroLimpio.substring(2);
+      }
     }
 
     // 1. Buscar cliente usando coincidencia flexible (exacto, peruano local, con prefijo o LID)
