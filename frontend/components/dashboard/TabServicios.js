@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit3, Trash2, Box, Users, ChevronDown, ChevronRight, PackagePlus, X, Save } from 'lucide-react';
+import { Plus, Edit3, Trash2, Box, Users, ChevronDown, ChevronRight, PackagePlus, X, Save, FileJson } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { PageHeader } from '../ui/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -105,20 +105,53 @@ export default function TabServicios() {
     setGuardando(true);
     
     try {
-      if (modalType === 'servicio') {
-        if (modalMode === 'create') {
-          await api.crearServicio({ 
+      if (modalType === 'import') {
+        let parsedData;
+        try {
+          parsedData = JSON.parse(modalData.jsonText);
+        } catch (e) {
+          throw new Error('El formato JSON es inválido.');
+        }
+        if (!Array.isArray(parsedData)) parsedData = [parsedData];
+        
+        for (const cat of parsedData) {
+          if (!cat.nombre) continue;
+          const payloadCat = {
+            nombre: cat.nombre,
+            icono: cat.icono || '🔧',
+            descripcion: cat.descripcion || '',
+            ideal_para: Array.isArray(cat.ideal_para) ? cat.ideal_para : (cat.idealPara || [])
+          };
+          const res = await api.crearServicio(payloadCat);
+          if (res.ok && res.servicio && Array.isArray(cat.productos)) {
+            for (const prod of cat.productos) {
+              await api.crearProducto({
+                nombre: prod.nombre,
+                precio: Number(prod.precio || 0),
+                duracion_minutos: Number(prod.duracion_minutos || 0),
+                servicio_padre: res.servicio._id
+              });
+            }
+          }
+        }
+        Swal.fire({ title: 'Importado', text: 'Catálogo cargado con éxito.', icon: 'success', background: '#111827', color: '#fff', timer: 1500 });
+      } else if (modalType === 'servicio') {
+        const idealParaArray = (typeof modalData.ideal_para === 'string') 
+          ? modalData.ideal_para.split('\n').map(i => i.trim()).filter(Boolean)
+          : modalData.ideal_para || [];
+        
+        const payload = {
             nombre: modalData.nombre, 
             icono: modalData.icono || '🍰', 
-            descripcion: modalData.descripcion 
-          });
+            descripcion: modalData.descripcion,
+            ideal_para: idealParaArray
+        };
+        
+        if (modalMode === 'create') {
+          await api.crearServicio(payload);
           Swal.fire({ title: 'Creado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
         } else {
-          await api.actualizarServicio(modalData._id, { 
-            nombre: modalData.nombre, 
-            icono: modalData.icono || '🍰', 
-            descripcion: modalData.descripcion 
-          });
+          await api.actualizarServicio(modalData._id, payload);
           Swal.fire({ title: 'Actualizado', icon: 'success', background: '#111827', color: '#fff', showConfirmButton: false, timer: 1000 });
         }
       } else {
@@ -178,9 +211,14 @@ export default function TabServicios() {
         title="Catálogo de Servicios"
         description="Define servicios, categorías, precios y disponibilidad."
         actions={
-          <Button variant="primary" icon={Plus} onClick={() => openModal('servicio', 'create', { icono: '🔧' })}>
-            Nueva Categoría
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" icon={FileJson} onClick={() => openModal('import', 'create', { jsonText: '' })} className="border-gray-700 text-gray-300 hover:bg-gray-800">
+              Importar JSON
+            </Button>
+            <Button variant="primary" icon={Plus} onClick={() => openModal('servicio', 'create', { icono: '🔧' })}>
+              Nueva Categoría
+            </Button>
+          </div>
         }
       />
 
@@ -325,7 +363,7 @@ export default function TabServicios() {
             <div className="p-6 border-b border-gray-850 flex justify-between items-center bg-gray-900/50 rounded-t-3xl">
               <div>
                 <h3 className="text-lg font-bold text-white">
-                  {modalMode === 'create' ? 'Crear' : 'Editar'} {modalType === 'servicio' ? 'Categoría' : 'Producto / Servicio'}
+                  {modalType === 'import' ? 'Importar Catálogo (JSON)' : `${modalMode === 'create' ? 'Crear' : 'Editar'} ${modalType === 'servicio' ? 'Categoría' : 'Producto / Servicio'}`}
                 </h3>
                 <p className="text-[10px] text-gray-400 mt-1">Completa los datos solicitados a continuación.</p>
               </div>
@@ -343,17 +381,31 @@ export default function TabServicios() {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre del {modalType === 'servicio' ? 'Servicio / Categoría' : 'Producto'}</label>
-                  <input
-                    type="text"
-                    required
-                    value={modalData.nombre || ''}
-                    onChange={e => setModalData({...modalData, nombre: e.target.value})}
-                    placeholder="Ej: Mantenimiento Preventivo"
-                    className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
+                {modalType === 'import' ? (
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Pegar JSON</label>
+                    <textarea
+                      required
+                      value={modalData.jsonText || ''}
+                      onChange={e => setModalData({...modalData, jsonText: e.target.value})}
+                      placeholder={'[\n  {\n    "nombre": "Mantenimiento",\n    "icono": "🔧",\n    "descripcion": "...",\n    "ideal_para": ["Punto 1"],\n    "productos": [{ "nombre": "Aceite", "precio": 100, "duracion_minutos": 30 }]\n  }\n]'}
+                      rows="12"
+                      className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono whitespace-pre"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre del {modalType === 'servicio' ? 'Servicio / Categoría' : 'Producto'}</label>
+                      <input
+                        type="text"
+                        required
+                        value={modalData.nombre || ''}
+                        onChange={e => setModalData({...modalData, nombre: e.target.value})}
+                        placeholder="Ej: Mantenimiento Preventivo"
+                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                      />
+                    </div>
 
                 {modalType === 'servicio' ? (
                   <>
@@ -375,8 +427,18 @@ export default function TabServicios() {
                         value={modalData.descripcion || ''}
                         onChange={e => setModalData({...modalData, descripcion: e.target.value})}
                         placeholder="Describe de qué trata esta categoría..."
-                        rows="3"
+                        rows="2"
                         className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                      ></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Ideal para (un punto por línea)</label>
+                      <textarea
+                        value={Array.isArray(modalData.ideal_para) ? modalData.ideal_para.join('\n') : (modalData.ideal_para || '')}
+                        onChange={e => setModalData({...modalData, ideal_para: e.target.value})}
+                        placeholder={"- Cuando tu vehículo presenta síntomas.\n- Para mantener la garantía."}
+                        rows="3"
+                        className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none leading-relaxed"
                       ></textarea>
                     </div>
                   </>
@@ -421,6 +483,8 @@ export default function TabServicios() {
                     </div>
                   </>
                 )}
+                </>
+                )}
 
                 <div className="pt-4 border-t border-gray-850 mt-6">
                   <button
@@ -428,9 +492,9 @@ export default function TabServicios() {
                     disabled={guardando}
                     className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-btn-primary hover:shadow-btn-primary-hover disabled:opacity-50"
                   >
-                    {guardando ? 'Guardando...' : (
+                    {guardando ? (modalType === 'import' ? 'Importando...' : 'Guardando...') : (
                       <>
-                        <Save className="w-4 h-4" /> GUARDAR {modalType === 'servicio' ? 'CATEGORÍA' : 'PRODUCTO'}
+                        <Save className="w-4 h-4" /> {modalType === 'import' ? 'INICIAR IMPORTACIÓN' : `GUARDAR ${modalType === 'servicio' ? 'CATEGORÍA' : 'PRODUCTO'}`}
                       </>
                     )}
                   </button>

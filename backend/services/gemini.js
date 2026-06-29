@@ -118,6 +118,20 @@ const tools = [
         required: ["id_cita"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "vincular_sesion",
+      description: "Vincula la sesión web anónima actual con un cliente real usando su teléfono, DNI o placa. Usar INMEDIATAMENTE cuando el cliente proporcione su número de teléfono o indique que quiere recuperar su historial anterior.",
+      parameters: {
+        type: "object",
+        properties: {
+          identificador: { type: "string", description: "Número de teléfono, DNI o Placa del cliente" }
+        },
+        required: ["identificador"]
+      }
+    }
   }
 ];
 
@@ -349,6 +363,65 @@ export const ejecutarTool = async (nombre, args) => {
         cita.estado_confirmacion = 'confirmada_cliente';
         await cita.save();
         return { ok: true, mensaje: 'Cita confirmada por el cliente con éxito', id_cita };
+      }
+      
+      case 'vincular_sesion': {
+        const { identificador, _session_telefono } = args;
+        if (!_session_telefono || !_session_telefono.startsWith('web_')) {
+          return { error: 'La sesión ya está vinculada a un número real o no es una sesión web' };
+        }
+        
+        const idLimpio = identificador.toString().trim();
+        const idSoloNumeros = idLimpio.replace(/[^0-9]/g, '');
+        let idPeruano = idSoloNumeros;
+        if (idSoloNumeros.length === 11 && idSoloNumeros.startsWith('51')) {
+          idPeruano = idSoloNumeros.substring(2);
+        }
+
+        let clienteReal = await Cliente.findOne({
+          $or: [
+            { numero_telefono: idLimpio },
+            { numero_telefono: idPeruano },
+            { numero_telefono: '51' + idPeruano },
+            { dni: idLimpio },
+            { 'vehiculos.patente': idLimpio.toUpperCase() }
+          ]
+        });
+
+        let numeroReal = null;
+        let nombreClienteReal = '';
+
+        if (clienteReal) {
+          numeroReal = clienteReal.numero_telefono;
+          nombreClienteReal = clienteReal.nombre;
+        } else {
+          if (idSoloNumeros.length >= 9) {
+            numeroReal = idPeruano;
+          } else {
+            return { error: 'No se encontró historial y no parece un número de teléfono válido para crear uno nuevo.' };
+          }
+        }
+
+        if (numeroReal) {
+          await Mensaje.updateMany(
+            { numero_telefono: _session_telefono },
+            { $set: { numero_telefono: numeroReal, nombre_cliente: nombreClienteReal || 'Cliente' } }
+          );
+          
+          await Cliente.deleteOne({ numero_telefono: _session_telefono });
+          
+          if (!clienteReal) {
+             const nuevoCliente = new Cliente({
+               numero_telefono: numeroReal,
+               nombre: '',
+               vehiculos: []
+             });
+             await nuevoCliente.save();
+          }
+
+          return { ok: true, mensaje: 'Sesión vinculada exitosamente. Historial recuperado.', numero_real: numeroReal };
+        }
+        return { error: 'No se pudo vincular la sesión.' };
       }
       
       default:
@@ -934,11 +1007,30 @@ export const procesarMensajeIA = async (numero_telefono, mensaje_usuario, adjunt
 
   const fechaActual = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+  const numCleanPrompt = numero_telefono.trim().replace(/[^0-9]/g, '');
+  let numPeruanoPrompt = numCleanPrompt;
+  if (numCleanPrompt.length === 11 && numCleanPrompt.startsWith('51')) {
+    numPeruanoPrompt = numCleanPrompt.substring(2);
+  }
+  const clienteActual = await Cliente.findOne({
+    $or: [
+      { numero_telefono: numero_telefono },
+      { numero_telefono: numPeruanoPrompt },
+      { numero_telefono: '51' + numPeruanoPrompt }
+    ]
+  });
+
   const verticalPrompt = getActivePrompt();
   const systemPrompt = `${verticalPrompt}
 
 Eres ${nombreAgente}, especialista de atención al cliente de ${nombreTaller}. Eres humana, amable, eficiente y conoces el mundo automotriz. NUNCA menciones que eres una Inteligencia Artificial, bot o asistente virtual.
 HOY ES: ${fechaActual} (Hora de Perú). Úsalo como referencia estricta para agendar citas.
+
+PERFIL DEL CLIENTE CON EL QUE ESTÁS HABLANDO:
+- Nombre registrado: ${clienteActual?.nombre || 'Desconocido (puedes preguntarle)'}
+- Teléfono/ID de sesión actual: ${numero_telefono}
+- Vehículos registrados: ${clienteActual?.vehiculos?.length > 0 ? clienteActual.vehiculos.map(v => `${v.marca || ''} ${v.modelo || ''} (Placa: ${v.patente || 'N/A'})`).join(', ') : 'Ninguno registrado aún'}
+- Deuda o Pagos pendientes: S/. ${clienteActual?.deuda_actual || 0}
 
 TU ROL ES:
  - Responder preguntas sobre el taller, servicios, horarios y ubicación.
@@ -1022,7 +1114,10 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
       if (m.adjuntos && m.adjuntos.length > 0) {
         const contentArray = [{ type: 'text', text: m.contenido }];
         m.adjuntos.forEach(adj => {
-          contentArray.push({ type: 'image_url', image_url: { url: adj } });
+          // No enviar audios al modelo Vision/OpenAI (generaría error)
+          if (typeof adj === 'string' && !adj.startsWith('data:audio/')) {
+            contentArray.push({ type: 'image_url', image_url: { url: adj } });
+          }
         });
         return {
           role: m.remitente === 'cliente' ? 'user' : 'assistant',
@@ -1038,7 +1133,9 @@ ${(taller && taller.config_agente && taller.config_agente.instrucciones_base) ? 
     if (adjuntos_nuevos && adjuntos_nuevos.length > 0) {
       currentUserContent = [{ type: 'text', text: mensaje_usuario }];
       adjuntos_nuevos.forEach(adj => {
-        currentUserContent.push({ type: 'image_url', image_url: { url: adj } });
+        if (typeof adj === 'string' && !adj.startsWith('data:audio/')) {
+          currentUserContent.push({ type: 'image_url', image_url: { url: adj } });
+        }
       });
     }
 

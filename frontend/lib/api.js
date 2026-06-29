@@ -42,6 +42,8 @@ const request = async (endpoint, options = {}) => {
     if (error.status !== 401 || (endpoint !== '/auth/me' && endpoint !== '/auth/login')) {
       if (error.status === 400 || error.status === 409) {
         console.warn(`Validation Warning [${endpoint}]:`, error.message);
+      } else if (error.status === 404) {
+        console.warn(`Not Found Warning [${endpoint}]:`, error.message);
       } else {
         console.error(`Error en API Request [${endpoint}]:`, error);
       }

@@ -890,9 +890,29 @@ export default function TabEvaluaciones() {
                   <Wrench className="w-5 h-5 text-primary" /> Diagnóstico y Presupuesto
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  La cotización está lista. Asigna el trabajo a un pastelero, define el precio final y estima el tiempo necesario.
+                  La cotización está lista. Asigna el trabajo a un mecánico del Team, define el precio final y estima el tiempo necesario.
                 </p>
               </div>
+
+              {/* Información del Cliente y Vehículo */}
+              {evalObj && (
+                <div className="mb-6 bg-gray-950/60 p-4 rounded-xl border border-gray-800 text-xs">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Cliente</span>
+                      <p className="text-white font-medium">{evalObj.cliente}</p>
+                      <p className="text-gray-400">{evalObj.numero_telefono}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Vehículo</span>
+                      <p className="text-white font-medium">
+                        {evalObj.vehiculo?.marca} {evalObj.vehiculo?.modelo} {evalObj.vehiculo?.anio ? `(${evalObj.vehiculo.anio})` : ''}
+                      </p>
+                      <p className="text-gray-400 font-mono">{evalObj.vehiculo?.patente || 'Sin patente'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleSubmitTasacion} className="space-y-6">
                 

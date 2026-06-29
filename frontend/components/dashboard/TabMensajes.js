@@ -283,15 +283,28 @@ export default function TabMensajes() {
                         )}
                         {m.adjuntos && m.adjuntos.length > 0 && (
                           <div className="flex gap-2 mb-2 flex-wrap">
-                            {m.adjuntos.map((adj, i) => (
-                              <img 
-                                key={i} 
-                                src={adj} 
-                                alt="Adjunto del usuario" 
-                                className="w-24 h-24 object-cover rounded-lg border border-gray-700/50 shadow-sm cursor-pointer hover:scale-105 transition-transform" 
-                                onClick={() => window.open(adj, '_blank')}
-                              />
-                            ))}
+                            {m.adjuntos.map((adj, i) => {
+                              const isAudio = typeof adj === 'string' && adj.startsWith('data:audio/');
+                              if (isAudio) {
+                                return (
+                                  <audio
+                                    key={i}
+                                    controls
+                                    src={adj}
+                                    className="max-w-[200px] sm:max-w-xs rounded-lg"
+                                  />
+                                );
+                              }
+                              return (
+                                <img 
+                                  key={i} 
+                                  src={adj} 
+                                  alt="Adjunto del usuario" 
+                                  className="w-24 h-24 object-cover rounded-lg border border-gray-700/50 shadow-sm cursor-pointer hover:scale-105 transition-transform" 
+                                  onClick={() => window.open(adj, '_blank')}
+                                />
+                              );
+                            })}
                           </div>
                         )}
                         <p className="whitespace-pre-wrap">{m.contenido}</p>

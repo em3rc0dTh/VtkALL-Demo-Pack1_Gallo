@@ -18,8 +18,9 @@ import Galeria from '@/components/landing/Galeria.js';
 export default function Home() {
   const [taller, setTaller] = useState({});
   const [servicios, setServicios] = useState([]);
-  const [triggerOpenMessage, setTriggerOpenMessage] = useState('');
+  const [triggerOpenMessage, setTriggerOpenMessage] = useState(null);
   const [openChat, setOpenChat] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
 
   // Activate scroll reveal after data is loaded (moved down)
 
@@ -173,7 +174,7 @@ export default function Home() {
                   <path d="M0,0 C480,60 960,0 1440,40 L1440,0 Z" fill='var(--lavender)' />
                 </svg>
               </div>
-                  <Servicios servicios={servicios} onOpenChat={handleOpenChat} taller={taller} conf={bloque.conf} />
+                  <Servicios servicios={servicios} onOpenChat={handleOpenChat} taller={taller} conf={bloque.conf} onCatalogToggle={setIsCatalogOpen} />
                 </>
               );
               break;
@@ -221,13 +222,16 @@ export default function Home() {
         {/* <Galeria taller={taller} /> */}
       </main>
 
-      <ChatAsistente
-        taller={taller}
-        triggerOpenMessage={triggerOpenMessage}
-        setTriggerOpenMessage={setTriggerOpenMessage}
-        openChat={openChat}
-        setOpenChat={setOpenChat}
-      />
+      {/* Ocultar a Iris (ChatAsistente) si el catálogo está abierto */}
+      {!isCatalogOpen && (
+        <ChatAsistente
+          taller={taller}
+          triggerOpenMessage={triggerOpenMessage}
+          setTriggerOpenMessage={setTriggerOpenMessage}
+          openChat={openChat}
+          setOpenChat={setOpenChat}
+        />
+      )}
     </div>
   );
 }
