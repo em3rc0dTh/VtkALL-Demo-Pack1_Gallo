@@ -1,12 +1,18 @@
-# VtkALL Demo_Pack_0
+# VtkALL Demo_Pack_1
 
-VtkALL Demo_Pack_0 is the canonical reusable foundation for creating VtkALL vertical Demo Packs.
+VtkALL Demo_Pack_1 is the Turagua vertical demo built on top of the reusable Demo_Pack_0 foundation.
 
-It was promoted from the stable `demo_test` integration laboratory. The neutral default namespace remains `demo_test`, while Turagua is preserved as the reference fixture for Demo_Pack_1.
+Vertical: Turagua / vehicle_service
 
-Current promotion status: `Demo_Pack_0 Candidate / RC0`.
+Architectural foundation: Demo_Pack_0
 
-The neutral Pack 0 namespace is `demo_test`. Turagua remains available as a Pack 1 fixture through `DEMO_TEST_BUSINESS_SLUG=turagua`, but the default Docker/frontend path now starts from the neutral `demo_test` BusinessProfile.
+Current branch scope: public landing and landing builder
+
+The neutral Pack 0 namespace remains `demo_test` for integration and regression verification. Turagua is the Pack 1 product vertical and should be presented as the final demo identity.
+
+Current promotion status: `Demo_Pack_1 Landing Integration`.
+
+The default Docker/frontend path may still use `DEMO_TEST_BUSINESS_SLUG=demo_test` for Pack0 regression workflows; use `turagua` when exercising the Pack1 vertical landing.
 
 ## Full Docker Stack
 

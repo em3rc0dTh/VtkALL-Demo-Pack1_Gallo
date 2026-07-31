@@ -12,7 +12,7 @@ export const validateTemporalAddress = (address = process.env.TEMPORAL_ADDRESS |
 
 export const env = {
   port: process.env.API_PORT || process.env.PORT || 4000,
-  mongoUri: process.env.MONGO_URI || 'mongodb://vtkall:vtkall_password@localhost:27017/vtkall_demo_pack_1?authSource=admin',
+  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/vtkall_demo_pack_1',
   nodeEnv: process.env.NODE_ENV || 'development',
   temporalAddress: validateTemporalAddress,
 };
