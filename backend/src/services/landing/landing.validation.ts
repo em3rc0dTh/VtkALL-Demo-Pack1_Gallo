@@ -1,6 +1,29 @@
 import { z } from 'zod';
 import { LANDING_BLOCK_TYPES } from './landing.contracts';
 
+const unsafeKeyPattern = /^(html|rawHtml|embedHtml|script|dangerouslySetInnerHTML)$/i;
+const unsafeValuePattern = /<\s*\/?\s*(script|iframe|object|embed|style|link|meta|form|input|textarea|button|svg|math|img|video|audio|source|canvas)\b|on[a-z]+\s*=|javascript:/i;
+
+const assertNoUnsafeContent = (value: unknown, path: string[] = []) => {
+  if (typeof value === 'string') {
+    if (unsafeValuePattern.test(value)) {
+      throw new Error(`Unsafe landing content at ${path.join('.') || 'root'}`);
+    }
+    return;
+  }
+
+  if (!value || typeof value !== 'object') {
+    return;
+  }
+
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    if (unsafeKeyPattern.test(key)) {
+      throw new Error(`Unsafe landing content key at ${[...path, key].join('.')}`);
+    }
+    assertNoUnsafeContent(nested, [...path, key]);
+  }
+};
+
 const landingBlockSchema = z.object({
   id: z.string().min(1),
   type: z.enum(LANDING_BLOCK_TYPES),
@@ -21,6 +44,15 @@ export const landingContentSchema = z.object({
     href: z.string().min(1),
   })).default([]),
   blocks: z.array(landingBlockSchema).min(1),
+}).superRefine((content, ctx) => {
+  try {
+    assertNoUnsafeContent(content);
+  } catch (error) {
+    ctx.addIssue({
+      code: 'custom',
+      message: error instanceof Error ? error.message : 'Unsafe landing content',
+    });
+  }
 });
 
 export const landingPagePatchSchema = z.object({

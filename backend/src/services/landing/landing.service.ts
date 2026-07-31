@@ -40,13 +40,11 @@ export const seedLandingPages = async (seeds: any[], reset: boolean) => {
     await LandingPage.updateOne(
       { _id: seed._id },
       {
-        $setOnInsert: seed,
         $set: {
           title: existing.title || seed.title,
           status: existing.status || seed.status,
         },
-      },
-      { upsert: true }
+      }
     );
     pages++;
   }
@@ -115,7 +113,8 @@ export const publishLandingPage = async ({
   if (!page) return null;
 
   const content = assertLandingContent(page.draft) as LandingContent;
-  const nextVersion = (page.publishedVersion || 0) + 1;
+  const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
+  const nextVersion = Number(latest?.version || 0) + 1;
   await LandingPageVersion.create({
     _id: versionId(page._id, nextVersion),
     landingPageId: page._id,
