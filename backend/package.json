@@ -18,6 +18,7 @@
     "test:demo-test:api-pack": "tsx src/tests/demoTest/api-verification-pack.ts",
     "test:demo-test:seed": "tsx src/tests/demoTest/seed-inspection.ts",
     "test:demo-test:smoke": "tsx src/tests/demoTest/write-smoke.ts",
+    "test:pack-0:landing": "tsx src/tests/landing/landing-contract.test.ts",
     "test:demo-test:agent-mcp": "tsx src/tests/demoTest/agent-mcp-bridge.ts",
     "test:demo-test:hermes-client": "tsx src/agent/hermes/tests/hermesApi.client.test.ts",
     "test:demo-test:hermes-shadow": "tsx src/agent/hermes/tests/hermesShadow.service.test.ts",
