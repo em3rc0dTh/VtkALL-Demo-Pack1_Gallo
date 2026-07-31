@@ -47,19 +47,10 @@ export default function Navbar({ taller = {} }) {
     return bloque ? bloque.activo : true;
   };
 
-  const customItems = bloques
-    .filter((b) => b.activo && b.tipo === 'EmbedBlock')
-    .map((b) => ({
-      name: b.conf?.nombreNavbar || 'Extra',
-      href: `#${b.conf?.idSeccion || b.id}`,
-      visible: true,
-    }));
-
   const menuItems = [
     { name: 'Inicio', href: '#inicio', visible: isActive('HeroBlock') },
     { name: 'Servicios', href: '#servicios', visible: isActive('ServicesBlock') },
     { name: 'Nosotros', href: '#nosotros', visible: isActive('SobreNosotrosBlock') },
-    ...customItems,
     { name: 'Contacto', href: '#contacto', visible: isActive('ContactoBlock') },
   ].filter((item) => item.visible);
 

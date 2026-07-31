@@ -17,6 +17,7 @@ import workTeamsRoutes from './workTeams.routes';
 import workTeamScheduleRulesRoutes from './workTeamScheduleRules.routes';
 import workTeamScheduleOverridesRoutes from './workTeamScheduleOverrides.routes';
 import resourceReservationsRoutes from './resourceReservations.routes';
+import landingRoutes from './landing.routes';
 
 import adminRoutes from './admin.routes';
 import * as relationalController from '../controllers/relational.controller';
@@ -26,6 +27,7 @@ const router = Router();
 router.use('/admin', adminRoutes);
 router.use('/workflow-data', workflowDataRoutes);
 router.use('/agent-sim', agentSimRoutes);
+router.use('/', landingRoutes);
 
 // Relational endpoints
 router.get('/customers/:id/cases', relationalController.getCustomerCases);

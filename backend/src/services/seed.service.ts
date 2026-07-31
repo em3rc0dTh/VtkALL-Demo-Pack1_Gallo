@@ -15,6 +15,8 @@ import { WorkTeam } from '../models/WorkTeam.model';
 import { WorkTeamScheduleRule } from '../models/WorkTeamScheduleRule.model';
 import { WorkTeamScheduleOverride } from '../models/WorkTeamScheduleOverride.model';
 import { ResourceReservation } from '../models/ResourceReservation.model';
+import { landingSeeds } from './landing/landing.seed';
+import { seedLandingPages } from './landing/landing.service';
 
 const MODELS: { [key: string]: any } = {
   businessProfiles: BusinessProfile,
@@ -387,6 +389,13 @@ export const seedDatabase = async (reset: boolean = false, namespace: SeedNamesp
       combinedResults[`${selectedNamespace}.${key}`] = val;
     }
   }
+
+  const landingSeedResults = await seedLandingPages(
+    landingSeeds.filter((seed) => namespace === 'all' || seed.businessSlug === namespace),
+    reset
+  );
+  combinedResults['landing.pages'] = landingSeedResults.pages;
+  combinedResults['landing.versions'] = landingSeedResults.versions;
 
   console.log('Seed completed.');
   for (const [key, val] of Object.entries(combinedResults)) {

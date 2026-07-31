@@ -1,5 +1,5 @@
-import { LandingWireframe } from '@/components/wireframes/WireframeScreens';
+import { PublicLandingPage } from '@/components/landing/PublicLandingPage';
 
 export default function Home() {
-  return <LandingWireframe />;
+  return <PublicLandingPage businessSlug="turagua" pageSlug="home" />;
 }
