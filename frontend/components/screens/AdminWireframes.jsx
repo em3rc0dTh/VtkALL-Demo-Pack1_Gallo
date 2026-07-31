@@ -41,7 +41,7 @@ export function AdminWireframes() {
     services: [profile.labels.catalog || 'Catalogo de Servicios', 'Oferta comercial-operativa y riesgos publicos', <ServicesScreen key="services" />],
     messages: ['Centro de Mensajes', 'Bandeja de atencion y fallos operativos', <MessagesScreen key="messages" />],
     team: ['Personal y Equipos', 'Capacidad humana y operativa del taller', <TeamScreen key="team" />],
-    builder: ['Landing Builder', 'Configuracion editable desde BusinessProfile.landing', <LandingBuilderScreen key="builder" />],
+    builder: ['Landing Builder', 'Draft, publicacion y versiones sobre contratos Pack0', <LandingBuilderScreen key="builder" />],
     settings: ['Ajustes Generales', 'BusinessProfile activo y reglas de integracion', <SettingsScreen key="settings" />],
   };
 

@@ -1,7 +1,5 @@
-'use client';
-
 import { LandingAdminPage } from '@/components/landing/LandingAdminPage';
 
-export function LandingBuilderScreen() {
+export default function AdminLandingRoute() {
   return <LandingAdminPage businessSlug="turagua" pageSlug="home" />;
 }

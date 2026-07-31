@@ -470,17 +470,7 @@ export default function TabConfiguracion({ user = {}, onSaveSuccess }) {
                   </div>
                 </div>
 
-                <div className="p-5 bg-surface-panel border border-border-subtle rounded-xl space-y-4">
-                  <h4 className="text-sm font-bold text-text-primary border-b border-border-subtle pb-2 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-status-success"/> Conexión WhatsApp (Twilio)</h4>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-text-secondary">Webhook URL de Recepción</label>
-                    <div className="bg-surface-subtle p-3 rounded-lg border border-border-subtle font-mono text-[11px] text-text-primary flex justify-between">
-                      <span>http://localhost:4000/api/webhook/whatsapp</span>
-                      <span className="text-[10px] bg-status-info-soft text-status-info font-bold px-1.5 rounded">POST</span>
-                    </div>
-                    <p className="text-xs text-text-muted mt-1">Usa esta URL en la consola de Twilio Sandbox para rutear los mensajes entrantes a este sistema.</p>
-                  </div>
-                </div>
+                <div className="p-5 bg-surface-panel border border-border-subtle rounded-xl space-y-4">`r`n                  <h4 className="text-sm font-bold text-text-primary border-b border-border-subtle pb-2 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-status-success"/> Agente Pack0</h4>`r`n                  <div className="space-y-2">`r`n                    <label className="text-xs font-bold text-text-secondary">Canal publico</label>`r`n                    <div className="bg-surface-subtle p-3 rounded-lg border border-border-subtle font-mono text-[11px] text-text-primary flex justify-between">`r`n                      <span>DemoTestAgentChat / Hermes / Temporal</span>`r`n                      <span className="text-[10px] bg-status-info-soft text-status-info font-bold px-1.5 rounded">PACK0</span>`r`n                    </div>`r`n                    <p className="text-xs text-text-muted mt-1">La landing publica usa el runtime del demo base; los conectores de mensajeria legacy quedan fuera de este builder.</p>`r`n                  </div>`r`n                </div>
               </div>
             )}
 
