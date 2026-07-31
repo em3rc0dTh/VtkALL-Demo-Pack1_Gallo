@@ -1,0 +1,93 @@
+name: Pack 0 Acceptance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    env:
+      MONGO_URI: mongodb://vtkall:vtkall_password@127.0.0.1:27017/vtkall_demo_pack_1?authSource=admin&directConnection=true
+      TEMPORAL_ADDRESS: 127.0.0.1:7233
+      HERMES_CONVERSATIONAL_PROVIDER_ORDER: gemini-first
+      HERMES_VISIBLE_RUNTIME_ENABLED: 'true'
+      HERMES_VISIBLE_RUNTIME_CANARY_PERCENT: '100'
+      HERMES_VISIBLE_RUNTIME_FAIL_OPEN: 'true'
+      HERMES_AVAILABILITY_ENABLED: 'true'
+      HERMES_AVAILABILITY_CANARY_PERCENT: '100'
+      HERMES_BOOKING_ENABLED: 'true'
+      HERMES_BOOKING_CANARY_PERCENT: '100'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Start infrastructure
+        run: docker compose up -d mongo temporal-postgresql temporal
+
+      - name: Wait for MongoDB
+        run: |
+          for i in {1..60}; do
+            if docker compose exec -T mongo mongosh --quiet --eval "db.adminCommand('ping').ok" | grep -q 1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs mongo
+          exit 1
+
+      - name: Wait for Temporal
+        run: |
+          for i in {1..60}; do
+            if nc -z 127.0.0.1 7233; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs temporal
+          exit 1
+
+      - name: Start backend API
+        run: |
+          npm --prefix backend run dev > /tmp/demo-pack-0-api.log 2>&1 &
+          echo $! > /tmp/demo-pack-0-api.pid
+
+      - name: Wait for backend API
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:4000/api/v1/admin/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/demo-pack-0-api.log
+          exit 1
+
+      - name: Start Temporal worker
+        run: |
+          npm --prefix backend run temporal:worker > /tmp/demo-pack-0-worker.log 2>&1 &
+          echo $! > /tmp/demo-pack-0-worker.pid
+          sleep 5
+
+      - name: Run Pack 0 acceptance gate
+        run: npm run test:pack-0:acceptance

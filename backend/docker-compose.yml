@@ -1,0 +1,109 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: vtkall_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-vtkall}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-vtkall_demo_pack_1}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    container_name: vtkall_mongo_express
+    restart: always
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME:-vtkall}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+
+  api:
+    build: .
+    container_name: vtkall_api
+    restart: always
+    environment:
+      - API_PORT=${API_PORT:-4000}
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/${MONGO_DATABASE:-vtkall_demo_pack_1}?authSource=admin
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "${API_PORT:-4000}:${API_PORT:-4000}"
+    depends_on:
+      - mongo
+      - temporal
+
+  temporal-postgresql:
+    image: postgres:16
+    container_name: vtkall_temporal_postgresql
+    restart: always
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - temporal_postgresql_data:/var/lib/postgresql/data
+
+  temporal:
+    image: temporalio/auto-setup:1.27.2
+    container_name: vtkall_temporal
+    restart: always
+    depends_on:
+      - temporal-postgresql
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+    ports:
+      - "7233:7233"
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:latest
+    container_name: vtkall_temporal_admin_tools
+    restart: always
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+
+  temporal-ui:
+    image: temporalio/ui:2.36.0
+    container_name: vtkall_temporal_ui
+    restart: always
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://localhost:4000
+    ports:
+      - "8080:8080"
+
+  temporal-worker:
+    build: .
+    container_name: vtkall_temporal_worker
+    restart: always
+    command: npm run temporal:worker
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/${MONGO_DATABASE:-vtkall_demo_pack_1}?authSource=admin
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+      - api
+
+volumes:
+  mongo_data:
+  temporal_postgresql_data:

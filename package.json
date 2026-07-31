@@ -1,17 +1,7 @@
 {
-  "name": "mecanica-pro-monorepo",
-  "version": "1.0.0",
-  "description": "Monorepo para MecánicaPro",
-  "main": "index.js",
+  "name": "vtkall-demo-pack-0-candidate",
+  "private": true,
   "scripts": {
-    "setup": "npm install && npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend",
-    "start:backend": "npm start --prefix backend",
-    "start:frontend": "npm start --prefix frontend"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "test:pack-0:acceptance": "npm --prefix backend run build && npm --prefix backend run test:demo-test:guardrails && npm --prefix backend run test:demo-test:core && npm --prefix backend run test:demo-test:idempotency && npm --prefix backend run test:demo-test:seed && npm --prefix backend run test:demo-test:api-pack && npm --prefix backend run hermes:h06b:temporal-readiness && npm --prefix backend run test:h14 && npm --prefix backend run hermes:h06b:e2e && npm --prefix frontend run lint && npm --prefix frontend run build"
   }
 }

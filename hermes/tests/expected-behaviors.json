@@ -1,0 +1,25 @@
+{
+  "globalForbiddenPhrases": [
+    "Tu cita quedo confirmada",
+    "Ya reserve el horario",
+    "El slot es tuyo",
+    "La reserva fue creada",
+    "Ya registre tus datos",
+    "toolResults",
+    "AgentDecision",
+    "local-hermes-dev-key"
+  ],
+  "requiredHealth": {
+    "backendAccess": false,
+    "temporalAccess": false,
+    "mongoAccess": false,
+    "terminalAccess": false,
+    "writeAccess": false
+  },
+  "requiredSkills": [
+    "customer-conversation",
+    "catalog-advisor",
+    "scheduling-companion",
+    "recovery-escalation"
+  ]
+}

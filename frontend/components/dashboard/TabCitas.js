@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Calendar, List, Clock, Video, Phone, User, CheckCircle2, AlertCircle, Plus, ChevronLeft, ChevronRight, UserCircle, X } from 'lucide-react';
@@ -72,10 +72,10 @@ export default function TabCitas() {
       title: 'Agendar Nueva Cita',
       html: `
         <input id="swal-c1" class="swal2-input" placeholder="Nombre del Cliente">
-        <input id="swal-c2" class="swal2-input" placeholder="Teléfono / WhatsApp">
+        <input id="swal-c2" class="swal2-input" placeholder="TelÃ©fono / WhatsApp">
         <select id="swal-c3" class="swal2-select" style="display: flex; margin: 1em auto; width: 70%; max-width: 100%; font-size: 1.125em;">
-          <option value="Evaluación Presencial">Evaluación Presencial (Taller)</option>
-          <option value="Evaluación con Fotos">Evaluación con Fotos (Remoto)</option>
+          <option value="EvaluaciÃ³n Presencial">EvaluaciÃ³n Presencial (Taller)</option>
+          <option value="EvaluaciÃ³n con Fotos">EvaluaciÃ³n con Fotos (Remoto)</option>
           <option value="Llamada Directa">Llamada Directa (Sin Fotos)</option>
         </select>
         <input id="swal-c4" type="time" class="swal2-input" value="${horaPredefinida || '09:00'}">
@@ -110,7 +110,7 @@ export default function TabCitas() {
     }
   };
 
-  // Generador de Slots básico (8:00 a 18:00, 30 min)
+  // Generador de Slots bÃ¡sico (8:00 a 18:00, 30 min)
   const timeSlots = [];
   for (let i = 8; i < 18; i++) {
     for (let j = 0; j < 60; j += 30) {
@@ -127,7 +127,7 @@ export default function TabCitas() {
         timeSlots.push({
           hora: horaStr,
           estado: 'ocupado',
-          tipo: cita.tipo_cita || 'Evaluación Presencial',
+          tipo: cita.tipo_cita || 'EvaluaciÃ³n Presencial',
           cliente: cita.cliente?.nombre || cita.nombre_cliente || 'Desconocido',
           citaOriginal: cita
         });
@@ -139,8 +139,8 @@ export default function TabCitas() {
 
   const renderIconoTipo = (tipo) => {
     switch (tipo) {
-      case 'Evaluación Presencial': return <User className="w-4 h-4 text-blue-400" />;
-      case 'Evaluación con Fotos': return <Video className="w-4 h-4 text-purple-400" />;
+      case 'EvaluaciÃ³n Presencial': return <User className="w-4 h-4 text-blue-400" />;
+      case 'EvaluaciÃ³n con Fotos': return <Video className="w-4 h-4 text-purple-400" />;
       case 'Llamada Directa': return <Phone className="w-4 h-4 text-green-400" />;
       default: return null;
     }
@@ -234,7 +234,7 @@ export default function TabCitas() {
       
       <PageHeader 
         title="Agenda y Citas"
-        description="Organiza reservas, confirmaciones y atención diaria."
+        description="Organiza reservas, confirmaciones y atenciÃ³n diaria."
         actions={
           <div className="flex items-center gap-3">
             <div className="flex items-center bg-gray-900/50 p-1 rounded-lg border border-gray-800">
@@ -258,7 +258,7 @@ export default function TabCitas() {
         }
       />
 
-      {/* Métricas superiores */}
+      {/* MÃ©tricas superiores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between border-b-0">
@@ -267,7 +267,7 @@ export default function TabCitas() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{citasHoy}</div>
-            <p className="text-xs text-gray-500 mt-1">Total del día</p>
+            <p className="text-xs text-gray-500 mt-1">Total del dÃ­a</p>
           </CardContent>
         </Card>
         <Card>
@@ -287,7 +287,7 @@ export default function TabCitas() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{pendientes}</div>
-            <p className="text-xs text-gray-500 mt-1">Requieren atención</p>
+            <p className="text-xs text-gray-500 mt-1">Requieren atenciÃ³n</p>
           </CardContent>
         </Card>
         <Card>
@@ -310,7 +310,7 @@ export default function TabCitas() {
           <div className="lg:col-span-3">
             <Card className="flex flex-col overflow-hidden h-full">
               <CardHeader className="bg-gray-900/30 border-b border-gray-800 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <CardTitle>Agenda del día</CardTitle>
+                <CardTitle>Agenda del dÃ­a</CardTitle>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <button onClick={() => {
@@ -361,7 +361,7 @@ export default function TabCitas() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Resumen del día</CardTitle>
+                <CardTitle className="text-sm">Resumen del dÃ­a</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -400,10 +400,10 @@ export default function TabCitas() {
         </div>
       )}
 
-      {/* VISTA LISTA GENÉRICA */}
+      {/* VISTA LISTA GENÃ‰RICA */}
       {vista === 'lista' && (
         <div className="text-center py-12 text-sm text-gray-500 border border-gray-850 rounded-2xl bg-gray-950/20">
-          Vista de tabla genérica para ver historial (Ya implementada en la versión anterior).
+          Vista de tabla genÃ©rica para ver historial (Ya implementada en la versiÃ³n anterior).
         </div>
       )}
 
@@ -421,7 +421,7 @@ export default function TabCitas() {
               <select value={editEstado} onChange={e => setEditEstado(e.target.value)} className="w-full bg-gray-900 border border-gray-800 text-white p-2 rounded-xl text-sm outline-none">
                 <option value="pendiente">Pendiente</option>
                 <option value="confirmada">Confirmada</option>
-                <option value="evaluacion_en_curso">Evaluación en Curso</option>
+                <option value="evaluacion_en_curso">EvaluaciÃ³n en Curso</option>
                 <option value="completada">Completada (Cobra el pago)</option>
                 <option value="cancelada">Cancelada (Libera el slot)</option>
               </select>

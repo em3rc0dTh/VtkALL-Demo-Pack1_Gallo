@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const attachments_controller_1 = require("../controllers/attachments.controller");
+const router = (0, express_1.Router)();
+router.get('/', attachments_controller_1.attachmentController.list);
+router.get('/:id', attachments_controller_1.attachmentController.getById);
+router.post('/', attachments_controller_1.attachmentController.create);
+router.put('/:id', attachments_controller_1.attachmentController.replace);
+router.patch('/:id', attachments_controller_1.attachmentController.update);
+router.delete('/:id', attachments_controller_1.attachmentController.delete);
+exports.default = router;

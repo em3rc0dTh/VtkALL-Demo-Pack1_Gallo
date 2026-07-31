@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Type, Image as ImageIcon, Trash2, Settings, MousePointer2, Move, Circle, Square } from 'lucide-react';
 
 export default function FreeCanvasEditor({ bloque, onChange }) {
@@ -96,10 +96,10 @@ export default function FreeCanvasEditor({ bloque, onChange }) {
   return (
     <div className="space-y-6">
       
-      {/* 1. SECCIÓN: CONFIGURACIÓN GENERAL Y NAVBAR */}
+      {/* 1. SECCIÃ“N: CONFIGURACIÃ“N GENERAL Y NAVBAR */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Nombre en el Menú (Navbar)</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Nombre en el MenÃº (Navbar)</label>
           <input 
             type="text" 
             value={nombreNavbar} 
@@ -109,7 +109,7 @@ export default function FreeCanvasEditor({ bloque, onChange }) {
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">ID de la Sección (Enlace)</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">ID de la SecciÃ³n (Enlace)</label>
           <input 
             type="text" 
             value={idSeccion} 
@@ -146,7 +146,7 @@ export default function FreeCanvasEditor({ bloque, onChange }) {
           <Square className="w-4 h-4" /> Cuadrado
         </button>
         <button onClick={() => addItem('circle')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md text-xs font-semibold transition-colors">
-          <Circle className="w-4 h-4" /> Círculo
+          <Circle className="w-4 h-4" /> CÃ­rculo
         </button>
         <button onClick={() => addItem('image')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md text-xs font-semibold transition-colors">
           <ImageIcon className="w-4 h-4" /> Imagen

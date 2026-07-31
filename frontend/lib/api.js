@@ -2,192 +2,131 @@ const API_URL = typeof window !== 'undefined'
   ? '/api' 
   : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api');
 
-const request = async (endpoint, options = {}) => {
-  const url = `${API_URL}${endpoint}`;
-  
-  // Habilitar envío de cookies HttpOnly
-  options.credentials = 'include';
-  
-  if (options.body && typeof options.body === 'object') {
-    options.body = JSON.stringify(options.body);
-    options.headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-  }
-
-  try {
-    const response = await fetch(url, options);
-    
-    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/me')) {
-      // Limpiar cookies de sesión en el cliente si es no autorizado
-      if (typeof window !== 'undefined') {
-        window.location.href = '/admin/login';
-      }
-    }
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.error 
-        ? (errorData.detalle ? `${errorData.error}: ${errorData.detalle}` : errorData.error)
-        : `Error del servidor (status: ${response.status})`;
-      const error = new Error(errorMsg);
-      error.status = response.status;
-      throw error;
-    }
-    
-    return await response.json();
-  } catch (error) {
-    // Evitar inundar la consola con errores 401 (no autorizado) al verificar sesión o login
-    if (error.status !== 401 || (endpoint !== '/auth/me' && endpoint !== '/auth/login')) {
-      if (error.status === 400 || error.status === 409) {
-        console.warn(`Validation Warning [${endpoint}]:`, error.message);
-      } else if (error.status === 404) {
-        console.warn(`Not Found Warning [${endpoint}]:`, error.message);
-      } else {
-        console.error(`Error en API Request [${endpoint}]:`, error);
-      }
-    }
-    throw error;
-  }
+// Mock data generator helper
+const mockRequest = async (mockData) => {
+  return new Promise(resolve => setTimeout(() => resolve(mockData), 300));
 };
 
 export const api = {
   // Autenticación
-  login: (email, password) => request('/auth/login', { method: 'POST', body: { email, password } }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
-  getMe: () => request('/auth/me'),
+  login: async (email, password) => {
+    return mockRequest({ ok: true, usuario: { id: 1, nombre: 'Admin Mock', rol: 'admin', email } });
+  },
+  logout: async () => mockRequest({ ok: true }),
+  getMe: async () => mockRequest({ ok: true, usuario: { id: 1, nombre: 'Admin Mock', rol: 'admin', email: 'admin@demo.com' } }),
+
+  // Settings y configuración pública
+  getConfiguracion: async () => mockRequest({
+    nombre_taller: "VtkALL Mock",
+    slogan: "Sistema Operacional",
+    tema_global: { color: "#00aeef" }
+  }),
+  
+  // Servicios
+  getServicios: async () => mockRequest([
+    { id: 1, nombre: "Diagnóstico Computarizado", descripcion: "Diagnóstico general", precio_base: 50 },
+    { id: 2, nombre: "Mantenimiento Preventivo", descripcion: "Cambio de aceite y filtros", precio_base: 150 },
+    { id: 3, nombre: "Revisión de Frenos", descripcion: "Pastillas y discos", precio_base: 80 }
+  ]),
 
   // Citas
-  getCitas: (fecha = '', estado = '', pagina = 1, limite = 20) => {
-    let query = `?pagina=${pagina}&limite=${limite}`;
-    if (fecha) query += `&fecha=${fecha}`;
-    if (estado) query += `&estado=${estado}`;
-    return request(`/citas${query}`);
-  },
-  crearCita: (data) => request('/citas', { method: 'POST', body: data }),
-  actualizarCita: (id, data) => request(`/citas/${id}`, { method: 'PUT', body: data }),
-  eliminarCita: (id) => request(`/citas/${id}`, { method: 'DELETE' }),
-  enviarFeedbackMaestro: (id, data) => request(`/citas/${id}/feedback-maestro`, { method: 'POST', body: data }),
+  getCitas: () => mockRequest({
+    citas: [
+      { _id: '1', fecha_cita: new Date().toISOString(), estado: 'confirmada', precio_final: 150, cliente: { nombre: 'Juan Pérez' }, vehiculo: 'Toyota Corolla' },
+      { _id: '2', fecha_cita: new Date().toISOString(), estado: 'pendiente', precio_final: 80, cliente: { nombre: 'María Gómez' }, vehiculo: 'Kia Rio' },
+      { _id: '3', fecha_cita: new Date(Date.now() + 86400000).toISOString(), estado: 'en_proceso', precio_final: 300, cliente: { nombre: 'Carlos Ruiz' }, vehiculo: 'Nissan Sentra' }
+    ]
+  }),
+  crearCita: () => mockRequest({ ok: true, _id: 'new_cita' }),
+  actualizarCita: () => mockRequest({ ok: true }),
+  eliminarCita: () => mockRequest({ ok: true }),
+  enviarFeedbackMaestro: () => mockRequest({ ok: true }),
   
   // Temporal Workflow
-  temporalStart: (data) => request('/temporal/start', { method: 'POST', body: data }),
-  temporalBakerQuote: (data) => request('/temporal/baker-quote', { method: 'POST', body: data }),
+  temporalStart: () => mockRequest({ ok: true }),
+  temporalBakerQuote: () => mockRequest({ ok: true }),
 
   // Clientes
-  getClientes: (busqueda = '', pagina = 1, limite = 20) => {
-    let query = `?pagina=${pagina}&limite=${limite}`;
-    if (busqueda) query += `&busqueda=${encodeURIComponent(busqueda)}`;
-    return request(`/clientes${query}`);
-  },
-  getClienteDetalle: (id) => request(`/clientes/${id}`),
-  crearCliente: (data) => request('/clientes', { method: 'POST', body: data }),
-  actualizarCliente: (id, data) => request(`/clientes/${id}`, { method: 'PUT', body: data }),
-  eliminarCliente: (id) => request(`/clientes/${id}`, { method: 'DELETE' }),
+  getClientes: () => mockRequest({
+    clientes: [
+      { _id: '1', nombre: 'Juan Pérez', telefono: '999888777', email: 'juan@test.com' },
+      { _id: '2', nombre: 'María Gómez', telefono: '999888666', email: 'maria@test.com' },
+      { _id: '3', nombre: 'Carlos Ruiz', telefono: '999888555', email: 'carlos@test.com' }
+    ],
+    total: 3,
+    paginas: 1
+  }),
+  getClienteDetalle: () => mockRequest({ _id: '1', nombre: 'Juan Pérez', telefono: '999888777', email: 'juan@test.com', vehiculos: [{ patente: 'ABC-123', modelo: 'Corolla' }] }),
+  crearCliente: () => mockRequest({ ok: true }),
+  actualizarCliente: () => mockRequest({ ok: true }),
+  eliminarCliente: () => mockRequest({ ok: true }),
 
   // Mensajes y chat
-  getConversaciones: () => request('/mensajes/conversaciones'),
-  getMensajes: (numeroTelefono, options = {}) => {
-    let url = `/mensajes/${numeroTelefono}`;
-    const params = new URLSearchParams();
-    if (options.limitWeeks) params.append('limitWeeks', options.limitWeeks);
-    if (options.useConfig) params.append('useConfig', 'true');
-    const qs = params.toString();
-    if (qs) url += `?${qs}`;
-    return request(url);
-  },
-  enviarMensajeManual: (numero_telefono, contenido) => request('/mensajes/enviar-manual', { method: 'POST', body: { numero_telefono, contenido } }),
+  getConversaciones: () => mockRequest([]),
+  getMensajes: () => mockRequest({ mensajes: [], cliente: null }),
+  enviarMensajeManual: () => mockRequest({ ok: true }),
   
   // Simulador de WhatsApp webhook
-  enviarMensajeSimulado: (numeroTelefono, contenido, adjuntos = []) => {
-    return request('/webhook/whatsapp', {
-      method: 'POST',
-      body: {
-        from: `whatsapp:${numeroTelefono}`,
-        body: contenido,
-        adjuntos: adjuntos
-      }
-    });
-  },
-  getHistorialPublico: (telefono) => request(`/webhook/historial/${telefono}`),
-  identificarConversacion: (sessionId, identifier) => request('/webhook/identify', {
-    method: 'POST',
-    body: { sessionId, identifier }
-  }),
-  getDisponibilidadPublica: (fecha) => request(`/webhook/disponibilidad?fecha=${fecha}`),
-  agendarCitaPublica: (data) => request('/webhook/agendar', { method: 'POST', body: data }),
+  enviarMensajeSimulado: () => mockRequest({ ok: true }),
+  getHistorialPublico: () => mockRequest({ ok: true, mensajes: [], cliente: null }),
+  identificarConversacion: () => mockRequest({ ok: true }),
+  getDisponibilidadPublica: () => mockRequest({ disponibles: [] }),
+  agendarCitaPublica: () => mockRequest({ ok: true }),
 
-  // Servicios y Productos
-  getServicios: () => request('/servicios'),
-  crearServicio: (data) => request('/servicios', { method: 'POST', body: data }),
-  actualizarServicio: (id, data) => request(`/servicios/${id}`, { method: 'PUT', body: data }),
-  eliminarServicio: (id) => request(`/servicios/${id}`, { method: 'DELETE' }),
-
-  getProductos: () => request('/productos'),
-  crearProducto: (data) => request('/productos', { method: 'POST', body: data }),
-  actualizarProducto: (id, data) => request(`/productos/${id}`, { method: 'PUT', body: data }),
-  eliminarProducto: (id) => request(`/productos/${id}`, { method: 'DELETE' }),
+  // Productos
+  getProductos: () => mockRequest([
+    { _id: 'p1', nombre: 'Aceite Sintético', stock: 10, precio: 50 },
+    { _id: 'p2', nombre: 'Filtro de Aceite', stock: 5, precio: 15 }
+  ]),
+  crearProducto: () => mockRequest({ ok: true }),
+  actualizarProducto: () => mockRequest({ ok: true }),
+  eliminarProducto: () => mockRequest({ ok: true }),
 
   // Teams y Trabajadores
-  getTeams: () => request('/teams'),
-  crearTeam: (data) => request('/teams', { method: 'POST', body: data }),
-  actualizarTeam: (id, data) => request(`/teams/${id}`, { method: 'PUT', body: data }),
-  eliminarTeam: (id) => request(`/teams/${id}`, { method: 'DELETE' }),
+  getTeams: () => mockRequest([
+    { _id: 't1', nombre: 'Bahía 1', capacidad: 1 },
+    { _id: 't2', nombre: 'Bahía 2', capacidad: 1 }
+  ]),
+  crearTeam: () => mockRequest({ ok: true }),
+  actualizarTeam: () => mockRequest({ ok: true }),
+  eliminarTeam: () => mockRequest({ ok: true }),
 
-  getTrabajadores: () => request('/trabajadores'),
-  crearTrabajador: (data) => request('/trabajadores', { method: 'POST', body: data }),
-  actualizarTrabajador: (id, data) => request(`/trabajadores/${id}`, { method: 'PUT', body: data }),
-  eliminarTrabajador: (id) => request(`/trabajadores/${id}`, { method: 'DELETE' }),
+  getTrabajadores: () => mockRequest([
+    { _id: 'w1', nombre: 'Luis', rol: 'Mecánico Principal' },
+    { _id: 'w2', nombre: 'Carlos', rol: 'Mecánico Jr' }
+  ]),
+  crearTrabajador: () => mockRequest({ ok: true }),
+  actualizarTrabajador: () => mockRequest({ ok: true }),
+  eliminarTrabajador: () => mockRequest({ ok: true }),
 
   // Disponibilidad
-  getDisponibilidad: (entidadId) => request(`/disponibilidad/${entidadId}`),
-  guardarDisponibilidad: (data) => request('/disponibilidad', { method: 'POST', body: data }),
+  getDisponibilidad: () => mockRequest([]),
+  guardarDisponibilidad: () => mockRequest({ ok: true }),
 
   // Configuración del taller
-  getConfiguracion: () => request('/configuracion'),
-  actualizarConfiguracion: (data) => request('/configuracion', { method: 'PUT', body: data }),
-  obtenerVerticalConfig: () => request('/vertical-config'),
+  actualizarConfiguracion: () => mockRequest({ ok: true }),
+  obtenerVerticalConfig: () => mockRequest({ type: 'automotive' }),
 
   // Cases / Operaciones
-  obtenerCases: (filters = {}) => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params.append(key, value);
-      }
-    });
-    const qs = params.toString();
-    return request(`/cases${qs ? `?${qs}` : ''}`);
-  },
-  obtenerCasePorId: (id) => request(`/cases/${id}`),
-  crearCase: (data) => request('/cases', { method: 'POST', body: data }),
-  actualizarCaseStatus: (id, status) => request(`/cases/${id}/status`, { method: 'PATCH', body: { status } }),
-  aplicarExpertReview: (id, data) => request(`/cases/${id}/expert-review`, { method: 'POST', body: data }),
-  prepararCaseQuote: (id, data) => request(`/cases/${id}/quote`, { method: 'POST', body: data }),
-  obtenerCaseQuote: (id) => request(`/cases/${id}/quote`),
-  aprobarCase: (id, data = {}) => request(`/cases/${id}/approve`, { method: 'POST', body: data }),
-  rechazarCase: (id, data = {}) => request(`/cases/${id}/reject`, { method: 'POST', body: data }),
+  obtenerCases: () => mockRequest({
+    data: [
+      { id: 'TUR-2026-0001', customerName: 'Carlos Ramírez', placa: 'ABC-123', status: 'intake', serviceRequested: 'Frenos', finalPrice: 850 },
+      { id: 'TUR-2026-0002', customerName: 'María Torres', placa: 'XYZ-789', status: 'expert_review', serviceRequested: 'Diagnóstico', finalPrice: 0 }
+    ],
+    meta: { total: 2, page: 1, limit: 10 }
+  }),
+  obtenerCasePorId: () => mockRequest({ data: { id: 'TUR-2026-0001', customerName: 'Carlos Ramírez', placa: 'ABC-123', status: 'intake', serviceRequested: 'Frenos', finalPrice: 850, estimatedDeliveryDate: new Date().toISOString() } }),
+  crearCase: () => mockRequest({ ok: true }),
+  actualizarCaseStatus: () => mockRequest({ ok: true }),
+  aplicarExpertReview: () => mockRequest({ ok: true }),
+  prepararCaseQuote: () => mockRequest({ ok: true }),
+  obtenerCaseQuote: () => mockRequest({ data: null }),
+  aprobarCase: () => mockRequest({ ok: true }),
+  rechazarCase: () => mockRequest({ ok: true }),
 
   // Historial Clínico y Mantenimiento de Vehículos
-  agregarReparacion: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/reparaciones`, { method: 'POST', body: data }),
-  actualizarMantenimiento: (clienteId, patente, data) => request(`/clientes/${clienteId}/vehiculos/${patente}/mantenimiento`, { method: 'PUT', body: data }),
-  mergeClientes: (id, targetClientId) => request(`/clientes/${id}/merge`, { method: 'POST', body: { targetClientId } }),
-  subirImagenGeneral: (formData) => {
-    // Para uploads grandes (videos), bypass proxy Next.js para evitar límite de size
-    const uploadUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? 'http://localhost:4000/api/upload/general'
-      : '/api/upload/general';
-
-    return fetch(uploadUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    }).then(async (res) => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Error al subir imagen');
-      }
-      return res.json();
-    });
-  },
+  agregarReparacion: () => mockRequest({ ok: true }),
+  actualizarMantenimiento: () => mockRequest({ ok: true }),
+  mergeClientes: () => mockRequest({ ok: true }),
+  subirImagenGeneral: () => mockRequest({ url: 'https://via.placeholder.com/150' }),
 };

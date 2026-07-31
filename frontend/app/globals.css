@@ -1,142 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&family=Readex+Pro:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&family=Readex+Pro:wght@300;400;500;600;700;800&display=swap");
 @import "tailwindcss";
-
-@theme {
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-secondary: var(--secondary);
-  --color-secondary-hover: var(--secondary-hover);
-  --color-navy: var(--navy);
-  --color-lavender: var(--lavender);
-  --color-white: var(--white);
-  --color-gray: var(--gray);
-  --color-cyan: var(--cyan);
-
-  --color-dark-bg: var(--dark-bg);
-  --color-dark-aside: var(--dark-aside);
-  --color-dark-panel: var(--dark-panel);
-  --color-dark-card: var(--dark-card);
-  --color-light-bg: var(--light-bg);
-  --color-light-panel: var(--light-panel);
-
-  --color-whatsapp-green: var(--whatsapp-green);
-  --color-whatsapp-green-hover: var(--whatsapp-green-hover);
-  --color-whatsapp-light: var(--whatsapp-light);
-  --color-whatsapp-light-hover: var(--whatsapp-light-hover);
-  --color-scanner: var(--scanner-color);
-
-  /* Custom shadows */
-  --shadow-btn-primary: var(--shadow-btn-primary);
-  --shadow-btn-primary-hover: var(--shadow-btn-primary-hover);
-  --shadow-btn-secondary: var(--shadow-btn-secondary);
-  --shadow-btn-secondary-hover: var(--shadow-btn-secondary-hover);
-  --shadow-card-hover: var(--shadow-card-hover);
-  --shadow-navbar: var(--shadow-navbar);
-  --shadow-navbar-hover: var(--shadow-navbar-hover);
-  --shadow-card-glow: var(--shadow-card-glow);
-  --shadow-form-card: var(--shadow-form-card);
-  --shadow-scanner-glow: var(--shadow-scanner-glow);
-  --shadow-whatsapp: var(--shadow-whatsapp);
-
-  --shadow-pits-red: var(--glow-pits-red);
-  --shadow-pits-primary: var(--glow-pits-primary);
-  --shadow-pits-green-ready: var(--glow-pits-green-ready);
-  --shadow-pits-green-launch: var(--glow-pits-green-launch);
-  --shadow-spark: var(--glow-spark);
-  --shadow-car-wheel: var(--shadow-car-wheel);
-}
-
-/* ─── Design Tokens ─── */
-:root {
-  /* Main pastel pink */
-  --primary: #ff8da1;
-  --primary-hover: #ff748e;
-
-  /* Secondary sweet color (buttercream) */
-  --secondary: #fff5e1;
-  --secondary-hover: #ffe8b5;
-
-  /* Deep dark brownish-gray for text */
-  --navy: #4a3b3c;
-
-  /* Soft pink background */
-  --lavender: #ffe4e8;
-
-  /* Clean white */
-  --white: #ffffff;
-
-  /* Neutral warm gray */
-  --gray: #8a7a7b;
-
-  /* Accent peach */
-  --cyan: #ffb88c;
-
-  /* Special Background Colors */
-  --dark-bg: #0f1115;
-  --dark-aside: #16181d;
-  --dark-panel: #1e2128;
-  --dark-card: #252830;
-  --light-bg: #f8fafc;
-  --light-panel: #ffffff;
-
-  /* Third party / Social (WhatsApp) */
-  --whatsapp-green: #25d366;
-  --whatsapp-green-hover: #1fad51;
-  --whatsapp-light: #61ce70;
-  --whatsapp-light-hover: #10b981;
-  --scanner-color: #f97316;
-
-  /* Custom Border Styling */
-  --color-track-border: color-mix(in srgb, var(--primary) 20%, transparent);
-
-  /* Shadows & Glows */
-  --shadow-btn-primary:         0 2px 10px color-mix(in srgb, var(--primary) 20%, transparent);
-  --shadow-btn-primary-hover:   0 4px 15px color-mix(in srgb, var(--primary) 35%, transparent);
-  --shadow-btn-secondary:       0 2px 10px color-mix(in srgb, var(--secondary) 15%, transparent);
-  --shadow-btn-secondary-hover: 0 4px 15px color-mix(in srgb, var(--secondary) 25%, transparent);
-  --shadow-card-hover:          0 10px 30px -5px rgba(0, 0, 0, 0.3);
-  
-  --shadow-navbar:              0 4px 20px rgba(0, 0, 0, 0.2);
-  --shadow-navbar-hover:        0 6px 25px rgba(0, 0, 0, 0.3);
-  
-  --shadow-card-glow:           0 0 30px color-mix(in srgb, var(--primary) 12%, transparent);
-  --shadow-form-card:           0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  --shadow-scanner-glow:        0 0 15px var(--scanner-color);
-  --shadow-whatsapp:            0 4px 14px color-mix(in srgb, var(--whatsapp-green) 30%, transparent);
-
-  /* Text Shadows */
-  --text-shadow-hero:           0 0 40px color-mix(in srgb, var(--primary) 10%, transparent);
-
-  /* CSS Gradients */
-  --bg-decorative-text:         linear-gradient(180deg, color-mix(in srgb, var(--primary) 8%, transparent) 0%, color-mix(in srgb, var(--primary) 1%, transparent) 100%);
-
-  /* Glow / Neon effects */
-  --glow-car-primary:           0 0 6px color-mix(in srgb, var(--primary) 56%, transparent);
-  --glow-car-cyan:              0 0 6px color-mix(in srgb, var(--cyan) 56%, transparent);
-  --glow-car-secondary:         0 0 6px color-mix(in srgb, var(--secondary) 56%, transparent);
-  --glow-underglow-diagnostico: 0 0 6px #ef4444;
-  --glow-underglow-ready:       0 0 6px var(--secondary);
-  --glow-underglow-normal:      0 0 6px var(--cyan);
-  --glow-headlight:             0 0 8px var(--cyan);
-  --glow-brakelight:            0 0 8px #ef4444;
-  
-  --glow-wrench:                0 0 6px color-mix(in srgb, var(--primary) 50%, transparent);
-  --glow-gear:                  0 0 6px color-mix(in srgb, var(--cyan) 50%, transparent);
-  --glow-zap:                   0 0 8px color-mix(in srgb, var(--secondary) 50%, transparent);
-
-  --glow-pits-red:              0 0 10px rgba(239, 68, 68, 0.7);
-  --glow-pits-primary:          0 0 10px color-mix(in srgb, var(--primary) 70%, transparent);
-  --glow-pits-green-ready:      0 0 12px rgba(16, 185, 129, 0.8);
-  --glow-pits-green-launch:     0 0 15px rgba(16, 185, 129, 1);
-  --glow-spark:                 0 0 6px #0ebde1;
-
-  --shadow-car-chassis:         0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-car-wheel:           0 0 8px rgba(0, 0, 0, 0.2);
-
-  /* Legacy variables compatibility */
-  --blue: var(--primary);
-  --yellow: #00d1ff;
-}
+@import "./op-tokens.css";
 
 /* ─── Base ─── */
 html {
@@ -144,11 +8,10 @@ html {
 }
 
 body {
-  background-color: var(--white);
-  color: var(--navy);
+  background-color: var(--op-surface-app);
+  color: var(--op-text-primary);
   font-family:
     "Inter",
-    "Space Grotesk",
     -apple-system,
     sans-serif;
   overflow-x: hidden;
@@ -159,8 +22,8 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: var(--blue);
-  color: #fff;
+  background: var(--op-action-primary);
+  color: var(--op-on-action-primary);
 }
 
 /* ─── Custom Scrollbar ─── */
@@ -168,29 +31,14 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--lavender);
+  background: var(--op-surface-app);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--blue);
+  background: var(--op-border-strong);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover);
-}
-
-/* ─── Glassmorphism ─── */
-.glass-panel {
-  background: color-mix(in srgb, var(--primary) 4%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
-}
-
-.glass-panel-dark {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--op-action-primary-hover);
 }
 
 /* ─── Reveal on scroll ─── */
@@ -229,24 +77,12 @@ body {
 }
 
 /* Stagger delays */
-.delay-1 {
-  transition-delay: 80ms;
-}
-.delay-2 {
-  transition-delay: 160ms;
-}
-.delay-3 {
-  transition-delay: 240ms;
-}
-.delay-4 {
-  transition-delay: 320ms;
-}
-.delay-5 {
-  transition-delay: 400ms;
-}
-.delay-6 {
-  transition-delay: 480ms;
-}
+.delay-1 { transition-delay: 80ms; }
+.delay-2 { transition-delay: 160ms; }
+.delay-3 { transition-delay: 240ms; }
+.delay-4 { transition-delay: 320ms; }
+.delay-5 { transition-delay: 400ms; }
+.delay-6 { transition-delay: 480ms; }
 
 /* ─── Card Rise ─── */
 @keyframes card-rise {
@@ -303,168 +139,6 @@ body {
   animation: marquee-left 22s linear infinite;
 }
 
-/* ─── Gradient text ─── */
-.text-gradient {
-  background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.text-gradient-gold {
-  background: linear-gradient(135deg, #ffc800 0%, #ff9500 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.text-orange-gradient {
-  background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ─── Section wave dividers ─── */
-.wave-top {
-  position: absolute;
-  top: -2px;
-  left: 0;
-  right: 0;
-  overflow: hidden;
-  line-height: 0;
-  pointer-events: none;
-}
-.wave-top svg {
-  display: block;
-  width: 100%;
-  height: 60px;
-}
-
-.wave-bottom {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  overflow: hidden;
-  line-height: 0;
-  pointer-events: none;
-}
-.wave-bottom svg {
-  display: block;
-  width: 100%;
-  height: 60px;
-}
-
-/* ─── Gradient button ─── */
-.btn-primary {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 28px;
-  border-radius: 9999px;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    background 200ms ease;
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--primary) 30%, transparent);
-}
-.btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 30px color-mix(in srgb, var(--primary) 45%, transparent);
-  background: var(--primary-hover);
-}
-.btn-primary:active {
-  transform: scale(0.98);
-}
-
-.btn-yellow {
-  background: var(--yellow);
-  color: var(--navy);
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--secondary) 30%, transparent);
-}
-.btn-yellow:hover {
-  background: var(--secondary-hover);
-  box-shadow: 0 8px 30px color-mix(in srgb, var(--secondary) 45%, transparent);
-}
-
-/* ─── Section label badge ─── */
-.section-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
-  color: var(--blue);
-  border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
-  margin-bottom: 16px;
-}
-
-/* ─── Hover card lift ─── */
-.card-lift {
-  transition:
-    transform 300ms cubic-bezier(0.22, 0.8, 0.3, 1),
-    box-shadow 300ms cubic-bezier(0.22, 0.8, 0.3, 1);
-}
-.card-lift:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 60px -10px
-    color-mix(in srgb, var(--primary) 15%, transparent);
-}
-
-/* ─── Gradient orbs / ambient glow ─── */
-.orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(80px);
-  pointer-events: none;
-  animation: orb-pulse 6s ease-in-out infinite;
-}
-@keyframes orb-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.08);
-  }
-}
-
-/* ─── Animated underline ─── */
-.anim-underline {
-  position: relative;
-  display: inline-block;
-}
-.anim-underline::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background: var(--yellow);
-  border-radius: 9999px;
-  transition: width 400ms cubic-bezier(0.22, 0.8, 0.3, 1);
-}
-.anim-underline:hover::after {
-  width: 100%;
-}
-
 /* ─── Shimmer loading skeleton ─── */
 @keyframes shimmer {
   0% {
@@ -480,114 +154,44 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* ─── Operations Console Shared Primitives ─── */
-@layer components {
-  /* Cards */
-  .console-card {
-    @apply bg-dark-card/50 backdrop-blur-md border border-gray-700/50 rounded-xl p-5 transition-all hover:border-gray-600/50 hover:shadow-lg hover:shadow-black/20;
-  }
-  .console-card-header {
-    @apply flex items-center justify-between mb-5 border-b border-gray-700/50 pb-3;
-  }
-  .console-card-title {
-    @apply text-sm font-semibold text-white flex items-center gap-2;
-  }
-
-  /* Buttons */
-  .console-btn-primary {
-    @apply flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-black/20;
-  }
-  .console-btn-secondary {
-    @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-all cursor-pointer shadow-sm shadow-black/20;
-  }
-  .console-btn-outline {
-    @apply flex items-center justify-center gap-2 px-4 py-2 border border-gray-700/80 hover:border-gray-500 text-gray-300 hover:text-white bg-gray-900/50 hover:bg-gray-800 rounded-lg text-sm font-medium transition-all cursor-pointer;
-  }
-  .console-btn-danger {
-    @apply flex items-center justify-center gap-2 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all cursor-pointer shadow-sm shadow-black/20;
-  }
-  
-  /* Inputs */
-  .console-input {
-    @apply w-full bg-gray-900/50 border border-gray-700/80 rounded-lg px-4 py-2.5 text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-500;
-  }
-
-  /* Badges */
-  .console-badge-red {
-    @apply bg-red-500/10 text-red-500 border border-red-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-  .console-badge-green {
-    @apply bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-  .console-badge-yellow {
-    @apply bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-  .console-badge-blue {
-    @apply bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-  .console-badge-cyan {
-    @apply bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-  .console-badge-gray {
-    @apply bg-gray-800 text-gray-300 border border-gray-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit;
-  }
-
-  /* Global Form Helpers */
-  .console-form-grid {
-    @apply grid gap-4 mb-4;
-  }
-  .console-form-section {
-    @apply space-y-4 pt-4 border-t border-gray-800/60 mt-4;
-  }
-  .console-form-label {
-    @apply block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-left;
-  }
-  .console-form-help {
-    @apply text-[10px] text-gray-500 mt-1 text-left;
-  }
-  .console-modal-shell {
-    @apply bg-dark-panel border border-gray-800 rounded-3xl shadow-2xl;
-  }
-}
-
 /* ─── SweetAlert2 Premium Dark Integration ─── */
 .swal2-popup {
-  background: var(--dark-panel) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--op-surface-panel) !important;
+  border: 1px solid var(--op-border-subtle) !important;
   border-radius: 1.5rem !important;
-  color: var(--white) !important;
+  color: var(--op-text-primary) !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
 .swal2-title {
-  color: var(--white) !important;
+  color: var(--op-text-primary) !important;
   font-size: 1.25rem !important;
   font-weight: 700 !important;
 }
 
 .swal2-html-container {
-  color: var(--gray) !important;
+  color: var(--op-text-secondary) !important;
   font-size: 0.875rem !important;
 }
 
 .swal2-input, .swal2-textarea, .swal2-select {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: var(--white) !important;
+  background: var(--op-surface-subtle) !important;
+  border: 1px solid var(--op-border-default) !important;
+  color: var(--op-text-primary) !important;
   border-radius: 0.75rem !important;
   font-size: 0.875rem !important;
   transition: all 0.2s ease !important;
 }
 
 .swal2-input:focus, .swal2-textarea:focus, .swal2-select:focus {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 1px var(--primary) !important;
+  border-color: var(--op-focus-ring) !important;
+  box-shadow: 0 0 0 1px var(--op-focus-ring) !important;
   outline: none !important;
 }
 
 .swal2-confirm {
-  background: var(--primary) !important;
-  color: white !important;
+  background: var(--op-action-primary) !important;
+  color: var(--op-on-action-primary) !important;
   border-radius: 0.75rem !important;
   font-weight: 700 !important;
   font-size: 0.875rem !important;
@@ -596,14 +200,14 @@ body {
 }
 
 .swal2-confirm:hover {
-  background: var(--primary-hover) !important;
+  background: var(--op-action-primary-hover) !important;
   transform: translateY(-1px) !important;
 }
 
 .swal2-cancel {
   background: transparent !important;
-  color: var(--gray) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--op-action-secondary) !important;
+  border: 1px solid var(--op-border-default) !important;
   border-radius: 0.75rem !important;
   font-weight: 600 !important;
   font-size: 0.875rem !important;
@@ -612,39 +216,39 @@ body {
 }
 
 .swal2-cancel:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: var(--white) !important;
+  background: var(--op-surface-subtle) !important;
+  color: var(--op-text-primary) !important;
 }
 
 .swal2-validation-message {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #ef4444 !important;
-  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  background: var(--op-status-danger-soft) !important;
+  color: var(--op-status-danger) !important;
+  border: 1px solid var(--op-border-subtle) !important;
   border-radius: 0.5rem !important;
   font-size: 0.75rem !important;
   font-weight: 600 !important;
 }
 
 .swal2-close {
-  color: var(--gray) !important;
+  color: var(--op-text-muted) !important;
 }
 
 .swal2-close:hover {
-  color: var(--white) !important;
+  color: var(--op-text-primary) !important;
 }
 
 .swal2-icon {
-  border-color: rgba(255,255,255,0.1) !important;
+  border-color: var(--op-border-subtle) !important;
 }
 .swal2-icon.swal2-success {
-  border-color: #10b981 !important;
-  color: #10b981 !important;
+  border-color: var(--op-status-success) !important;
+  color: var(--op-status-success) !important;
 }
 .swal2-icon.swal2-warning {
-  border-color: #f59e0b !important;
-  color: #f59e0b !important;
+  border-color: var(--op-status-warning) !important;
+  color: var(--op-status-warning) !important;
 }
 .swal2-icon.swal2-error {
-  border-color: #ef4444 !important;
-  color: #ef4444 !important;
+  border-color: var(--op-status-danger) !important;
+  color: var(--op-status-danger) !important;
 }

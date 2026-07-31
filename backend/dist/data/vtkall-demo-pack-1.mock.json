@@ -1,0 +1,1312 @@
+{
+    "datasetName": "VTKALL_DEMO_PACK_1_TURAGUA_USE_CASES_MOCK_DATA",
+    "datasetVersion": "0.1.0",
+    "businessSlug": "turagua",
+    "verticalType": "vehicle_service",
+    "modelVersion": "Data_MDATA_MODEL_VTKALL_DataModel-0_v2",
+    "generatedForUseCases": [
+        "registro_de_cliente",
+        "registro_de_entidad_gestionada",
+        "crear_caso_operativo",
+        "agendar_cita_consulta",
+        "confirmar_cita_consulta"
+    ],
+    "businessProfiles": [
+        {
+            "_id": "bp_turagua",
+            "businessSlug": "turagua",
+            "businessName": "Turagua Racing Peru",
+            "verticalType": "vehicle_service",
+            "brand": {
+                "displayName": "Turagua Racing Peru",
+                "logoUrl": "/brands/turagua/logo.png",
+                "primaryColor": "#00AEEF",
+                "secondaryColor": "#111827",
+                "country": "PE",
+                "timezone": "America/Lima"
+            },
+            "agent": {
+                "name": "Iris",
+                "role": "Asesora virtual de atencion y reservas automotrices",
+                "promptKey": "turagua",
+                "primaryChannel": "web",
+                "secondaryChannels": [
+                    "whatsapp"
+                ]
+            },
+            "about": {
+                "headline": "Calidad, detalle y proteccion automotriz.",
+                "summary": "Turagua Racing Peru se especializa en el cuidado, la proteccion y la renovacion de vehiculos con procesos tecnicos, materiales de calidad y atencion personalizada.",
+                "specialties": [
+                    "proteccion inferior",
+                    "restauracion de chasis",
+                    "undercoating",
+                    "arenado",
+                    "planchado y pintura",
+                    "estetica automotriz",
+                    "preparacion off-road"
+                ]
+            },
+            "promotions": [
+                {
+                    "title": "Promo de lanzamiento",
+                    "detail": "Especial web: 20% OFF en planchado y pintura"
+                }
+            ],
+            "labels": {
+                "customer": "Cliente",
+                "case": "Orden",
+                "managedEntity": "Vehiculo",
+                "appointment": "Cita de evaluacion",
+                "assessment": "Evaluacion",
+                "assessmentReport": "Diagnostico",
+                "quote": "Cotizacion",
+                "workOrder": "Orden de Trabajo",
+                "workshop": "Taller"
+            },
+            "features": {
+                "supportsAppointments": true,
+                "supportsPhotoAssessment": true,
+                "supportsPhoneAssessment": true,
+                "supportsQuotes": true,
+                "supportsWorkOrders": true,
+                "supportsDeliveryDate": false,
+                "supportsVehicleData": true,
+                "supportsFeasibility": true
+            },
+            "statusProfileId": "status_vehicle_service_v1",
+            "workflowProfileId": "workflow_vehicle_service_v1",
+            "catalogProfileId": "catalog_turagua_v2",
+            "active": true
+        }
+    ],
+    "catalogOfferings": [
+        {
+            "_id": "off_general_diagnostic",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "diagnostico",
+            "name": "Diagnostico general",
+            "description": "Revision completa para identificar fallas, codigos y sintomas del vehiculo.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "informational",
+                "currency": "PEN",
+                "requiresAssessment": true,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": true,
+                "allowedModes": [
+                    "onsite_assessment",
+                    "phone_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_mechanics",
+                "defaultTaskTemplates": [
+                    "Recepcion del vehiculo",
+                    "Revision general",
+                    "Escaneo y diagnostico",
+                    "Reporte inicial"
+                ]
+            },
+            "tags": [
+                "diagnostico",
+                "scanner",
+                "revision",
+                "fallas"
+            ]
+        },
+        {
+            "_id": "off_preventive_maintenance",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "mantenimiento",
+            "name": "Mantenimiento preventivo",
+            "description": "Cuidamos tu vehiculo para que funcione siempre en optimas condiciones.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "informational",
+                "currency": "PEN",
+                "requiresAssessment": false,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": false,
+                "allowedModes": [
+                    "onsite_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_mechanics",
+                "defaultTaskTemplates": [
+                    "Checklist preventivo",
+                    "Cambio de consumibles",
+                    "Revision de niveles",
+                    "Entrega y recomendaciones"
+                ]
+            },
+            "tags": [
+                "mantenimiento",
+                "preventivo",
+                "servicio",
+                "revision"
+            ]
+        },
+        {
+            "_id": "off_brake_service",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "frenos",
+            "name": "Frenos y suspension",
+            "description": "Revision y cambio de pastillas, discos, amortiguadores y componentes clave para seguridad y estabilidad.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "from_price",
+                "currency": "PEN",
+                "basePriceCents": 8000,
+                "requiresAssessment": true,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": true,
+                "allowedModes": [
+                    "onsite_assessment",
+                    "photo_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_mechanics",
+                "defaultTaskTemplates": [
+                    "Inspeccion de frenos",
+                    "Diagnostico tecnico",
+                    "Ejecucion del servicio",
+                    "Prueba final"
+                ]
+            },
+            "tags": [
+                "frenos",
+                "suspension",
+                "seguridad",
+                "mantenimiento"
+            ]
+        },
+        {
+            "_id": "off_engine_check",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "motor",
+            "name": "Motor y rendimiento",
+            "description": "Optimizacion y reparacion para mejorar el desempeno y la eficiencia del motor.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "from_price",
+                "currency": "PEN",
+                "basePriceCents": 12000,
+                "requiresAssessment": true,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": true,
+                "allowedModes": [
+                    "onsite_assessment",
+                    "phone_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_mechanics",
+                "defaultTaskTemplates": [
+                    "Escaneo inicial",
+                    "Inspeccion visual",
+                    "Prueba de encendido",
+                    "Diagnostico tecnico"
+                ]
+            },
+            "tags": [
+                "motor",
+                "rendimiento",
+                "diagnostico",
+                "mantenimiento"
+            ]
+        },
+        {
+            "_id": "off_body_paint",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "planchado_y_pintura",
+            "name": "Planchado y pintura",
+            "description": "Reparacion profesional de golpes y pintura con acabados de fabrica.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "informational",
+                "currency": "PEN",
+                "requiresAssessment": true,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": true,
+                "allowedModes": [
+                    "onsite_assessment",
+                    "photo_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_bodywork",
+                "defaultTaskTemplates": [
+                    "Evaluacion visual",
+                    "Planchado",
+                    "Preparacion de superficie",
+                    "Pintura y acabado"
+                ]
+            },
+            "tags": [
+                "planchado",
+                "pintura",
+                "carroceria",
+                "acabado"
+            ]
+        },
+        {
+            "_id": "off_lavado_premium",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "estetica",
+            "name": "Detailing automotriz",
+            "description": "Pulido, correccion de pintura y limpieza profunda interior y exterior con acabado premium.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "fixed_price",
+                "currency": "PEN",
+                "basePriceCents": 4500,
+                "requiresAssessment": false,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": false,
+                "allowedModes": [],
+                "defaultMode": null
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_detailing",
+                "defaultTaskTemplates": [
+                    "Recepcion del vehiculo",
+                    "Lavado exterior",
+                    "Limpieza interior",
+                    "Inspeccion final"
+                ]
+            },
+            "tags": [
+                "detailing",
+                "estetica",
+                "pulido",
+                "limpieza"
+            ]
+        },
+        {
+            "_id": "off_prepurchase_inspection",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "revision_precompra",
+            "name": "Revision precompra",
+            "description": "Inspeccion detallada para que compres tu proximo auto con seguridad.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "informational",
+                "currency": "PEN",
+                "requiresAssessment": false,
+                "requiresFeasibility": false
+            },
+            "assessmentPolicy": {
+                "required": false,
+                "allowedModes": [
+                    "onsite_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_mechanics",
+                "defaultTaskTemplates": [
+                    "Checklist precompra",
+                    "Revision mecanica",
+                    "Revision estructural basica",
+                    "Informe detallado"
+                ]
+            },
+            "tags": [
+                "precompra",
+                "inspeccion",
+                "revision",
+                "informe"
+            ]
+        },
+        {
+            "_id": "off_sandblasting_undercoating",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "offeringType": "service",
+            "category": "proteccion_inferior",
+            "name": "Arenado + Undercoating",
+            "description": "Proteccion inferior y restauracion de chasis para resistir oxido, humedad, desgaste y uso extremo.",
+            "publicVisible": true,
+            "active": true,
+            "pricingPolicy": {
+                "type": "informational",
+                "currency": "PEN",
+                "requiresAssessment": true,
+                "requiresFeasibility": true
+            },
+            "assessmentPolicy": {
+                "required": true,
+                "allowedModes": [
+                    "onsite_assessment",
+                    "photo_assessment"
+                ],
+                "defaultMode": "onsite_assessment"
+            },
+            "fulfillmentPolicy": {
+                "requiresWorkOrder": true,
+                "suggestedTeamId": "team_bodywork",
+                "defaultTaskTemplates": [
+                    "Evaluacion inferior",
+                    "Arenado",
+                    "Preparacion anticorrosiva",
+                    "Aplicacion de undercoating"
+                ]
+            },
+            "tags": [
+                "undercoating",
+                "arenado",
+                "chasis",
+                "oxido",
+                "proteccion"
+            ]
+        }
+    ],
+    "customers": [
+        {
+            "_id": "cus_tur_001",
+            "businessSlug": "turagua",
+            "type": "person",
+            "name": "Carlos RamÃ­rez",
+            "document": {
+                "type": "DNI",
+                "value": "45871236",
+                "country": "PE"
+            },
+            "contact": {
+                "phones": [
+                    {
+                        "label": "principal",
+                        "countryCode": "+51",
+                        "number": "999888777",
+                        "normalized": "51999888777",
+                        "isWhatsapp": true,
+                        "primary": true
+                    }
+                ],
+                "email": "carlos.ramirez@example.com"
+            },
+            "whatsapp": {
+                "lids": [
+                    "51999888777@lid"
+                ],
+                "lastKnownWaId": "51999888777"
+            },
+            "metrics": {
+                "totalCases": 1,
+                "totalSpentCents": 0,
+                "currentDebtCents": 0
+            },
+            "notes": "Cliente nuevo. Contacto inicial vÃ­a Iris.",
+            "status": "active",
+            "createdAt": "2026-07-01T09:15:00.000Z",
+            "updatedAt": "2026-07-01T09:15:00.000Z"
+        },
+        {
+            "_id": "cus_tur_002",
+            "businessSlug": "turagua",
+            "type": "person",
+            "name": "MarÃ­a Torres",
+            "document": {
+                "type": "DNI",
+                "value": "40223318",
+                "country": "PE"
+            },
+            "contact": {
+                "phones": [
+                    {
+                        "label": "principal",
+                        "countryCode": "+51",
+                        "number": "988776655",
+                        "normalized": "51988776655",
+                        "isWhatsapp": true,
+                        "primary": true
+                    }
+                ],
+                "email": "maria.torres@example.com"
+            },
+            "whatsapp": {
+                "lids": [
+                    "51988776655@lid"
+                ],
+                "lastKnownWaId": "51988776655"
+            },
+            "metrics": {
+                "totalCases": 1,
+                "totalSpentCents": 0,
+                "currentDebtCents": 0
+            },
+            "notes": "Solicita atenciÃ³n por ruido en motor.",
+            "status": "active",
+            "createdAt": "2026-07-01T10:20:00.000Z",
+            "updatedAt": "2026-07-01T10:20:00.000Z"
+        },
+        {
+            "_id": "cus_tur_003",
+            "businessSlug": "turagua",
+            "type": "person",
+            "name": "JosÃ© FernÃ¡ndez",
+            "document": {
+                "type": "DNI",
+                "value": "47650122",
+                "country": "PE"
+            },
+            "contact": {
+                "phones": [
+                    {
+                        "label": "principal",
+                        "countryCode": "+51",
+                        "number": "977665544",
+                        "normalized": "51977665544",
+                        "isWhatsapp": true,
+                        "primary": true
+                    }
+                ],
+                "email": "jose.fernandez@example.com"
+            },
+            "whatsapp": {
+                "lids": [
+                    "51977665544@lid"
+                ],
+                "lastKnownWaId": "51977665544"
+            },
+            "metrics": {
+                "totalCases": 1,
+                "totalSpentCents": 0,
+                "currentDebtCents": 0
+            },
+            "notes": "Interesado en lavado premium y revisiÃ³n bÃ¡sica.",
+            "status": "active",
+            "createdAt": "2026-07-01T11:05:00.000Z",
+            "updatedAt": "2026-07-01T11:05:00.000Z"
+        }
+    ],
+    "managedEntities": [
+        {
+            "_id": "me_vehicle_001",
+            "businessSlug": "turagua",
+            "customerId": "cus_tur_001",
+            "type": "vehicle",
+            "displayName": "Toyota Yaris ABC-123",
+            "summary": "Toyota Yaris 2020, placa ABC-123",
+            "data": {
+                "brand": "Toyota",
+                "model": "Yaris",
+                "year": 2020,
+                "plate": "ABC-123",
+                "vin": null,
+                "color": "Negro",
+                "mileageKm": 80500
+            },
+            "status": "active",
+            "createdAt": "2026-07-01T09:18:00.000Z",
+            "updatedAt": "2026-07-01T09:18:00.000Z"
+        },
+        {
+            "_id": "me_vehicle_002",
+            "businessSlug": "turagua",
+            "customerId": "cus_tur_002",
+            "type": "vehicle",
+            "displayName": "Kia Rio BCD-456",
+            "summary": "Kia Rio 2018, placa BCD-456",
+            "data": {
+                "brand": "Kia",
+                "model": "Rio",
+                "year": 2018,
+                "plate": "BCD-456",
+                "vin": null,
+                "color": "Blanco",
+                "mileageKm": 112300
+            },
+            "status": "active",
+            "createdAt": "2026-07-01T10:23:00.000Z",
+            "updatedAt": "2026-07-01T10:23:00.000Z"
+        },
+        {
+            "_id": "me_vehicle_003",
+            "businessSlug": "turagua",
+            "customerId": "cus_tur_003",
+            "type": "vehicle",
+            "displayName": "Hyundai Accent CDE-789",
+            "summary": "Hyundai Accent 2021, placa CDE-789",
+            "data": {
+                "brand": "Hyundai",
+                "model": "Accent",
+                "year": 2021,
+                "plate": "CDE-789",
+                "vin": null,
+                "color": "Gris",
+                "mileageKm": 42800
+            },
+            "status": "active",
+            "createdAt": "2026-07-01T11:08:00.000Z",
+            "updatedAt": "2026-07-01T11:08:00.000Z"
+        }
+    ],
+    "cases": [
+        {
+            "_id": "case_tur_001",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "caseNumber": "TUR-2026-0001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "source": {
+                "channel": "web",
+                "agent": "Iris",
+                "campaign": null,
+                "origin": "landing_chat"
+            },
+            "intent": {
+                "type": "assessment_request",
+                "summary": "Cliente solicita evaluaciÃ³n por ruido al frenar.",
+                "customerText": "Mi carro hace ruido al frenar y quiero revisarlo.",
+                "selectedOfferingId": "off_brake_service"
+            },
+            "status": "appointment_confirmed",
+            "statusGroup": "appointment",
+            "priority": "normal",
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "importantDates": {
+                "createdAt": "2026-07-01T09:20:00.000Z",
+                "requestedDate": null,
+                "scheduledAt": "2026-07-02T15:00:00.000Z",
+                "closedAt": null
+            },
+            "flags": {
+                "requiresHumanReview": true,
+                "hasOpenQuote": false,
+                "hasApprovedQuote": false,
+                "hasWorkOrder": false
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T09:20:00.000Z",
+            "updatedAt": "2026-07-01T09:45:00.000Z"
+        },
+        {
+            "_id": "case_tur_002",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "caseNumber": "TUR-2026-0002",
+            "customerId": "cus_tur_002",
+            "managedEntityId": "me_vehicle_002",
+            "source": {
+                "channel": "web",
+                "agent": "Iris",
+                "campaign": null,
+                "origin": "landing_catalog"
+            },
+            "intent": {
+                "type": "assessment_request",
+                "summary": "Cliente solicita revisiÃ³n de motor por ruido al encender.",
+                "customerText": "El motor suena raro cuando enciendo el carro.",
+                "selectedOfferingId": "off_engine_check"
+            },
+            "status": "appointment_scheduled",
+            "statusGroup": "appointment",
+            "priority": "high",
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "importantDates": {
+                "createdAt": "2026-07-01T10:25:00.000Z",
+                "requestedDate": null,
+                "scheduledAt": "2026-07-02T11:30:00.000Z",
+                "closedAt": null
+            },
+            "flags": {
+                "requiresHumanReview": true,
+                "hasOpenQuote": false,
+                "hasApprovedQuote": false,
+                "hasWorkOrder": false
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T10:25:00.000Z",
+            "updatedAt": "2026-07-01T10:32:00.000Z"
+        },
+        {
+            "_id": "case_tur_003",
+            "businessSlug": "turagua",
+            "verticalType": "vehicle_service",
+            "caseNumber": "TUR-2026-0003",
+            "customerId": "cus_tur_003",
+            "managedEntityId": "me_vehicle_003",
+            "source": {
+                "channel": "web",
+                "agent": "Iris",
+                "campaign": null,
+                "origin": "landing_catalog"
+            },
+            "intent": {
+                "type": "service_request",
+                "summary": "Cliente solicita lavado premium con revisiÃ³n bÃ¡sica.",
+                "customerText": "Quiero separar un lavado premium para mi Hyundai.",
+                "selectedOfferingId": "off_lavado_premium"
+            },
+            "status": "appointment_confirmed",
+            "statusGroup": "appointment",
+            "priority": "normal",
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "importantDates": {
+                "createdAt": "2026-07-01T11:10:00.000Z",
+                "requestedDate": null,
+                "scheduledAt": "2026-07-03T09:00:00.000Z",
+                "closedAt": null
+            },
+            "flags": {
+                "requiresHumanReview": false,
+                "hasOpenQuote": false,
+                "hasApprovedQuote": false,
+                "hasWorkOrder": false
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T11:10:00.000Z",
+            "updatedAt": "2026-07-01T11:25:00.000Z"
+        }
+    ],
+    "customerInteractions": [
+        {
+            "_id": "int_tur_001",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "channel": "web",
+            "agent": {
+                "name": "Iris",
+                "type": "ai_agent"
+            },
+            "direction": "inbound",
+            "interactionType": "customer_message",
+            "intent": {
+                "detectedIntent": "assessment_request",
+                "confidence": 0.94,
+                "selectedOfferingId": "off_brake_service"
+            },
+            "content": {
+                "text": "Mi carro hace ruido al frenar y quiero revisarlo.",
+                "attachmentIds": []
+            },
+            "outcome": {
+                "createdCaseId": "case_tur_001",
+                "createdAppointmentId": "appt_tur_001",
+                "requiresHumanFollowUp": false
+            },
+            "createdAt": "2026-07-01T09:16:00.000Z"
+        },
+        {
+            "_id": "int_tur_002",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "channel": "whatsapp",
+            "agent": {
+                "name": "Iris",
+                "type": "ai_agent"
+            },
+            "direction": "inbound",
+            "interactionType": "appointment_confirmation_response",
+            "intent": {
+                "detectedIntent": "appointment_confirmation",
+                "confidence": 0.98,
+                "selectedOfferingId": "off_brake_service"
+            },
+            "content": {
+                "text": "Confirmo mi cita para maÃ±ana a las 3 pm.",
+                "attachmentIds": []
+            },
+            "outcome": {
+                "createdCaseId": "case_tur_001",
+                "createdAppointmentId": "appt_tur_001",
+                "requiresHumanFollowUp": false
+            },
+            "createdAt": "2026-07-01T09:45:00.000Z"
+        },
+        {
+            "_id": "int_tur_003",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_002",
+            "customerId": "cus_tur_002",
+            "channel": "web",
+            "agent": {
+                "name": "Iris",
+                "type": "ai_agent"
+            },
+            "direction": "inbound",
+            "interactionType": "customer_message",
+            "intent": {
+                "detectedIntent": "assessment_request",
+                "confidence": 0.91,
+                "selectedOfferingId": "off_engine_check"
+            },
+            "content": {
+                "text": "El motor suena raro cuando enciendo el carro.",
+                "attachmentIds": []
+            },
+            "outcome": {
+                "createdCaseId": "case_tur_002",
+                "createdAppointmentId": "appt_tur_002",
+                "requiresHumanFollowUp": true
+            },
+            "createdAt": "2026-07-01T10:21:00.000Z"
+        },
+        {
+            "_id": "int_tur_004",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "customerId": "cus_tur_003",
+            "channel": "web",
+            "agent": {
+                "name": "Iris",
+                "type": "ai_agent"
+            },
+            "direction": "inbound",
+            "interactionType": "customer_message",
+            "intent": {
+                "detectedIntent": "service_request",
+                "confidence": 0.89,
+                "selectedOfferingId": "off_lavado_premium"
+            },
+            "content": {
+                "text": "Quiero separar un lavado premium para mi Hyundai.",
+                "attachmentIds": []
+            },
+            "outcome": {
+                "createdCaseId": "case_tur_003",
+                "createdAppointmentId": "appt_tur_003",
+                "requiresHumanFollowUp": false
+            },
+            "createdAt": "2026-07-01T11:06:00.000Z"
+        },
+        {
+            "_id": "int_tur_005",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "customerId": "cus_tur_003",
+            "channel": "whatsapp",
+            "agent": {
+                "name": "Iris",
+                "type": "ai_agent"
+            },
+            "direction": "inbound",
+            "interactionType": "appointment_confirmation_response",
+            "intent": {
+                "detectedIntent": "appointment_confirmation",
+                "confidence": 0.96,
+                "selectedOfferingId": "off_lavado_premium"
+            },
+            "content": {
+                "text": "SÃ­, confirmo el viernes a las 9 am.",
+                "attachmentIds": []
+            },
+            "outcome": {
+                "createdCaseId": "case_tur_003",
+                "createdAppointmentId": "appt_tur_003",
+                "requiresHumanFollowUp": false
+            },
+            "createdAt": "2026-07-01T11:25:00.000Z"
+        }
+    ],
+    "appointments": [
+        {
+            "_id": "appt_tur_001",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "type": "onsite_assessment",
+            "status": "confirmed",
+            "scheduledStart": "2026-07-02T15:00:00.000Z",
+            "scheduledEnd": "2026-07-02T16:00:00.000Z",
+            "timezone": "America/Lima",
+            "location": {
+                "type": "workshop",
+                "label": "Turagua Racing - Taller",
+                "address": "Lima, PerÃº"
+            },
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "confirmation": {
+                "required": true,
+                "status": "confirmed_by_customer",
+                "requestedAt": "2026-07-01T09:30:00.000Z",
+                "confirmedAt": "2026-07-01T09:45:00.000Z",
+                "channel": "whatsapp",
+                "decisionRecordId": "dec_appt_001"
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T09:20:00.000Z",
+            "updatedAt": "2026-07-01T09:45:00.000Z"
+        },
+        {
+            "_id": "appt_tur_002",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_002",
+            "customerId": "cus_tur_002",
+            "managedEntityId": "me_vehicle_002",
+            "type": "onsite_assessment",
+            "status": "scheduled",
+            "scheduledStart": "2026-07-02T11:30:00.000Z",
+            "scheduledEnd": "2026-07-02T12:30:00.000Z",
+            "timezone": "America/Lima",
+            "location": {
+                "type": "workshop",
+                "label": "Turagua Racing - Taller",
+                "address": "Lima, PerÃº"
+            },
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "confirmation": {
+                "required": true,
+                "status": "pending_customer_confirmation",
+                "requestedAt": "2026-07-01T10:32:00.000Z",
+                "confirmedAt": null,
+                "channel": "whatsapp",
+                "decisionRecordId": null
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T10:30:00.000Z",
+            "updatedAt": "2026-07-01T10:32:00.000Z"
+        },
+        {
+            "_id": "appt_tur_003",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "customerId": "cus_tur_003",
+            "managedEntityId": "me_vehicle_003",
+            "type": "onsite_service",
+            "status": "confirmed",
+            "scheduledStart": "2026-07-03T09:00:00.000Z",
+            "scheduledEnd": "2026-07-03T10:30:00.000Z",
+            "timezone": "America/Lima",
+            "location": {
+                "type": "workshop",
+                "label": "Turagua Racing - Taller",
+                "address": "Lima, PerÃº"
+            },
+            "assignedTeamId": "team_frontdesk",
+            "assignedWorkerId": null,
+            "confirmation": {
+                "required": true,
+                "status": "confirmed_by_customer",
+                "requestedAt": "2026-07-01T11:15:00.000Z",
+                "confirmedAt": "2026-07-01T11:25:00.000Z",
+                "channel": "whatsapp",
+                "decisionRecordId": "dec_appt_003"
+            },
+            "legacy": {
+                "legacyType": "Cita",
+                "legacyId": null
+            },
+            "createdAt": "2026-07-01T11:12:00.000Z",
+            "updatedAt": "2026-07-01T11:25:00.000Z"
+        }
+    ],
+    "decisionRecords": [
+        {
+            "_id": "dec_appt_001",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_001"
+            },
+            "decisionType": "appointment_confirmation",
+            "decision": "confirmed",
+            "decidedBy": {
+                "type": "customer",
+                "customerId": "cus_tur_001",
+                "staffUserId": null
+            },
+            "evidence": {
+                "channel": "whatsapp",
+                "messageId": "msg_whatsapp_tur_001",
+                "rawText": "Confirmo mi cita para maÃ±ana a las 3 pm."
+            },
+            "notes": "Cliente confirmÃ³ la cita de evaluaciÃ³n de frenos.",
+            "decidedAt": "2026-07-01T09:45:00.000Z",
+            "createdAt": "2026-07-01T09:45:00.000Z"
+        },
+        {
+            "_id": "dec_appt_003",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_003"
+            },
+            "decisionType": "appointment_confirmation",
+            "decision": "confirmed",
+            "decidedBy": {
+                "type": "customer",
+                "customerId": "cus_tur_003",
+                "staffUserId": null
+            },
+            "evidence": {
+                "channel": "whatsapp",
+                "messageId": "msg_whatsapp_tur_003",
+                "rawText": "SÃ­, confirmo el viernes a las 9 am."
+            },
+            "notes": "Cliente confirmÃ³ cita para lavado premium.",
+            "decidedAt": "2026-07-01T11:25:00.000Z",
+            "createdAt": "2026-07-01T11:25:00.000Z"
+        }
+    ],
+    "notifications": [
+        {
+            "_id": "notif_tur_001",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "channel": "whatsapp",
+            "type": "appointment_confirmation_request",
+            "status": "sent",
+            "recipient": {
+                "phone": "51999888777"
+            },
+            "content": {
+                "templateKey": "turagua_appointment_confirmation_request",
+                "text": "Hola Carlos, tu cita de evaluaciÃ³n en Turagua Racing estÃ¡ agendada para el 2 de julio a las 3:00 p.m. Â¿Nos confirmas tu asistencia?"
+            },
+            "provider": {
+                "name": "twilio",
+                "messageId": "SM_TUR_001"
+            },
+            "sentAt": "2026-07-01T09:30:00.000Z",
+            "deliveredAt": "2026-07-01T09:30:08.000Z",
+            "readAt": "2026-07-01T09:31:00.000Z"
+        },
+        {
+            "_id": "notif_tur_002",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_002",
+            "customerId": "cus_tur_002",
+            "channel": "whatsapp",
+            "type": "appointment_confirmation_request",
+            "status": "sent",
+            "recipient": {
+                "phone": "51988776655"
+            },
+            "content": {
+                "templateKey": "turagua_appointment_confirmation_request",
+                "text": "Hola MarÃ­a, tu cita de evaluaciÃ³n de motor quedÃ³ agendada para el 2 de julio a las 11:30 a.m. Â¿Nos confirmas tu asistencia?"
+            },
+            "provider": {
+                "name": "twilio",
+                "messageId": "SM_TUR_002"
+            },
+            "sentAt": "2026-07-01T10:32:00.000Z",
+            "deliveredAt": "2026-07-01T10:32:10.000Z",
+            "readAt": null
+        },
+        {
+            "_id": "notif_tur_003",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "customerId": "cus_tur_003",
+            "channel": "whatsapp",
+            "type": "appointment_confirmation_request",
+            "status": "sent",
+            "recipient": {
+                "phone": "51977665544"
+            },
+            "content": {
+                "templateKey": "turagua_appointment_confirmation_request",
+                "text": "Hola JosÃ©, tu cita para lavado premium quedÃ³ agendada para el 3 de julio a las 9:00 a.m. Â¿Nos confirmas tu asistencia?"
+            },
+            "provider": {
+                "name": "twilio",
+                "messageId": "SM_TUR_003"
+            },
+            "sentAt": "2026-07-01T11:15:00.000Z",
+            "deliveredAt": "2026-07-01T11:15:08.000Z",
+            "readAt": "2026-07-01T11:16:00.000Z"
+        }
+    ],
+    "timelineEvents": [
+        {
+            "_id": "evt_tur_001",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": null,
+            "entity": {
+                "type": "customer",
+                "id": "cus_tur_001"
+            },
+            "eventType": "customer.created",
+            "title": "Cliente registrado",
+            "description": "Se registrÃ³ el cliente Carlos RamÃ­rez.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "registro_de_cliente",
+                "channel": "web"
+            },
+            "createdAt": "2026-07-01T09:15:00.000Z"
+        },
+        {
+            "_id": "evt_tur_002",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "entity": {
+                "type": "managed_entity",
+                "id": "me_vehicle_001"
+            },
+            "eventType": "managed_entity.created",
+            "title": "VehÃ­culo registrado",
+            "description": "Se registrÃ³ el vehÃ­culo Toyota Yaris 2020, placa ABC-123.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "registro_de_entidad_gestionada",
+                "managedEntityType": "vehicle"
+            },
+            "createdAt": "2026-07-01T09:18:00.000Z"
+        },
+        {
+            "_id": "evt_tur_003",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "entity": {
+                "type": "case",
+                "id": "case_tur_001"
+            },
+            "eventType": "case.created",
+            "title": "Caso operativo creado",
+            "description": "Se creÃ³ el caso TUR-2026-0001 por solicitud de evaluaciÃ³n de frenos.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "crear_caso_operativo",
+                "selectedOfferingId": "off_brake_service"
+            },
+            "createdAt": "2026-07-01T09:20:00.000Z"
+        },
+        {
+            "_id": "evt_tur_004",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_001"
+            },
+            "eventType": "appointment.scheduled",
+            "title": "Cita agendada",
+            "description": "Se agendÃ³ una cita de evaluaciÃ³n presencial para el 2 de julio a las 3:00 p.m.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "agendar_cita_consulta",
+                "appointmentType": "onsite_assessment"
+            },
+            "createdAt": "2026-07-01T09:20:00.000Z"
+        },
+        {
+            "_id": "evt_tur_005",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_001",
+            "customerId": "cus_tur_001",
+            "managedEntityId": "me_vehicle_001",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_001"
+            },
+            "eventType": "appointment.confirmed",
+            "title": "Cita confirmada",
+            "description": "El cliente confirmÃ³ la cita de evaluaciÃ³n vÃ­a WhatsApp.",
+            "visibility": "internal",
+            "actor": {
+                "type": "customer",
+                "id": "cus_tur_001",
+                "name": "Carlos RamÃ­rez"
+            },
+            "metadata": {
+                "useCase": "confirmar_cita_consulta",
+                "decisionRecordId": "dec_appt_001"
+            },
+            "createdAt": "2026-07-01T09:45:00.000Z"
+        },
+        {
+            "_id": "evt_tur_006",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_002",
+            "customerId": "cus_tur_002",
+            "managedEntityId": "me_vehicle_002",
+            "entity": {
+                "type": "case",
+                "id": "case_tur_002"
+            },
+            "eventType": "case.created",
+            "title": "Caso operativo creado",
+            "description": "Se creÃ³ el caso TUR-2026-0002 por solicitud de revisiÃ³n de motor.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "crear_caso_operativo",
+                "selectedOfferingId": "off_engine_check"
+            },
+            "createdAt": "2026-07-01T10:25:00.000Z"
+        },
+        {
+            "_id": "evt_tur_007",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_002",
+            "customerId": "cus_tur_002",
+            "managedEntityId": "me_vehicle_002",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_002"
+            },
+            "eventType": "appointment.scheduled",
+            "title": "Cita agendada",
+            "description": "Se agendÃ³ una cita de evaluaciÃ³n de motor para el 2 de julio a las 11:30 a.m.",
+            "visibility": "internal",
+            "actor": {
+                "type": "ai_agent",
+                "id": "iris",
+                "name": "Iris"
+            },
+            "metadata": {
+                "useCase": "agendar_cita_consulta",
+                "appointmentType": "onsite_assessment"
+            },
+            "createdAt": "2026-07-01T10:30:00.000Z"
+        },
+        {
+            "_id": "evt_tur_008",
+            "businessSlug": "turagua",
+            "caseId": "case_tur_003",
+            "customerId": "cus_tur_003",
+            "managedEntityId": "me_vehicle_003",
+            "entity": {
+                "type": "appointment",
+                "id": "appt_tur_003"
+            },
+            "eventType": "appointment.confirmed",
+            "title": "Cita confirmada",
+            "description": "El cliente confirmÃ³ la cita para lavado premium vÃ­a WhatsApp.",
+            "visibility": "internal",
+            "actor": {
+                "type": "customer",
+                "id": "cus_tur_003",
+                "name": "JosÃ© FernÃ¡ndez"
+            },
+            "metadata": {
+                "useCase": "confirmar_cita_consulta",
+                "decisionRecordId": "dec_appt_003"
+            },
+            "createdAt": "2026-07-01T11:25:00.000Z"
+        }
+    ],
+    "attachments": [],
+    "injectionNotes": {
+        "targetDatabase": "vtkall_demo_pack_1",
+        "recommendedCollections": [
+            "businessProfiles",
+            "catalogOfferings",
+            "customers",
+            "managedEntities",
+            "cases",
+            "customerInteractions",
+            "appointments",
+            "decisionRecords",
+            "notifications",
+            "timelineEvents",
+            "attachments"
+        ],
+        "expectedInitialCaseStatuses": [
+            "appointment_confirmed",
+            "appointment_scheduled"
+        ],
+        "mockDataScope": "Solo cubre los casos de uso subrayados en la matriz para VTKALL_DEMO_PACK_1."
+    }
+}

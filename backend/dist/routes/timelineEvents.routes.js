@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const timelineEvents_controller_1 = require("../controllers/timelineEvents.controller");
+const router = (0, express_1.Router)();
+router.get('/', timelineEvents_controller_1.timelineEventController.list);
+router.get('/:id', timelineEvents_controller_1.timelineEventController.getById);
+router.post('/', timelineEvents_controller_1.timelineEventController.create);
+router.put('/:id', timelineEvents_controller_1.timelineEventController.replace);
+router.patch('/:id', timelineEvents_controller_1.timelineEventController.update);
+router.delete('/:id', timelineEvents_controller_1.timelineEventController.delete);
+exports.default = router;

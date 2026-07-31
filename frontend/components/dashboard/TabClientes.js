@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api.js";
@@ -24,13 +24,14 @@ import {
   Star,
   Users,
   Edit3,
+  X,
 } from "lucide-react";
 import EstadoBadge from "../ui/EstadoBadge.js";
 import CloseModalButton from "../ui/CloseModalButton.js";
 import Swal from "sweetalert2";
 import { PageHeader } from "../ui/PageHeader.js";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card.js";
-import { Button } from "../ui/Button.js";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
+import { Button } from "../ui/Button";
 
 const formatRelativeTime = (dateString) => {
   if (!dateString) return "";
@@ -48,10 +49,10 @@ const formatRelativeTime = (dateString) => {
   if (diffHours < 24)
     return `Hace ${diffHours} ${diffHours === 1 ? "hora" : "horas"}`;
   if (diffDays < 30)
-    return `Hace ${diffDays} ${diffDays === 1 ? "día" : "días"}`;
+    return `Hace ${diffDays} ${diffDays === 1 ? "dÃ­a" : "dÃ­as"}`;
   if (diffMonths < 12)
     return `Hace ${diffMonths} ${diffMonths === 1 ? "mes" : "meses"}`;
-  return `Hace ${diffYears} ${diffYears === 1 ? "año" : "años"}`;
+  return `Hace ${diffYears} ${diffYears === 1 ? "aÃ±o" : "aÃ±os"}`;
 };
 
 const DAYS_FILTER = 5;
@@ -109,7 +110,7 @@ export default function TabClientes() {
   const [vPatente, setVPatente] = useState("");
   const [vAlias, setVAlias] = useState("");
 
-  // Historial Clínico & Mantenimiento states
+  // Historial ClÃ­nico & Mantenimiento states
   const [activeHistoryTab, setActiveHistoryTab] = useState("personales");
   const [mensajesHistorial, setMensajesHistorial] = useState([]);
   const [showFullTimelineServicios, setShowFullTimelineServicios] = useState(false);
@@ -240,7 +241,7 @@ export default function TabClientes() {
     }
   };
 
-  // Filtrado local básico para el Mockup
+  // Filtrado local bÃ¡sico para el Mockup
   const clientesFiltrados = clientes
     .filter((c) => {
       if (
@@ -391,7 +392,7 @@ export default function TabClientes() {
       handleVerDetalle(clienteDetalle._id);
       Swal.fire({
         icon: "success",
-        title: "Reparación guardada",
+        title: "ReparaciÃ³n guardada",
         background: "#111827",
         color: "#fff",
         toast: true,
@@ -619,7 +620,7 @@ export default function TabClientes() {
       if (err.status === 409 || err.status === 400) {
         Swal.fire({
           icon: "error",
-          title: "Error de validación",
+          title: "Error de validaciÃ³n",
           text: err.message,
           background: "#111827",
           color: "#fff",
@@ -633,13 +634,13 @@ export default function TabClientes() {
 
   const handleEliminarCliente = async (id) => {
     const result = await Swal.fire({
-      title: "¿Eliminar cliente?",
-      text: "¿Seguro que quieres eliminar este cliente? Se borrarán también todas sus citas asociadas.",
+      title: "Â¿Eliminar cliente?",
+      text: "Â¿Seguro que quieres eliminar este cliente? Se borrarÃ¡n tambiÃ©n todas sus citas asociadas.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#374151",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonText: "SÃ­, eliminar",
       cancelButtonText: "Cancelar",
       background: "#111827",
       color: "#fff",
@@ -661,7 +662,7 @@ export default function TabClientes() {
     }
   };
 
-  // Cálculos de métricas seguras (basadas en la vista actual y totales del server)
+  // CÃ¡lculos de mÃ©tricas seguras (basadas en la vista actual y totales del server)
   const clientesListados = clientesFiltrados.length;
   const conTelefono = clientesFiltrados.filter(c => c.numero_telefono && c.numero_telefono.trim() !== '').length;
   const conDetalles = clientesFiltrados.filter(c => c.vehiculos && c.vehiculos.length > 0).length;
@@ -687,7 +688,7 @@ export default function TabClientes() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{total}</div>
-            <p className="text-xs text-gray-500 mt-1">Registros históricos</p>
+            <p className="text-xs text-gray-500 mt-1">Registros histÃ³ricos</p>
           </CardContent>
         </Card>
         <Card>
@@ -707,7 +708,7 @@ export default function TabClientes() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{conTelefono}</div>
-            <p className="text-xs text-gray-500 mt-1">Con teléfono (vista actual)</p>
+            <p className="text-xs text-gray-500 mt-1">Con telÃ©fono (vista actual)</p>
           </CardContent>
         </Card>
         <Card>
@@ -733,7 +734,7 @@ export default function TabClientes() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, teléfono o patente..."
+                  placeholder="Buscar por nombre, telÃ©fono o patente..."
                   value={busqueda}
                   onChange={(e) => {
                     setBusqueda(e.target.value);
@@ -778,9 +779,9 @@ export default function TabClientes() {
                 onChange={(e) => setFiltroOrden(e.target.value)}
                 className="bg-gray-900 border border-gray-800 text-gray-300 rounded-xl px-3 py-2 text-[11px] font-bold outline-none focus:border-primary cursor-pointer hover:border-gray-700 transition-colors"
               >
-                <option value="recientes">Más Recientes (Defecto)</option>
+                <option value="recientes">MÃ¡s Recientes (Defecto)</option>
                 <option value="citas">Mayor Cantidad de Citas</option>
-                <option value="alfabetico">Orden Alfabético</option>
+                <option value="alfabetico">Orden AlfabÃ©tico</option>
               </select>
             </div>
           )}
@@ -803,7 +804,7 @@ export default function TabClientes() {
                   <th className="px-6 py-4">Celular</th>
                   <th className="px-6 py-4">Detalles Adicionales</th>
                   <th className="px-6 py-4">Total Gastado</th>
-                  <th className="px-6 py-4">Deuda / Crédito</th>
+                  <th className="px-6 py-4">Deuda / CrÃ©dito</th>
                   <th className="px-6 py-4">Total Citas</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
@@ -833,7 +834,7 @@ export default function TabClientes() {
                           </div>
                           <div className="flex gap-2 text-gray-500 text-[10px]">
                             <span>{c.email || "Sin correo"}</span>
-                            {c.dni && <span>• DNI: {c.dni}</span>}
+                            {c.dni && <span>â€¢ DNI: {c.dni}</span>}
                           </div>
                         </div>
                       </div>
@@ -863,7 +864,7 @@ export default function TabClientes() {
                             </span>
                           ))}
                         {(!c.vehiculos || c.vehiculos.length === 0) && (
-                          <span className="text-gray-500">—</span>
+                          <span className="text-gray-500">â€”</span>
                         )}
                       </div>
                     </td>
@@ -926,7 +927,7 @@ export default function TabClientes() {
                 <ChevronLeft className="w-3.5 h-3.5" /> Anterior
               </button>
               <span className="text-gray-400 font-medium">
-                Página <span className="text-white font-bold">{pagina}</span> de{" "}
+                PÃ¡gina <span className="text-white font-bold">{pagina}</span> de{" "}
                 <span className="text-white font-bold">
                   {Math.ceil(total / 15)}
                 </span>
@@ -958,7 +959,7 @@ export default function TabClientes() {
                     </h3>
                     <p className="text-xs text-gray-400 font-mono mt-1">
                       {clienteDetalle.numero_telefono}{" "}
-                      <span className="mx-2 text-gray-700">•</span> DNI:{" "}
+                      <span className="mx-2 text-gray-700">â€¢</span> DNI:{" "}
                       {clienteDetalle.dni || "No registrado"}
                     </p>
                   </div>
@@ -980,7 +981,7 @@ export default function TabClientes() {
 
               <CloseModalButton onClick={() => setModalDetalleOpen(false)} />
             </div>
-            {/* Estadísticas */}
+            {/* EstadÃ­sticas */}
             <div className="w-full items-center text-center rounded-xl border border-gray-800 bg-gray-950/50 p-3 shrink-0">
               <div className="flex gap-6 mt-2  items-center text-center justify-center">
                 <span className="font-bold text-white block text-[9px] uppercase tracking-widest mb-1.5 border-b border-gray-800 pb-1">
@@ -1026,7 +1027,7 @@ export default function TabClientes() {
                 </div>
               </div>
             </div>
-            {/* TABS DE NAVEGACIÓN */}
+            {/* TABS DE NAVEGACIÃ“N */}
             <div className="mt-4">
               <div className="flex gap-6 border-b border-white/10 mb-6 overflow-x-auto custom-scrollbar px-2">
                 <button
@@ -1047,7 +1048,7 @@ export default function TabClientes() {
                       : "text-gray-500 hover:text-gray-300 border-transparent"
                   }`}
                 >
-                  Vehículos
+                  VehÃ­culos
                 </button>
                 <button
                   onClick={() => setActiveHistoryTab("clinico")}
@@ -1078,7 +1079,7 @@ export default function TabClientes() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
                       <div>
                         <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">
-                          Número Celular
+                          NÃºmero Celular
                         </span>
                         <span className="font-medium text-white font-mono text-sm">
                           {clienteDetalle.numero_telefono}
@@ -1094,7 +1095,7 @@ export default function TabClientes() {
                       </div>
                       <div className="col-span-1 md:col-span-2">
                         <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">
-                          Correo Electrónico
+                          Correo ElectrÃ³nico
                         </span>
                         <span className="font-medium text-white text-sm">
                           {clienteDetalle.email || "No registrado"}
@@ -1161,14 +1162,14 @@ export default function TabClientes() {
                                       )}
                                     </span>
                                     <span className="text-[10px] text-gray-400 whitespace-nowrap block mt-1">
-                                      Año: {v.anio || "N/C"} | Patente:{" "}
+                                      AÃ±o: {v.anio || "N/C"} | Patente:{" "}
                                       <b className="uppercase">
                                         {v.patente || "S/P"}
                                       </b>
                                     </span>
                                   </div>
                                 </div>
-                                {/* Botón de subida de imagen */}
+                                {/* BotÃ³n de subida de imagen */}
                                 {v.patente && (
                                   <label
                                     className={`cursor-pointer p-2 flex-shrink-0 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors ${subiendoImg ? "opacity-50 pointer-events-none" : ""}`}
@@ -1191,7 +1192,7 @@ export default function TabClientes() {
                                 )}
                               </div>
 
-                              {/* Botones de Acción para Historial Clínico & Mantenimiento */}
+                              {/* Botones de AcciÃ³n para Historial ClÃ­nico & Mantenimiento */}
                               {v.patente && (
                                 <div className="flex flex-wrap justify-start md:justify-end gap-2 w-full mt-3 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-gray-800/60">
                                   <button
@@ -1218,7 +1219,7 @@ export default function TabClientes() {
                                         className="flex w-full sm:w-auto flex-1 md:flex-none py-2 px-3 rounded-lg bg-gray-500/10 hover:bg-gray-500 text-gray-400 hover:text-white border border-gray-500/20 hover:border-gray-500 text-[10px] font-bold items-center justify-center gap-1.5 transition-all whitespace-nowrap"
                                       >
                                         <ImagePlus className="w-3 h-3 shrink-0" />{" "}
-                                        Ver Imágenes
+                                        Ver ImÃ¡genes
                                       </button>
                                     )}
                                   {/* <button
@@ -1226,7 +1227,7 @@ export default function TabClientes() {
                                     className="flex w-full sm:w-auto flex-1 md:flex-none py-2 px-3 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary text-[10px] font-bold items-center justify-center gap-1.5 transition-all whitespace-nowrap"
                                   >
                                     <Wrench className="w-3 h-3 shrink-0" /> +
-                                    Reparación
+                                    ReparaciÃ³n
                                   </button>
                                   <button
                                     onClick={() => handleOpenMantenimiento(v)}
@@ -1252,7 +1253,7 @@ export default function TabClientes() {
                 )}
 
                 {activeHistoryTab === "clinico" && (() => {
-                  // --- Lógica de Servicios ---
+                  // --- LÃ³gica de Servicios ---
                   const obtenerTodasLasReparaciones = () => {
                     const reps = [];
 
@@ -1293,7 +1294,7 @@ export default function TabClientes() {
                                 : cita.estado_trabajo === "pendiente"
                                   ? "Pendiente"
                                   : cita.estado_trabajo,
-                            vehiculoMarca: cita.vehiculo?.marca || "Vehículo",
+                            vehiculoMarca: cita.vehiculo?.marca || "VehÃ­culo",
                             vehiculoModelo: cita.vehiculo?.modelo || "",
                             vehiculoPatente: cita.vehiculo?.patente || "",
                             comentarios:
@@ -1330,7 +1331,7 @@ export default function TabClientes() {
                     ? todasLasReparaciones
                     : reparacionesRecientes;
 
-                  // --- Lógica de Evaluaciones ---
+                  // --- LÃ³gica de Evaluaciones ---
                   const sixtyDaysAgoEval = new Date();
                   sixtyDaysAgoEval.setDate(sixtyDaysAgoEval.getDate() - DAYS_FILTER);
 
@@ -1371,7 +1372,7 @@ export default function TabClientes() {
                       {todasLasReparaciones.length === 0 ? (
                         <div className="text-center py-8 text-xs text-gray-550">
                           No hay reparaciones registradas en el historial
-                          clínico.
+                          clÃ­nico.
                         </div>
                       ) : (
                         <div
@@ -1384,7 +1385,7 @@ export default function TabClientes() {
                               key={idx}
                               className={`w-full relative flex items-center rounded-xl border px-3 py-2.5 gap-3 transition-colors ${rep.es_evaluacion ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-gray-900/40 hover:bg-gray-900 border-gray-850 cursor-pointer group'}`}
                               onClick={() => { if (!rep.es_evaluacion) setModalRepairDetail(rep); }}
-                              title={rep.es_evaluacion ? "Evaluación / Cita" : "Clic para ver detalles de la reparación"}
+                              title={rep.es_evaluacion ? "EvaluaciÃ³n / Cita" : "Clic para ver detalles de la reparaciÃ³n"}
                             >
                               <div className={`flex items-center justify-center w-6 h-6 rounded-full shrink-0 ${rep.es_evaluacion ? 'bg-emerald-500/20 text-emerald-500' : 'bg-primary/20 text-primary'}`}>
                                 {rep.es_evaluacion ? (
@@ -1443,7 +1444,7 @@ export default function TabClientes() {
 
 
 
-                      {/* Próximo Mantenimiento Recomendado */}
+                      {/* PrÃ³ximo Mantenimiento Recomendado */}
                       {(() => {
                         const vehiculosConMant =
                           clienteDetalle.vehiculos?.filter(
@@ -1458,7 +1459,7 @@ export default function TabClientes() {
                         return (
                           <div className="mt-6 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
                             <h4 className="text-[10px] font-bold text-yellow-500 uppercase flex items-center gap-2 mb-2">
-                              <Calendar className="w-3 h-3" /> Próximos
+                              <Calendar className="w-3 h-3" /> PrÃ³ximos
                               Mantenimientos Recomendados
                             </h4>
                             <div className="space-y-2">
@@ -1518,7 +1519,7 @@ export default function TabClientes() {
                         );
                       }
 
-                      // Ordenar cronológicamente (más antiguo primero)
+                      // Ordenar cronolÃ³gicamente (mÃ¡s antiguo primero)
                       const mensajesOrdenados = [...mensajesHistorial].sort(
                         (a, b) =>
                           new Date(a.fecha || a.recibido_en) -
@@ -1554,7 +1555,7 @@ export default function TabClientes() {
                         conversaciones.push(currentConv);
                       }
 
-                      // Invertir para que la conversación más reciente esté primero
+                      // Invertir para que la conversaciÃ³n mÃ¡s reciente estÃ© primero
                       conversaciones.reverse();
 
                       return (
@@ -1604,7 +1605,7 @@ export default function TabClientes() {
                                       Hilo {threadNum}
                                     </h4>
                                     <span className="hidden sm:inline text-gray-600 text-[10px]">
-                                      •
+                                      â€¢
                                     </span>
                                     {/* <p className="text-[10px] text-gray-400 truncate">
                                       {topic}
@@ -1644,7 +1645,7 @@ export default function TabClientes() {
               </div>
             </div>
 
-            {/* Botones de acción inferior */}
+            {/* Botones de acciÃ³n inferior */}
             <div className="pt-6 mt-8 border-t border-gray-850 flex justify-between items-center">
               <div className="flex gap-3">
                 <button
@@ -1699,7 +1700,7 @@ export default function TabClientes() {
             </div>
 
             <p className="text-xs text-gray-400 mb-4">
-              Estás a punto de fusionar a <strong className="text-white">{clienteDetalle.nombre || "este cliente"}</strong> (Tel: {clienteDetalle.numero_telefono}). Todos sus datos, citas y mensajes se transferirán al cliente que elijas. Este perfil original se <strong>eliminará</strong> de forma irreversible.
+              EstÃ¡s a punto de fusionar a <strong className="text-white">{clienteDetalle.nombre || "este cliente"}</strong> (Tel: {clienteDetalle.numero_telefono}). Todos sus datos, citas y mensajes se transferirÃ¡n al cliente que elijas. Este perfil original se <strong>eliminarÃ¡</strong> de forma irreversible.
             </p>
 
             {mergeError && (
@@ -1718,7 +1719,7 @@ export default function TabClientes() {
                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                     <input
                       type="text"
-                      placeholder="Buscar por nombre o teléfono..."
+                      placeholder="Buscar por nombre o telÃ©fono..."
                       value={mergeSearchTerm}
                       onChange={(e) => setMergeSearchTerm(e.target.value)}
                       className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl pl-10 pr-4 py-2 text-xs outline-none focus:ring-1 focus:ring-orange-500"
@@ -1758,18 +1759,18 @@ export default function TabClientes() {
             ) : (
               <div className="space-y-6">
                 <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5">
-                  <h4 className="text-xs font-bold text-orange-400 mb-3 uppercase tracking-wider">Resumen de Fusión</h4>
+                  <h4 className="text-xs font-bold text-orange-400 mb-3 uppercase tracking-wider">Resumen de FusiÃ³n</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-xs text-gray-300 pb-2 border-b border-gray-800/50">
                       <span>Citas a transferir:</span>
                       <span className="font-bold text-white">{clienteDetalle.total_citas || 0}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs text-gray-300 pb-2 border-b border-gray-800/50">
-                      <span>Vehículos a transferir:</span>
+                      <span>VehÃ­culos a transferir:</span>
                       <span className="font-bold text-white">{(clienteDetalle.vehiculos || []).length}</span>
                     </div>
                     <div className="flex flex-col gap-1 text-xs text-gray-300 mt-2">
-                      <span>El perfil se fusionará dentro de:</span>
+                      <span>El perfil se fusionarÃ¡ dentro de:</span>
                       <div className="p-2 bg-gray-900 rounded-lg border border-emerald-500/20 text-emerald-400 font-bold flex items-center justify-between">
                         <span>{mergeTargetClient.nombre || "Sin Nombre"}</span>
                         <span>{mergeTargetClient.numero_telefono}</span>
@@ -1791,7 +1792,7 @@ export default function TabClientes() {
                     disabled={mergeIsLoading}
                     className="flex-1 px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {mergeIsLoading ? "Fusionando..." : "Confirmar Fusión"}
+                    {mergeIsLoading ? "Fusionando..." : "Confirmar FusiÃ³n"}
                   </button>
                 </div>
               </div>
@@ -1856,7 +1857,7 @@ export default function TabClientes() {
                     value={editTelefono}
                     onChange={(e) => setEditTelefono(e.target.value)}
                     pattern="^\+\d{10,15}$" 
-                    title="Debe incluir el código de país con el signo + al inicio. Ejemplo: +51999999999" 
+                    title="Debe incluir el cÃ³digo de paÃ­s con el signo + al inicio. Ejemplo: +51999999999" 
                     placeholder="+51..."
                     className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
@@ -1870,7 +1871,7 @@ export default function TabClientes() {
                     value={editDni}
                     onChange={(e) => setEditDni(e.target.value)}
                     pattern="^\d{8}$"
-                    title="El DNI debe contener exactamente 8 números."
+                    title="El DNI debe contener exactamente 8 nÃºmeros."
                     className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
@@ -1903,7 +1904,7 @@ export default function TabClientes() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">
-                    Deuda / Crédito (S/.)
+                    Deuda / CrÃ©dito (S/.)
                   </label>
                   <input
                     type="number"
@@ -1932,7 +1933,7 @@ export default function TabClientes() {
                 />
               </div>
 
-              {/* Edición de Detalles Adicionales */}
+              {/* EdiciÃ³n de Detalles Adicionales */}
               <div className="p-4 rounded-2xl bg-gray-950/40 border border-gray-850 space-y-3">
                 <span className="block text-[10px] font-bold text-gray-400 uppercase">
                   Gestionar Detalles Adicionales
@@ -1974,7 +1975,7 @@ export default function TabClientes() {
                   )}
                 </div>
 
-                {/* Formulario rápido para agregar */}
+                {/* Formulario rÃ¡pido para agregar */}
                 <div className="h-px bg-gray-850 my-1" />
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px]">
                   <input
@@ -1993,7 +1994,7 @@ export default function TabClientes() {
                   />
                   <input
                     type="number"
-                    placeholder="Año"
+                    placeholder="AÃ±o"
                     value={vAnio}
                     onChange={(e) => setVAnio(e.target.value)}
                     className="bg-gray-900 border border-gray-800 text-white px-2.5 py-1.5 rounded-lg outline-none"
@@ -2049,7 +2050,7 @@ export default function TabClientes() {
           <div className="w-full max-w-lg rounded-3xl bg-dark-panel border border-gray-800 shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-primary" /> Reparación de {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
+                <Wrench className="w-5 h-5 text-primary" /> ReparaciÃ³n de {reparacionVehiculoActivo.marca} {reparacionVehiculoActivo.modelo} ({reparacionVehiculoActivo.patente})
               </h3>
               <CloseModalButton onClick={() => setModalReparacionOpen(false)} />
             </div>
@@ -2057,7 +2058,7 @@ export default function TabClientes() {
             <form onSubmit={handleGuardarReparacion} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">
-                  Título de la Reparación *
+                  TÃ­tulo de la ReparaciÃ³n *
                 </label>
                 <input
                   type="text"
@@ -2084,7 +2085,7 @@ export default function TabClientes() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-455 uppercase mb-1">
-                    Estado de Reparación
+                    Estado de ReparaciÃ³n
                   </label>
                   <select
                     value={repEstado}
@@ -2104,7 +2105,7 @@ export default function TabClientes() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ej. Pastillas de freno, Filtro de aceite, Bujías..."
+                  placeholder="Ej. Pastillas de freno, Filtro de aceite, BujÃ­as..."
                   value={repPiezas}
                   onChange={(e) => setRepPiezas(e.target.value)}
                   className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
@@ -2119,7 +2120,7 @@ export default function TabClientes() {
                   value={repComentarios}
                   onChange={(e) => setRepComentarios(e.target.value)}
                   rows="3"
-                  placeholder="Detalles sobre el procedimiento, observaciones técnicas..."
+                  placeholder="Detalles sobre el procedimiento, observaciones tÃ©cnicas..."
                   className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -2169,7 +2170,7 @@ export default function TabClientes() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
-                    Imagen Después (OK)
+                    Imagen DespuÃ©s (OK)
                   </label>
                   <div className="flex flex-col gap-2">
                     {repImagenDespues ? (
@@ -2177,7 +2178,7 @@ export default function TabClientes() {
                         <img
                           src={repImagenDespues}
                           className="w-full h-full object-cover"
-                          alt="Después preview"
+                          alt="DespuÃ©s preview"
                         />
                         <button
                           type="button"
@@ -2191,7 +2192,7 @@ export default function TabClientes() {
                       <label className="flex flex-col items-center justify-center w-full h-24 rounded-xl border border-dashed border-gray-800 hover:border-primary/50 bg-gray-900/40 hover:bg-gray-900/60 cursor-pointer transition-all">
                         <ImagePlus className="w-5 h-5 text-gray-500 mb-1" />
                         <span className="text-[10px] text-gray-500">
-                          Subir Después
+                          Subir DespuÃ©s
                         </span>
                         <input
                           type="file"
@@ -2222,7 +2223,7 @@ export default function TabClientes() {
                   type="submit"
                   className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover cursor-pointer"
                 >
-                  Guardar Reparación
+                  Guardar ReparaciÃ³n
                 </button>
               </div>
             </form>
@@ -2276,7 +2277,7 @@ export default function TabClientes() {
                   value={mantSugerencia}
                   onChange={(e) => setMantSugerencia(e.target.value)}
                   rows="3"
-                  placeholder="Ej. Se sugiere programar Cambio de Faja de Distribución, Filtro de Aire y Revisión de niveles..."
+                  placeholder="Ej. Se sugiere programar Cambio de Faja de DistribuciÃ³n, Filtro de Aire y RevisiÃ³n de niveles..."
                   className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -2293,7 +2294,7 @@ export default function TabClientes() {
                   type="submit"
                   className="px-6 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover cursor-pointer"
                 >
-                  Guardar Planificación
+                  Guardar PlanificaciÃ³n
                 </button>
               </div>
             </form>
@@ -2309,7 +2310,7 @@ export default function TabClientes() {
 
             <div className="mb-6">
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
-                Historial Clínico • Reparación
+                Historial ClÃ­nico â€¢ ReparaciÃ³n
               </span>
               <h3 className="text-lg font-bold text-white mt-3">
                 {modalRepairDetail.titulo}
@@ -2322,7 +2323,7 @@ export default function TabClientes() {
                   year: "numeric",
                 })}
                 {modalRepairDetail.kilometraje
-                  ? ` • ${modalRepairDetail.kilometraje.toLocaleString()} km`
+                  ? ` â€¢ ${modalRepairDetail.kilometraje.toLocaleString()} km`
                   : ""}
               </p>
             </div>
@@ -2351,7 +2352,7 @@ export default function TabClientes() {
               {/* Comentarios del Trabajo */}
               <div className="bg-gray-950 p-4 rounded-xl border border-gray-850">
                 <span className="block text-[10px] font-bold text-gray-450 uppercase mb-2">
-                  Comentarios y Diagnóstico
+                  Comentarios y DiagnÃ³stico
                 </span>
                 <p className="text-xs text-gray-300 font-light leading-relaxed">
                   {modalRepairDetail.comentarios ||
@@ -2359,17 +2360,17 @@ export default function TabClientes() {
                 </p>
               </div>
 
-              {/* Evidencias fotográficas (Antes / Después) */}
+              {/* Evidencias fotogrÃ¡ficas (Antes / DespuÃ©s) */}
               <div className="space-y-2">
                 <span className="block text-[10px] font-bold text-gray-450 uppercase">
-                  Evidencias Fotográficas
+                  Evidencias FotogrÃ¡ficas
                 </span>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Antes (Evaluación) */}
+                  {/* Antes (EvaluaciÃ³n) */}
                   <div className="bg-gray-950 p-3 rounded-xl border border-gray-850 flex flex-col items-center justify-center">
                     <span className="text-[10px] font-bold text-gray-400 mb-2 uppercase">
-                      Antes (Evaluación)
+                      Antes (EvaluaciÃ³n)
                     </span>
                     {modalRepairDetail.imagen_antes ? (
                       <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-800 relative group">
@@ -2391,22 +2392,22 @@ export default function TabClientes() {
                       </div>
                     ) : (
                       <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-gray-650 text-[10px]">
-                        Sin foto de evaluación
+                        Sin foto de evaluaciÃ³n
                       </div>
                     )}
                   </div>
 
-                  {/* Después (Ejecución) */}
+                  {/* DespuÃ©s (EjecuciÃ³n) */}
                   <div className="bg-gray-950 p-3 rounded-xl border border-gray-850 flex flex-col items-center justify-center">
                     <span className="text-[10px] font-bold text-gray-400 mb-2 uppercase">
-                      Después (Ejecución)
+                      DespuÃ©s (EjecuciÃ³n)
                     </span>
                     {modalRepairDetail.imagen_despues ? (
                       <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-800 relative group">
                         <img
                           src={modalRepairDetail.imagen_despues}
                           className="w-full h-full object-cover"
-                          alt="Después"
+                          alt="DespuÃ©s"
                         />
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                           <a
@@ -2421,7 +2422,7 @@ export default function TabClientes() {
                       </div>
                     ) : (
                       <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-gray-650 text-[10px]">
-                        Sin foto de finalización
+                        Sin foto de finalizaciÃ³n
                       </div>
                     )}
                   </div>
@@ -2448,7 +2449,7 @@ export default function TabClientes() {
                 return (
                   <div className="bg-gray-950 p-4 rounded-xl border border-gray-850">
                     <span className="block text-[10px] font-bold text-gray-450 uppercase mb-2">
-                      Línea de Tiempo del Progreso (
+                      LÃ­nea de Tiempo del Progreso (
                       {associatedCita.imagenes.length} Fotos)
                     </span>
                     <div className="grid grid-cols-4 gap-2">
@@ -2467,7 +2468,7 @@ export default function TabClientes() {
                           />
                           <span className="absolute bottom-1 left-1 bg-black/60 px-1 py-0.5 rounded text-[8px] text-gray-300">
                             {imgIdx === 0
-                              ? "Evaluación"
+                              ? "EvaluaciÃ³n"
                               : imgIdx === associatedCita.imagenes.length - 1
                                 ? "Entrega"
                                 : `Avance #${imgIdx}`}
@@ -2550,7 +2551,7 @@ export default function TabClientes() {
           </div>
         </div>
       )}
-      {/* Modal Vehículo Detail */}
+      {/* Modal VehÃ­culo Detail */}
       {modalVehiculoDetailOpen && selectedVehiculoDetail && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-[#1A1916] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col shadow-2xl border border-gray-800">
@@ -2573,7 +2574,7 @@ export default function TabClientes() {
 
             {/* Content */}
             <div className="p-6 flex flex-col gap-6 bg-[#141414] flex-1">
-              {/* Información Básica */}
+              {/* InformaciÃ³n BÃ¡sica */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800/60">
                   <span className="text-[10px] text-gray-500 uppercase block mb-1">
@@ -2593,7 +2594,7 @@ export default function TabClientes() {
                 </div>
                 <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800/60">
                   <span className="text-[10px] text-gray-500 uppercase block mb-1">
-                    Año
+                    AÃ±o
                   </span>
                   <p className="text-sm font-semibold text-white">
                     {selectedVehiculoDetail.anio || "-"}
@@ -2613,7 +2614,7 @@ export default function TabClientes() {
               {selectedVehiculoDetail.proximo_mantenimiento && (
                 <div>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-3">
-                    <Calendar className="w-4 h-4 text-yellow-500" /> Próximo
+                    <Calendar className="w-4 h-4 text-yellow-500" /> PrÃ³ximo
                     Mantenimiento
                   </h4>
                   <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
@@ -2656,11 +2657,11 @@ export default function TabClientes() {
                 </div>
               )}
 
-              {/* Galería de Imágenes */}
+              {/* GalerÃ­a de ImÃ¡genes */}
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-3">
-                  <ImagePlus className="w-4 h-4 text-blue-500" /> Galería de
-                  Imágenes
+                  <ImagePlus className="w-4 h-4 text-blue-500" /> GalerÃ­a de
+                  ImÃ¡genes
                 </h4>
                 {selectedVehiculoDetail.historial_imagenes &&
                 selectedVehiculoDetail.historial_imagenes.length > 0 ? (
@@ -2674,7 +2675,7 @@ export default function TabClientes() {
                         >
                           <img
                             src={img.url}
-                            alt="Vehículo"
+                            alt="VehÃ­culo"
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                           />
                           {img.descripcion && (
@@ -2692,7 +2693,7 @@ export default function TabClientes() {
                   <div className="bg-gray-900/30 border border-gray-800/50 rounded-xl p-8 text-center flex flex-col items-center justify-center">
                     <Car className="w-8 h-8 text-gray-700 mb-2" />
                     <p className="text-xs text-gray-500">
-                      No hay imágenes registradas para este vehículo.
+                      No hay imÃ¡genes registradas para este vehÃ­culo.
                     </p>
                   </div>
                 )}

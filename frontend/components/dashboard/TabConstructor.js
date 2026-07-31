@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { LayoutTemplate, MoveUp, MoveDown, Eye, EyeOff, Settings2, Save, MonitorPlay, Type, Image as ImageIcon, PaintBucket, LayoutGrid, ToggleLeft, Sliders, BoxSelect, Smartphone, Monitor, Zap, PlusCircle, Trash2, Palette, Clock, Tag, XCircle, Users, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move, Code } from 'lucide-react';
@@ -29,20 +29,20 @@ export default function TabConstructor() {
     { nombre: 'Rosa Claro', hex: '#ffb6c1', hover: '#f5a3af' },
     { nombre: 'Celeste Nube', hex: '#d8e8ee', hover: '#c3dbe4' },
     { nombre: 'Aqua Dulce', hex: '#5eaeb9', hover: '#4d9da8' },
-    { nombre: 'Azul Eléctrico', hex: '#008fcc', hover: '#006699' },
+    { nombre: 'Azul ElÃ©ctrico', hex: '#008fcc', hover: '#006699' },
     // Colores adicionales profesionales
     { nombre: 'Rojo Deportivo', hex: '#e63946', hover: '#d62828' },
     { nombre: 'Azul Profesional', hex: '#1d3557', hover: '#14263d' },
     { nombre: 'Azul Claro Moderno', hex: '#00b4d8', hover: '#0093b8' },
     { nombre: 'Morado Elegante', hex: '#7209b7', hover: '#5a0fa0' },
-    { nombre: 'Naranja Energético', hex: '#fb5607', hover: '#e54602' },
+    { nombre: 'Naranja EnergÃ©tico', hex: '#fb5607', hover: '#e54602' },
     
     // Colores vibrantes
     { nombre: 'Cian Moderno', hex: '#06aed5', hover: '#0593c1' },
-    { nombre: 'Púrpura Vibrante', hex: '#b5179e', hover: '#9d1186' },
+    { nombre: 'PÃºrpura Vibrante', hex: '#b5179e', hover: '#9d1186' },
     { nombre: 'Rosa Magenta', hex: '#ff006e', hover: '#e60054' },
     { nombre: 'Turquesa Tropical', hex: '#1dd1a1', hover: '#16a085' },
-    { nombre: 'Índigo Profundo', hex: '#4338ca', hover: '#3a31b3' },
+    { nombre: 'Ãndigo Profundo', hex: '#4338ca', hover: '#3a31b3' },
     
     // Colores sofisticados
     { nombre: 'Esmeralda', hex: '#06a77d', hover: '#058566' },
@@ -59,7 +59,7 @@ export default function TabConstructor() {
     { nombre: 'Platino Claro', hex: '#c0c0c0', hover: '#a8a8a8' },
   ];
 
-  // Aplicar tema dinámicamente al CSS root de la app real
+  // Aplicar tema dinÃ¡micamente al CSS root de la app real
   const cambiarTema = (paleta) => {
     setTemaGlobal(prev => ({ ...prev, color: paleta.hex, nombre: paleta.nombre }));
     if (typeof document !== 'undefined') {
@@ -92,16 +92,16 @@ export default function TabConstructor() {
 
   const [bloques, setBloques] = useState([
     { 
-      id: 1, tipo: 'HeroBlock', titulo: 'Sección Principal (Hero)', activo: true, 
-      conf: { tituloPrincipal: 'Centro Automotriz Especializado', subtitulo: 'Expertos en mecánica integral y mantenimientos.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
+      id: 1, tipo: 'HeroBlock', titulo: 'SecciÃ³n Principal (Hero)', activo: true, 
+      conf: { tituloPrincipal: 'Centro Automotriz Especializado', subtitulo: 'Expertos en mecÃ¡nica integral y mantenimientos.', tipoFondo: 'Video', overlayOpacidad: '60', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'AGENDAR CITA', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' } 
     },
     { 
-      id: 2, tipo: 'StatsBlock', titulo: 'Estadísticas del Negocio', activo: true, 
-      conf: { estilo: 'Tarjetas Oscuras', columnas: '3', animacion: 'Contador (CountUp)', stat1_valor: '+10', stat1_label: 'Años Experiencia', stat2_valor: '+500', stat2_label: 'Clientes Felices', stat3_valor: '+2000', stat3_label: 'Autos Reparados' } 
+      id: 2, tipo: 'StatsBlock', titulo: 'EstadÃ­sticas del Negocio', activo: true, 
+      conf: { estilo: 'Tarjetas Oscuras', columnas: '3', animacion: 'Contador (CountUp)', stat1_valor: '+10', stat1_label: 'AÃ±os Experiencia', stat2_valor: '+500', stat2_label: 'Clientes Felices', stat3_valor: '+2000', stat3_label: 'Autos Reparados' } 
     },
     { 
-      id: 3, tipo: 'ServicesBlock', titulo: 'Catálogo de Servicios', activo: true, 
-      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'Diagnóstico y reparación automotriz.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
+      id: 3, tipo: 'ServicesBlock', titulo: 'CatÃ¡logo de Servicios', activo: true, 
+      conf: { tituloSeccion: 'Nuestros Servicios', subtitulo: 'DiagnÃ³stico y reparaciÃ³n automotriz.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true, mostrarTiempo: true, mostrarBotonAgendar: false, hoverEffect: 'Escalar (Zoom In)' } 
     },
     {
       id: 4, tipo: 'SobreNosotrosBlock', titulo: 'Sobre Nosotros', activo: true, conf: {}
@@ -114,17 +114,17 @@ export default function TabConstructor() {
   const [guardando, setGuardando] = useState(false);
   const [bloqueEditando, setBloqueEditando] = useState(null);
 
-  // ─── Canvas drag state ───────────────────────────────────────────────────────
+  // â”€â”€â”€ Canvas drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [tallerPromos, setTallerPromos] = useState([]);
   const [isDraggingPromoBlock, setIsDraggingPromoBlock] = useState(false);
   const [promoBlockDragOffset, setPromoBlockDragOffset] = useState({ x: 0, y: 0 });
   const promoCanvasRef = useRef(null);
 
   const defaultPromosForCanvas = [
-    { titulo: 'Promo del Mes: Box Degustación', etiqueta: 'PROMO DEL MES', color_fondo: 'primary' },
+    { titulo: 'Promo del Mes: Box DegustaciÃ³n', etiqueta: 'PROMO DEL MES', color_fondo: 'primary' },
     { titulo: 'Especial Eventos: 15% OFF', etiqueta: 'ESPECIAL EVENTOS', color_fondo: 'navy' },
   ];
-  // ────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   useEffect(() => {
     async function loadData() {
@@ -193,7 +193,7 @@ export default function TabConstructor() {
                   ...b,
                   conf: {
                     ...conf,
-                    etiquetaSeccion: conf.etiquetaSeccion || 'Ubicación y',
+                    etiquetaSeccion: conf.etiquetaSeccion || 'UbicaciÃ³n y',
                     tituloSeccion: conf.tituloSeccion || 'Contacto',
                     telefono: conf.telefono || config.telefono || '',
                     email: conf.email || config.email || '',
@@ -210,7 +210,7 @@ export default function TabConstructor() {
           }
         }
       } catch (err) {
-        console.error('Error al cargar la configuración en el constructor:', err);
+        console.error('Error al cargar la configuraciÃ³n en el constructor:', err);
       } finally {
         setLoading(false);
       }
@@ -234,13 +234,13 @@ export default function TabConstructor() {
 
   const eliminarBloque = async (id) => {
     const result = await Swal.fire({
-      title: '¿Eliminar sección?',
-      text: '¿Estás seguro de eliminar esta sección?',
+      title: 'Â¿Eliminar secciÃ³n?',
+      text: 'Â¿EstÃ¡s seguro de eliminar esta secciÃ³n?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#374151',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'SÃ­, eliminar',
       cancelButtonText: 'Cancelar',
       background: '#111827',
       color: '#fff'
@@ -266,18 +266,18 @@ export default function TabConstructor() {
         if (response.taller.tema_global.color_fondo) cambiarColorFondo(response.taller.tema_global.color_fondo);
       }
       Swal.fire({
-        title: '¡Guardado!',
-        text: 'Los cambios en el constructor han sido guardados con éxito.',
+        title: 'Â¡Guardado!',
+        text: 'Los cambios en el constructor han sido guardados con Ã©xito.',
         icon: 'success',
         confirmButtonColor: temaGlobal.color,
         background: '#111827',
         color: '#fff'
       });
     } catch (err) {
-      console.error('Error al guardar configuración:', err);
+      console.error('Error al guardar configuraciÃ³n:', err);
       Swal.fire({
         title: 'Error',
-        text: err.message || 'No se pudo guardar la configuración.',
+        text: err.message || 'No se pudo guardar la configuraciÃ³n.',
         icon: 'error',
         confirmButtonColor: '#ef4444',
         background: '#111827',
@@ -338,9 +338,9 @@ export default function TabConstructor() {
       b.id !== bloqueId ? b : { ...b, conf: { ...b.conf, promos_posicion: null } }
     ));
   };
-  // ────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // Catálogo de Bloques disponibles para agregar
+  // CatÃ¡logo de Bloques disponibles para agregar
   const agregarBloqueNuevo = (tipo) => {
     const nuevoId = Date.now();
     let nuevoBloque = { id: nuevoId, tipo, activo: true, conf: {} };
@@ -348,14 +348,14 @@ export default function TabConstructor() {
     switch (tipo) {
       case 'HeroBlock':
         nuevoBloque.titulo = 'Nuevo Hero';
-        nuevoBloque.conf = { tituloPrincipal: 'Título Impactante', subtitulo: 'Subtítulo descriptivo aquí.', tipoFondo: 'Color', overlayOpacidad: '50', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'ACCIÓN', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' };
+        nuevoBloque.conf = { tituloPrincipal: 'TÃ­tulo Impactante', subtitulo: 'SubtÃ­tulo descriptivo aquÃ­.', tipoFondo: 'Color', overlayOpacidad: '50', tamanoFuente: 'Grande (XL)', alineacion: 'Centro', textoBoton: 'ACCIÃ“N', estiloBoton: 'Solid (Relleno)', colorBoton: 'Primario' };
         break;
       case 'StatsBlock':
-        nuevoBloque.titulo = 'Nuevas Estadísticas';
+        nuevoBloque.titulo = 'Nuevas EstadÃ­sticas';
         nuevoBloque.conf = { estilo: 'Tarjetas Oscuras', columnas: '3', animacion: 'Fade In', stat1_valor: '1', stat1_label: 'Dato 1', stat2_valor: '2', stat2_label: 'Dato 2', stat3_valor: '3', stat3_label: 'Dato 3' };
         break;
       case 'EmbedBlock':
-        nuevoBloque.titulo = 'Bloque de Código (Embed)';
+        nuevoBloque.titulo = 'Bloque de CÃ³digo (Embed)';
         nuevoBloque.conf = { 
           nombreNavbar: 'Extra',
           idSeccion: 'seccion_custom_' + Date.now(),
@@ -365,16 +365,16 @@ export default function TabConstructor() {
         };
         break;
       case 'ServicesBlock':
-        nuevoBloque.titulo = 'Nuevo Catálogo';
-        nuevoBloque.conf = { tituloSeccion: 'Más Servicios', subtitulo: 'Descripción breve.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true };
+        nuevoBloque.titulo = 'Nuevo CatÃ¡logo';
+        nuevoBloque.conf = { tituloSeccion: 'MÃ¡s Servicios', subtitulo: 'DescripciÃ³n breve.', layout: 'Grid 4 Columnas', estiloTarjeta: 'Glassmorphism', mostrarPrecios: true };
         break;
       case 'TestimonialsBlock':
-        nuevoBloque.titulo = 'Testimonios y Reseñas';
+        nuevoBloque.titulo = 'Testimonios y ReseÃ±as';
         nuevoBloque.conf = { colorFondo: 'Gris Claro', padding: 'Medio' };
         break;
       case 'CTABlock':
         nuevoBloque.titulo = 'Nuevo CTA';
-        nuevoBloque.conf = { mensaje: '¡Contáctanos Hoy!', subtitulo: 'No esperes más.', textoBoton: 'Escribir', colorFondo: 'Degradado Primario', esquinas: 'Redondeadas (xl)', animarBoton: true };
+        nuevoBloque.conf = { mensaje: 'Â¡ContÃ¡ctanos Hoy!', subtitulo: 'No esperes mÃ¡s.', textoBoton: 'Escribir', colorFondo: 'Degradado Primario', esquinas: 'Redondeadas (xl)', animarBoton: true };
         break;
       case 'SobreNosotrosBlock':
         nuevoBloque.titulo = 'Sobre Nosotros';
@@ -382,7 +382,7 @@ export default function TabConstructor() {
         break;
       case 'ContactoBlock':
         nuevoBloque.titulo = 'Contacto y Horarios';
-        nuevoBloque.conf = { subtituloSeccion: 'CONTACTO & ATENCIÓN', tituloSeccion: '¿Tienes Consultas? Escríbenos', telefono: '', email: '', direccion: '' };
+        nuevoBloque.conf = { subtituloSeccion: 'CONTACTO & ATENCIÃ“N', tituloSeccion: 'Â¿Tienes Consultas? EscrÃ­benos', telefono: '', email: '', direccion: '' };
         break;
     }
 
@@ -393,7 +393,7 @@ export default function TabConstructor() {
     }, 300);
   };
 
-  // Componentes de Previsualización simulada (Adaptables)
+  // Componentes de PrevisualizaciÃ³n simulada (Adaptables)
   const PreviewBlocks = {
     HeroBlock: ({ conf = {} }) => (
       <div className={`w-full ${previewMode === 'desktop' ? 'h-72' : 'h-48'} bg-gray-900 rounded-xl flex flex-col ${conf.alineacion === 'Centro' ? 'items-center text-center' : conf.alineacion === 'Izquierda' ? 'items-start text-left pl-10' : conf.alineacion === 'Derecha' ? 'items-end text-right pr-10' : 'items-start text-left pl-10'} justify-center border border-gray-800 mb-4 transition-all duration-500 ease-out relative overflow-hidden group hover:border-gray-600`}>
@@ -424,9 +424,9 @@ export default function TabConstructor() {
     ServicesBlock: ({ conf = {} }) => {
       const nombreAgente = 'Max';
       const listado = [
-        { nombre: "Mecánica Preventiva y Correctiva", descripcion: "Soporte multimarca premium, afinamiento y scanner.", duracion_minutos: 90, precio_base: 120, icono: "🔧" },
-        { nombre: "Planchado y Pintura Automotriz", descripcion: "Acabado profesional en cabina de pintura al horno.", duracion_minutos: 180, precio_base: 350, icono: "🎨" },
-        { nombre: "Detailing y Tratamiento Cerámico", descripcion: "Recubrimiento cerámico para máxima protección.", duracion_minutos: 120, precio_base: 280, icono: "✨" },
+        { nombre: "MecÃ¡nica Preventiva y Correctiva", descripcion: "Soporte multimarca premium, afinamiento y scanner.", duracion_minutos: 90, precio_base: 120, icono: "ðŸ”§" },
+        { nombre: "Planchado y Pintura Automotriz", descripcion: "Acabado profesional en cabina de pintura al horno.", duracion_minutos: 180, precio_base: 350, icono: "ðŸŽ¨" },
+        { nombre: "Detailing y Tratamiento CerÃ¡mico", descripcion: "Recubrimiento cerÃ¡mico para mÃ¡xima protecciÃ³n.", duracion_minutos: 120, precio_base: 280, icono: "âœ¨" },
       ];
       const getPrecioBase = (s) => s.precio_base || 0;
       const getDuracionMinutos = (s) => s.duracion_minutos || 0;
@@ -479,7 +479,7 @@ export default function TabConstructor() {
           `}</style>
 
           <div className="grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)] gap-4 lg:gap-6 lg:items-stretch">
-            {/* Cómo Funciona Integrado */}
+            {/* CÃ³mo Funciona Integrado */}
             <div className="w-full h-full">
               <div className="lg:h-full bg-white border border-slate-200/50 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
                 <div className="text-center mb-3">
@@ -490,7 +490,7 @@ export default function TabConstructor() {
                     className="text-[10px] lg:text-xs font-bold text-navy tracking-tight"
                     style={{ fontFamily: "'Readex Pro', sans-serif" }}
                   >
-                    ¿Cómo Reservar?
+                    Â¿CÃ³mo Reservar?
                   </h3>
                 </div>
 
@@ -519,7 +519,7 @@ export default function TabConstructor() {
                     <div>
                       <h4 className="text-[8px] font-bold text-navy mb-0.5">Reservado</h4>
                       <p className="text-[8px] text-[#54595F] leading-none">
-                        Confirmación al instante.
+                        ConfirmaciÃ³n al instante.
                       </p>
                     </div>
                   </div>
@@ -569,7 +569,7 @@ export default function TabConstructor() {
                             </h3>
                             <div className="w-5 h-5 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
                               <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
-                                {s.icono || "🔧"}
+                                {s.icono || "ðŸ”§"}
                               </span>
                             </div>
                           </div>
@@ -622,7 +622,7 @@ export default function TabConstructor() {
                             </h3>
                             <div className="w-5 h-5 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 relative select-none">
                               <span className="group-hover:animate-[engineVibrate_0.15s_linear_infinite] inline-block">
-                                {s.icono || "🔧"}
+                                {s.icono || "ðŸ”§"}
                               </span>
                             </div>
                           </div>
@@ -661,8 +661,8 @@ export default function TabConstructor() {
         </div>
         <div className={`grid ${previewMode === 'desktop' ? 'grid-cols-3' : 'grid-cols-2'} gap-4 relative z-10 px-2`}>
           {[1,2,3].slice(0, conf.layout === 'Grid 3x3' ? 3 : 2).map((i, idx) => (
-            <div key={i} className={`flex-1 h-auto ${conf.estiloTarjeta === 'Borde Neón (Cyberpunk)' ? 'border border-[var(--primary)]/50 shadow-[0_0_15px_var(--primary)] bg-gray-950/80 backdrop-blur' : conf.estiloTarjeta === 'Glassmorphism' ? 'bg-white/5 backdrop-blur-md border border-white/10' : 'bg-gray-900 border border-gray-800'} rounded-xl p-4 flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl`} style={{ animationDelay: `${idx * 150}ms` }}>
-              {conf.mostrarEstrellas && <div className={`${previewMode === 'desktop' ? 'text-[10px]' : 'text-[8px]'} text-yellow-500 mb-3 tracking-widest drop-shadow-[0_0_2px_rgba(234,179,8,0.5)]`}>★★★★★</div>}
+            <div key={i} className={`flex-1 h-auto ${conf.estiloTarjeta === 'Borde NeÃ³n (Cyberpunk)' ? 'border border-[var(--primary)]/50 shadow-[0_0_15px_var(--primary)] bg-gray-950/80 backdrop-blur' : conf.estiloTarjeta === 'Glassmorphism' ? 'bg-white/5 backdrop-blur-md border border-white/10' : 'bg-gray-900 border border-gray-800'} rounded-xl p-4 flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl`} style={{ animationDelay: `${idx * 150}ms` }}>
+              {conf.mostrarEstrellas && <div className={`${previewMode === 'desktop' ? 'text-[10px]' : 'text-[8px]'} text-yellow-500 mb-3 tracking-widest drop-shadow-[0_0_2px_rgba(234,179,8,0.5)]`}>â˜…â˜…â˜…â˜…â˜…</div>}
               <div className="w-full h-1.5 bg-gray-700/50 rounded-full mb-2"></div>
               <div className="w-full h-1.5 bg-gray-700/50 rounded-full mb-2"></div>
               <div className="w-3/4 h-1.5 bg-gray-700/50 rounded-full mb-4"></div>
@@ -679,7 +679,7 @@ export default function TabConstructor() {
       </div>
     ),
     CTABlock: ({ conf = {} }) => (
-      <div className={`w-full ${previewMode === 'desktop' ? 'h-40' : 'h-24'} ${conf.colorFondo === 'Degradado Primario' ? 'bg-gradient-to-r from-[var(--secondary)] via-[var(--primary)] to-indigo-600' : 'bg-gray-900 border border-gray-800'} ${conf.esquinas === 'Redondeadas (xl)' ? 'rounded-3xl' : conf.esquinas === 'Píldora' ? 'rounded-full' : 'rounded-lg'} flex flex-col items-center justify-center mb-4 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_10px_30px_var(--primary)]`}>
+      <div className={`w-full ${previewMode === 'desktop' ? 'h-40' : 'h-24'} ${conf.colorFondo === 'Degradado Primario' ? 'bg-gradient-to-r from-[var(--secondary)] via-[var(--primary)] to-indigo-600' : 'bg-gray-900 border border-gray-800'} ${conf.esquinas === 'Redondeadas (xl)' ? 'rounded-3xl' : conf.esquinas === 'PÃ­ldora' ? 'rounded-full' : 'rounded-lg'} flex flex-col items-center justify-center mb-4 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_10px_30px_var(--primary)]`}>
         <span className={`${previewMode === 'desktop' ? 'text-2xl' : 'text-xs'} font-black text-white relative z-10 shadow-black/50 drop-shadow-md`}>{conf.mensaje}</span>
         <span className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[7px]'} text-blue-200 mt-2 relative z-10 max-w-[80%] text-center`}>{conf.subtitulo}</span>
         <div className={`mt-5 px-6 py-2.5 bg-white text-[var(--primary)] ${previewMode === 'desktop' ? 'text-[11px]' : 'text-[8px]'} font-black tracking-widest rounded-full relative z-10 shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer ${conf.animarBoton ? 'animate-pulse' : ''}`}>{conf.textoBoton}</div>
@@ -705,10 +705,10 @@ export default function TabConstructor() {
             {conf.tituloPrincipal || 'Compromiso con la'} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-blue-400">{conf.tituloGradiente || 'Calidad'}</span>
           </h3>
           <div className="mt-3 space-y-1.5">
-            {(conf.caracteristicas || [{icono:'✨', titulo:'Característica 1'}, {icono:'🏆', titulo:'Característica 2'}]).slice(0, 2).map((c, i) => (
+            {(conf.caracteristicas || [{icono:'âœ¨', titulo:'CaracterÃ­stica 1'}, {icono:'ðŸ†', titulo:'CaracterÃ­stica 2'}]).slice(0, 2).map((c, i) => (
               <div key={i} className="flex items-center gap-1.5">
-                 <span className="text-[10px] bg-gray-800 w-4 h-4 rounded flex items-center justify-center">{c.icono || '✨'}</span>
-                 <span className="text-[9px] text-gray-400 truncate">{c.titulo || 'Característica'}</span>
+                 <span className="text-[10px] bg-gray-800 w-4 h-4 rounded flex items-center justify-center">{c.icono || 'âœ¨'}</span>
+                 <span className="text-[9px] text-gray-400 truncate">{c.titulo || 'CaracterÃ­stica'}</span>
               </div>
             ))}
 
@@ -718,8 +718,8 @@ export default function TabConstructor() {
     ),
     ContactoBlock: ({ conf = {} }) => (
       <div className={`w-full ${previewMode === 'desktop' ? 'h-32' : 'h-24'} bg-gray-900/40 rounded-xl flex flex-col items-center justify-center border border-gray-800 mb-4 p-4 text-center transition-all duration-300 hover:border-gray-600`}>
-         <span className="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest">{conf.subtituloSeccion || 'Contacto & Atención'}</span>
-         <h3 className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[9px]'} font-black text-white mt-1`}>{conf.tituloSeccion || '¿Tienes Consultas? Escríbenos'}</h3>
+         <span className="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest">{conf.subtituloSeccion || 'Contacto & AtenciÃ³n'}</span>
+         <h3 className={`${previewMode === 'desktop' ? 'text-xs' : 'text-[9px]'} font-black text-white mt-1`}>{conf.tituloSeccion || 'Â¿Tienes Consultas? EscrÃ­benos'}</h3>
          <div className="flex gap-3 mt-4 opacity-50">
             <div className="h-6 w-20 bg-gray-800 rounded flex items-center justify-center gap-1"><Smartphone className="w-3 h-3 text-gray-500" /> <div className="w-8 h-1 bg-gray-600 rounded"></div></div>
             <div className="h-6 w-24 bg-gray-800 rounded flex items-center justify-center gap-1"><LayoutGrid className="w-3 h-3 text-gray-500" /> <div className="w-10 h-1 bg-gray-600 rounded"></div></div>
@@ -728,7 +728,7 @@ export default function TabConstructor() {
     ),
     EmbedBlock: ({ conf = {} }) => (
       <div className="w-full bg-gray-900/40 rounded-xl flex items-center justify-center border border-gray-800 mb-4 py-8 px-4 text-center opacity-80 select-none">
-        <span className="text-xs font-bold text-[var(--primary)] uppercase tracking-widest flex items-center gap-2"><Code className="w-4 h-4" /> Bloque de Código (Embed)</span>
+        <span className="text-xs font-bold text-[var(--primary)] uppercase tracking-widest flex items-center gap-2"><Code className="w-4 h-4" /> Bloque de CÃ³digo (Embed)</span>
       </div>
     ),
   };
@@ -736,7 +736,7 @@ export default function TabConstructor() {
   return (
     <div className="space-y-6">
       
-      {/* HEADER DE LA SECCIÓN */}
+      {/* HEADER DE LA SECCIÃ“N */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-900/40 p-4 rounded-2xl border border-gray-800/60 backdrop-blur-xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/5 to-transparent pointer-events-none"></div>
         <div className="relative z-10">
@@ -817,14 +817,14 @@ export default function TabConstructor() {
                   <button 
                     onClick={() => eliminarBloque(bloque.id)}
                     className="p-2.5 rounded-xl border border-transparent bg-transparent text-gray-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all duration-300 cursor-pointer"
-                    title="Eliminar Sección permanentemente"
+                    title="Eliminar SecciÃ³n permanentemente"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* PANEL DE EDICIÓN PRO (EXPANDIBLE) */}
+              {/* PANEL DE EDICIÃ“N PRO (EXPANDIBLE) */}
               <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-in-out ${bloqueEditando === bloque.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-6 bg-gray-900 border border-gray-800 border-t-0 rounded-b-2xl shadow-2xl relative z-0">
@@ -837,7 +837,7 @@ export default function TabConstructor() {
                       </div>
                     )}
 
-                    {/* ── HERO BLOCK ──────────────────────────────────────────────────── */}
+                    {/* â”€â”€ HERO BLOCK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     {bloque.tipo === 'HeroBlock' && (
                       <div className="space-y-8">
 
@@ -848,15 +848,15 @@ export default function TabConstructor() {
                           </span>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1 col-span-2">
-                              <label className="text-[10px] font-bold text-gray-400">Título Principal (H1)</label>
+                              <label className="text-[10px] font-bold text-gray-400">TÃ­tulo Principal (H1)</label>
                               <input type="text" value={bloque.conf.tituloPrincipal || ''} onChange={e => handleConfigChange(bloque.id, 'tituloPrincipal', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                             </div>
                             <div className="space-y-1 col-span-2">
-                              <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                              <label className="text-[10px] font-bold text-gray-400">SubtÃ­tulo Descriptivo</label>
                               <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-gray-400">Texto del Botón</label>
+                              <label className="text-[10px] font-bold text-gray-400">Texto del BotÃ³n</label>
                               <input type="text" value={bloque.conf.textoBoton || ''} onChange={e => handleConfigChange(bloque.id, 'textoBoton', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                             </div>
                             <div className="space-y-1">
@@ -866,10 +866,10 @@ export default function TabConstructor() {
                           </div>
                         </div>
 
-                        {/* 2. Alineación del Texto */}
+                        {/* 2. AlineaciÃ³n del Texto */}
                         <div className="space-y-3">
                           <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
-                            <AlignCenter className="w-3 h-3 text-[var(--primary)]" /> Alineación del Texto
+                            <AlignCenter className="w-3 h-3 text-[var(--primary)]" /> AlineaciÃ³n del Texto
                           </span>
                           <div className="grid grid-cols-4 gap-2">
                             {[
@@ -906,7 +906,7 @@ export default function TabConstructor() {
                               onClick={() => resetPromosPosicion(bloque.id)}
                               className="text-[9px] font-bold text-gray-600 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
                             >
-                              <XCircle className="w-3 h-3" /> Reset posición
+                              <XCircle className="w-3 h-3" /> Reset posiciÃ³n
                             </button>
                           </div>
 
@@ -933,7 +933,7 @@ export default function TabConstructor() {
                           </div>
 
                           <p className="text-[9px] text-gray-600 leading-relaxed bg-gray-950/40 border border-gray-800/60 rounded-lg px-3 py-2">
-                            Las dos cards viajan juntas como un bloque. Arrástralo donde quieras en el Hero. En mobile siempre se apilan. 🟢 = posición anclada.
+                            Las dos cards viajan juntas como un bloque. ArrÃ¡stralo donde quieras en el Hero. En mobile siempre se apilan. ðŸŸ¢ = posiciÃ³n anclada.
                           </p>
 
                           {/* Canvas interactivo */}
@@ -962,7 +962,7 @@ export default function TabConstructor() {
                               style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '25% 33.33%' }}
                             />
 
-                            {/* Simulación del texto del Hero */}
+                            {/* SimulaciÃ³n del texto del Hero */}
                             <div
                               className={`absolute top-6 pointer-events-none flex flex-col gap-1 ${
                                 (bloque.conf.alineacion || 'Centro') === 'Centro'
@@ -984,7 +984,7 @@ export default function TabConstructor() {
                               </div>
                             </div>
 
-                            {/* ── Bloque arrastrable único con las dos cards ── */}
+                            {/* â”€â”€ Bloque arrastrable Ãºnico con las dos cards â”€â”€ */}
                             {(() => {
                               const pos = bloque.conf.promos_posicion;
                               const isAnclado = pos?.anclado;
@@ -1044,7 +1044,7 @@ export default function TabConstructor() {
                                     <Move style={{ width: '11px', height: '11px', color: 'white' }} />
                                   </div>
 
-                                  {/* Indicador verde = posición anclada */}
+                                  {/* Indicador verde = posiciÃ³n anclada */}
                                   {isAnclado && (
                                     <div style={{ position: 'absolute', top: '-6px', left: '-6px', width: '14px', height: '14px', background: '#4ade80', borderRadius: '50%', border: '2px solid #030712', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }} />
                                   )}
@@ -1055,13 +1055,13 @@ export default function TabConstructor() {
                             {/* Readout de coordenadas mientras arrastra */}
                             {isDraggingPromoBlock && bloque.conf.promos_posicion && (
                               <div className="absolute bottom-2 right-3 bg-black/75 backdrop-blur-sm rounded-lg px-2 py-1 font-mono text-[8px] text-green-400 border border-green-400/20">
-                                X: {bloque.conf.promos_posicion.x.toFixed(1)}% · Y: {bloque.conf.promos_posicion.y.toFixed(1)}%
+                                X: {bloque.conf.promos_posicion.x.toFixed(1)}% Â· Y: {bloque.conf.promos_posicion.y.toFixed(1)}%
                               </div>
                             )}
 
                             {/* Hint */}
                             <div className="absolute bottom-2 left-3 text-[7.5px] text-white/25 font-medium pointer-events-none">
-                              ↕ Arrastra el bloque · 🟢 Anclado · Reset limpia posición
+                              â†• Arrastra el bloque Â· ðŸŸ¢ Anclado Â· Reset limpia posiciÃ³n
                             </div>
                           </div>
                         </div>
@@ -1085,22 +1085,22 @@ export default function TabConstructor() {
                     {bloque.tipo === 'ServicesBlock' && (
                       <div className="space-y-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-gray-400">Título de la Sección</label>
+                          <label className="text-[10px] font-bold text-gray-400">TÃ­tulo de la SecciÃ³n</label>
                           <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                          <label className="text-[10px] font-bold text-gray-400">SubtÃ­tulo Descriptivo</label>
                           <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                         </div>
 
-                        {/* Configuración de Pasos de Reserva */}
+                        {/* ConfiguraciÃ³n de Pasos de Reserva */}
                         <div className="mt-6 pt-6 border-t border-gray-800">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">Sección: ¿Cómo Reservar?</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">SecciÃ³n: Â¿CÃ³mo Reservar?</span>
                           
                           <div className="space-y-4">
                             <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-gray-400">Título de Sección Reserva</label>
-                              <input type="text" value={bloque.conf.reservaTitulo || ''} placeholder="¿Cómo Reservar tu Box?" onChange={e => handleConfigChange(bloque.id, 'reservaTitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-xs text-white focus:border-[var(--primary)] outline-none" />
+                              <label className="text-[10px] font-bold text-gray-400">TÃ­tulo de SecciÃ³n Reserva</label>
+                              <input type="text" value={bloque.conf.reservaTitulo || ''} placeholder="Â¿CÃ³mo Reservar tu Box?" onChange={e => handleConfigChange(bloque.id, 'reservaTitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-xs text-white focus:border-[var(--primary)] outline-none" />
                             </div>
 
                             {/* Paso 1 */}
@@ -1115,14 +1115,14 @@ export default function TabConstructor() {
                             <div className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
                               <span className="text-[10px] text-[var(--primary)] font-bold">Paso 2</span>
                               <input type="text" value={bloque.conf.paso2Titulo || ''} placeholder="Esperanza Coordina tu Cita" onChange={e => handleConfigChange(bloque.id, 'paso2Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
-                              <textarea rows={2} value={bloque.conf.paso2Desc || ''} placeholder="Atención al cliente consulta la agenda..." onChange={e => handleConfigChange(bloque.id, 'paso2Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
+                              <textarea rows={2} value={bloque.conf.paso2Desc || ''} placeholder="AtenciÃ³n al cliente consulta la agenda..." onChange={e => handleConfigChange(bloque.id, 'paso2Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
                               <input type="text" value={bloque.conf.paso2Mobile || ''} placeholder="Texto Corto Mobile (Ej: Esperanza Coordina)" onChange={e => handleConfigChange(bloque.id, 'paso2Mobile', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-white p-2 outline-none" />
                             </div>
 
                             {/* Paso 3 */}
                             <div className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
                               <span className="text-[10px] text-[var(--primary)] font-bold">Paso 3</span>
-                              <input type="text" value={bloque.conf.paso3Titulo || ''} placeholder="¡Listo! Box Reservado" onChange={e => handleConfigChange(bloque.id, 'paso3Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
+                              <input type="text" value={bloque.conf.paso3Titulo || ''} placeholder="Â¡Listo! Box Reservado" onChange={e => handleConfigChange(bloque.id, 'paso3Titulo', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
                               <textarea rows={2} value={bloque.conf.paso3Desc || ''} placeholder="La cita queda agendada al instante..." onChange={e => handleConfigChange(bloque.id, 'paso3Desc', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-gray-400 p-2 outline-none resize-none" />
                               <input type="text" value={bloque.conf.paso3Mobile || ''} placeholder="Texto Corto Mobile (Ej: Box Reservado)" onChange={e => handleConfigChange(bloque.id, 'paso3Mobile', e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded text-[10px] text-white p-2 outline-none" />
                             </div>
@@ -1135,17 +1135,17 @@ export default function TabConstructor() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de Sección</label>
+                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de SecciÃ³n</label>
                             <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Años de Experiencia</label>
+                            <label className="text-[10px] font-bold text-gray-400">AÃ±os de Experiencia</label>
                             <input type="number" value={bloque.conf.anosExperiencia || ''} onChange={e => handleConfigChange(bloque.id, 'anosExperiencia', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Título de Cabecera</label>
+                            <label className="text-[10px] font-bold text-gray-400">TÃ­tulo de Cabecera</label>
                             <input type="text" value={bloque.conf.tituloPrincipal || ''} onChange={e => handleConfigChange(bloque.id, 'tituloPrincipal', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
@@ -1154,11 +1154,11 @@ export default function TabConstructor() {
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-gray-400">Descripción Sobre Nosotros</label>
+                          <label className="text-[10px] font-bold text-gray-400">DescripciÃ³n Sobre Nosotros</label>
                           <textarea rows={3} value={bloque.conf.sobreNosotros || ''} onChange={e => handleConfigChange(bloque.id, 'sobreNosotros', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all resize-none" />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-gray-400">URL Imagen o Video de la Sección</label>
+                          <label className="text-[10px] font-bold text-gray-400">URL Imagen o Video de la SecciÃ³n</label>
                           <div className="flex gap-2 items-center">
                             <input type="text" value={bloque.conf.imagenURL || ''} placeholder="/images/sobre_nosotros.png o /videos/video.mp4" onChange={e => handleConfigChange(bloque.id, 'imagenURL', e.target.value)} className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all font-mono" />
                             <label className="cursor-pointer bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-300 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center transition-all">
@@ -1170,7 +1170,7 @@ export default function TabConstructor() {
                                 setGuardando(true);
                                 api.subirImagenGeneral(formData).then(data => {
                                   handleConfigChange(bloque.id, 'imagenURL', data.imageUrl);
-                                  Swal.fire({ title: '¡Subido!', text: 'El archivo se subió correctamente', icon: 'success', background: '#111827', color: '#fff', timer: 1500, showConfirmButton: false });
+                                  Swal.fire({ title: 'Â¡Subido!', text: 'El archivo se subiÃ³ correctamente', icon: 'success', background: '#111827', color: '#fff', timer: 1500, showConfirmButton: false });
                                 }).catch(err => {
                                   Swal.fire({ title: 'Error', text: err.message || 'Error al subir', icon: 'error', background: '#111827', color: '#fff' });
                                 }).finally(() => {
@@ -1183,33 +1183,33 @@ export default function TabConstructor() {
                           </div>
                         </div>
 
-                        {/* Características Dinámicas */}
+                        {/* CaracterÃ­sticas DinÃ¡micas */}
                         <div className="mt-6 pt-6 border-t border-gray-800">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">Características Destacadas</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 block">CaracterÃ­sticas Destacadas</span>
                           <div className="space-y-4">
                             {[0, 1, 2].map((idx) => {
                               const caracteristicas = bloque.conf.caracteristicas || [
-                                { icono: '✨', titulo: 'Mecánicos Certificados', desc: 'Profesionales capacitados en mecánica general y electrónica automotriz.' },
-                                { icono: '🏆', titulo: 'Calidad de Repuestos', desc: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
-                                { icono: '🎨', titulo: 'Mecánica Especializada', desc: 'Brindamos atención personalizada y garantizada para cada vehículo.' },
+                                { icono: 'âœ¨', titulo: 'MecÃ¡nicos Certificados', desc: 'Profesionales capacitados en mecÃ¡nica general y electrÃ³nica automotriz.' },
+                                { icono: 'ðŸ†', titulo: 'Calidad de Repuestos', desc: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
+                                { icono: 'ðŸŽ¨', titulo: 'MecÃ¡nica Especializada', desc: 'Brindamos atenciÃ³n personalizada y garantizada para cada vehÃ­culo.' },
                               ];
                               const item = caracteristicas[idx];
                               return (
                                 <div key={idx} className="p-3 bg-gray-950/50 rounded-xl border border-gray-800 space-y-2">
-                                  <span className="text-[10px] text-[var(--primary)] font-bold">Característica {idx + 1}</span>
+                                  <span className="text-[10px] text-[var(--primary)] font-bold">CaracterÃ­stica {idx + 1}</span>
                                   <div className="flex gap-2">
                                     <input type="text" value={item.icono || ''} placeholder="Icono (Emoji)" onChange={e => {
                                       const newCar = [...caracteristicas];
                                       newCar[idx].icono = e.target.value;
                                       handleConfigChange(bloque.id, 'caracteristicas', newCar);
                                     }} className="w-16 bg-gray-900 border border-gray-800 rounded text-xs text-center text-white p-2 font-bold outline-none" />
-                                    <input type="text" value={item.titulo || ''} placeholder="Título" onChange={e => {
+                                    <input type="text" value={item.titulo || ''} placeholder="TÃ­tulo" onChange={e => {
                                       const newCar = [...caracteristicas];
                                       newCar[idx].titulo = e.target.value;
                                       handleConfigChange(bloque.id, 'caracteristicas', newCar);
                                     }} className="w-full bg-gray-900 border border-gray-800 rounded text-xs text-white p-2 font-bold outline-none" />
                                   </div>
-                                  <textarea rows={2} value={item.desc || ''} placeholder="Descripción..." onChange={e => {
+                                  <textarea rows={2} value={item.desc || ''} placeholder="DescripciÃ³n..." onChange={e => {
                                     const newCar = [...caracteristicas];
                                     newCar[idx].desc = e.target.value;
                                     handleConfigChange(bloque.id, 'caracteristicas', newCar);
@@ -1226,17 +1226,17 @@ export default function TabConstructor() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de Sección</label>
+                            <label className="text-[10px] font-bold text-gray-400">Etiqueta de SecciÃ³n</label>
                             <input type="text" value={bloque.conf.subtituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'subtituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Título de Sección</label>
+                            <label className="text-[10px] font-bold text-gray-400">TÃ­tulo de SecciÃ³n</label>
                             <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Teléfono</label>
+                            <label className="text-[10px] font-bold text-gray-400">TelÃ©fono</label>
                             <input type="text" value={bloque.conf.telefono || ''} onChange={e => handleConfigChange(bloque.id, 'telefono', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
@@ -1244,7 +1244,7 @@ export default function TabConstructor() {
                             <input type="email" value={bloque.conf.email || ''} onChange={e => handleConfigChange(bloque.id, 'email', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Ubicación / Dirección</label>
+                            <label className="text-[10px] font-bold text-gray-400">UbicaciÃ³n / DirecciÃ³n</label>
                             <input type="text" value={bloque.conf.direccion || ''} onChange={e => handleConfigChange(bloque.id, 'direccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                         </div>
@@ -1255,27 +1255,27 @@ export default function TabConstructor() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Título de la Sección</label>
+                            <label className="text-[10px] font-bold text-gray-400">TÃ­tulo de la SecciÃ³n</label>
                             <input type="text" value={bloque.conf.tituloSeccion || ''} onChange={e => handleConfigChange(bloque.id, 'tituloSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Subtítulo Descriptivo</label>
+                            <label className="text-[10px] font-bold text-gray-400">SubtÃ­tulo Descriptivo</label>
                             <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
                             <label className="text-[10px] font-bold text-gray-400">Estilo de Tarjetas</label>
-                            <select value={bloque.conf.estiloTarjeta || 'Estándar'} onChange={e => handleConfigChange(bloque.id, 'estiloTarjeta', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
-                              <option value="Estándar">Estándar</option>
-                              <option value="Borde Neón (Cyberpunk)">Borde Neón (Cyberpunk)</option>
+                            <select value={bloque.conf.estiloTarjeta || 'EstÃ¡ndar'} onChange={e => handleConfigChange(bloque.id, 'estiloTarjeta', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="EstÃ¡ndar">EstÃ¡ndar</option>
+                              <option value="Borde NeÃ³n (Cyberpunk)">Borde NeÃ³n (Cyberpunk)</option>
                               <option value="Glassmorphism">Glassmorphism</option>
                             </select>
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Fondo de Sección</label>
-                            <select value={bloque.conf.fondoSeccion || 'Oscuro Estándar'} onChange={e => handleConfigChange(bloque.id, 'fondoSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
-                              <option value="Oscuro Estándar">Oscuro Estándar</option>
+                            <label className="text-[10px] font-bold text-gray-400">Fondo de SecciÃ³n</label>
+                            <select value={bloque.conf.fondoSeccion || 'Oscuro EstÃ¡ndar'} onChange={e => handleConfigChange(bloque.id, 'fondoSeccion', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
+                              <option value="Oscuro EstÃ¡ndar">Oscuro EstÃ¡ndar</option>
                               <option value="Acentuado">Acentuado</option>
                               <option value="Claro">Claro</option>
                             </select>
@@ -1306,13 +1306,13 @@ export default function TabConstructor() {
                             <input type="text" value={bloque.conf.mensaje || ''} onChange={e => handleConfigChange(bloque.id, 'mensaje', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Subtítulo</label>
+                            <label className="text-[10px] font-bold text-gray-400">SubtÃ­tulo</label>
                             <input type="text" value={bloque.conf.subtitulo || ''} onChange={e => handleConfigChange(bloque.id, 'subtitulo', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400">Texto del Botón</label>
+                            <label className="text-[10px] font-bold text-gray-400">Texto del BotÃ³n</label>
                             <input type="text" value={bloque.conf.textoBoton || ''} onChange={e => handleConfigChange(bloque.id, 'textoBoton', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all" />
                           </div>
                           <div className="space-y-1">
@@ -1327,15 +1327,15 @@ export default function TabConstructor() {
                             <label className="text-[10px] font-bold text-gray-400">Esquinas</label>
                             <select value={bloque.conf.esquinas || 'Redondeadas (xl)'} onChange={e => handleConfigChange(bloque.id, 'esquinas', e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-xs text-white focus:border-[var(--primary)] outline-none transition-all">
                               <option value="Redondeadas (xl)">Redondeadas (xl)</option>
-                              <option value="Píldora">Píldora</option>
-                              <option value="Estándar">Estándar</option>
+                              <option value="PÃ­ldora">PÃ­ldora</option>
+                              <option value="EstÃ¡ndar">EstÃ¡ndar</option>
                             </select>
                           </div>
                         </div>
                         <div className="pt-2">
                           <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
                             <input type="checkbox" checked={bloque.conf.animarBoton !== false} onChange={e => handleConfigChange(bloque.id, 'animarBoton', e.target.checked)} className="rounded border-slate-800 text-[var(--primary)] focus:ring-0 bg-gray-950" />
-                            Animar Botón (Efecto Latido)
+                            Animar BotÃ³n (Efecto Latido)
                           </label>
                         </div>
                       </div>
@@ -1349,12 +1349,12 @@ export default function TabConstructor() {
             );
           })}
 
-          {/* BOTÓN PARA AGREGAR NUEVAS SECCIONES */}
+          {/* BOTÃ“N PARA AGREGAR NUEVAS SECCIONES */}
           <button 
             onClick={() => setModalAgregarOpen(true)}
             className="w-full py-4 rounded-2xl border-2 border-dashed border-gray-700 text-gray-400 hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all duration-300"
           >
-            <PlusCircle className="w-4 h-4" /> Agregar Nueva Sección
+            <PlusCircle className="w-4 h-4" /> Agregar Nueva SecciÃ³n
           </button>
         </div>
 
@@ -1373,7 +1373,7 @@ export default function TabConstructor() {
                   <Monitor className="w-3.5 h-3.5" /> WEB
                 </button>
                 <button title="Vista de Celular" onClick={() => setPreviewMode('mobile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${previewMode === 'mobile' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
-                  <Smartphone className="w-3.5 h-3.5" /> MÓVIL
+                  <Smartphone className="w-3.5 h-3.5" /> MÃ“VIL
                 </button>
               </div>
             </div>
@@ -1413,7 +1413,7 @@ export default function TabConstructor() {
 
               <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#050505] ${previewMode === 'mobile' ? 'pt-8 pb-16' : ''}`}>
                 <div className={`w-full ${previewMode === 'desktop' ? 'h-16 px-8' : 'h-14 px-5'} bg-black/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30 flex items-center justify-between`}>
-                  <span className={`${previewMode === 'desktop' ? 'text-lg' : 'text-xs'} font-black text-white italic tracking-tighter`}>MECÁNICA<span className="text-[var(--primary)]">PRO</span></span>
+                  <span className={`${previewMode === 'desktop' ? 'text-lg' : 'text-xs'} font-black text-white italic tracking-tighter`}>MECÃNICA<span className="text-[var(--primary)]">PRO</span></span>
                   {previewMode === 'desktop' ? (
                     <div className="flex gap-6 text-[111px] font-bold text-gray-300">
                       <span className="hover:text-[var(--primary)] cursor-pointer transition-colors">Inicio</span>
@@ -1439,7 +1439,7 @@ export default function TabConstructor() {
                   {bloques.filter(b => b.activo).length === 0 && (
                     <div className="flex flex-col items-center justify-center h-64 opacity-50 mt-10 border border-dashed border-gray-800 rounded-xl">
                       <LayoutTemplate className="w-12 h-12 text-gray-600 mb-4" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-gray-500 text-center">Sitio Vacío<br/>Añade secciones desde el panel</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-gray-500 text-center">Sitio VacÃ­o<br/>AÃ±ade secciones desde el panel</span>
                     </div>
                   )}
                 </div>
@@ -1456,7 +1456,7 @@ export default function TabConstructor() {
           <div className="w-full max-w-lg rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative">
             <CloseModalButton onClick={() => setModalGlobalOpen(false)} absolute />
             <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Palette className="w-5 h-5 text-[var(--primary)]"/> Color Global del Tema</h2>
-            <p className="text-xs text-gray-400 mb-6">Cambia la identidad visual de toda la aplicación y la landing page al instante.</p>
+            <p className="text-xs text-gray-400 mb-6">Cambia la identidad visual de toda la aplicaciÃ³n y la landing page al instante.</p>
             
             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
               {paletas.map(paleta => (
@@ -1469,7 +1469,7 @@ export default function TabConstructor() {
                     <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow-[0_0_10px_currentColor]" style={{ backgroundColor: paleta.hex, color: paleta.hex }}></div>
                     {paleta.nombre}
                   </span>
-                  {temaGlobal.color === paleta.hex && <span className="text-[9px] font-black uppercase text-[var(--primary)]">✓ Activo</span>}
+                  {temaGlobal.color === paleta.hex && <span className="text-[9px] font-black uppercase text-[var(--primary)]">âœ“ Activo</span>}
                 </div>
               ))}
             </div>
@@ -1514,26 +1514,26 @@ export default function TabConstructor() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-5xl rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 relative flex flex-col h-[90vh]">
             <CloseModalButton onClick={() => setModalCodeOpen(false)} absolute />
-            <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Code className="w-5 h-5 text-blue-400"/> Código Exportado</h2>
+            <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><Code className="w-5 h-5 text-blue-400"/> CÃ³digo Exportado</h2>
           </div>
         </div>
       )}
 
-      {/* MODAL: CATÁLOGO DE BLOQUES */}
+      {/* MODAL: CATÃLOGO DE BLOQUES */}
       {modalAgregarOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-2xl rounded-3xl bg-gray-950 border border-gray-800 shadow-2xl p-6 md:p-8 relative">
             <CloseModalButton onClick={() => setModalAgregarOpen(false)} absolute />
-            <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><LayoutGrid className="w-5 h-5 text-[var(--primary)]"/> Catálogo de Secciones</h2>
-            <p className="text-xs text-gray-400 mb-6">Selecciona un bloque preconstruido para añadirlo a tu página.</p>
+            <h2 className="text-lg font-black text-white flex items-center gap-2 mb-2"><LayoutGrid className="w-5 h-5 text-[var(--primary)]"/> CatÃ¡logo de Secciones</h2>
+            <p className="text-xs text-gray-400 mb-6">Selecciona un bloque preconstruido para aÃ±adirlo a tu pÃ¡gina.</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div onClick={() => agregarBloqueNuevo('HeroBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
                 <div className="w-full h-20 bg-gray-800 rounded-lg mb-3 flex items-center justify-center group-hover:bg-[var(--primary)]/10 transition-colors">
                   <LayoutTemplate className="w-8 h-8 text-gray-600 group-hover:text-[var(--primary)]" />
                 </div>
-                <h4 className="text-sm font-bold text-white mb-1">Sección Hero</h4>
-                <p className="text-[10px] text-gray-500">Cabecera principal con video/imagen y llamado a la acción.</p>
+                <h4 className="text-sm font-bold text-white mb-1">SecciÃ³n Hero</h4>
+                <p className="text-[10px] text-gray-500">Cabecera principal con video/imagen y llamado a la acciÃ³n.</p>
               </div>
               
               <div onClick={() => agregarBloqueNuevo('StatsBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
@@ -1542,8 +1542,8 @@ export default function TabConstructor() {
                   <div className="w-8 h-14 bg-gray-700 rounded group-hover:bg-[var(--primary)]/50"></div>
                   <div className="w-8 h-8 bg-gray-700 rounded group-hover:bg-[var(--primary)]/20"></div>
                 </div>
-                <h4 className="text-sm font-bold text-white mb-1">Cifras y Estadísticas</h4>
-                <p className="text-[10px] text-gray-500">Tres tarjetas con números animados (CountUp) y etiquetas.</p>
+                <h4 className="text-sm font-bold text-white mb-1">Cifras y EstadÃ­sticas</h4>
+                <p className="text-[10px] text-gray-500">Tres tarjetas con nÃºmeros animados (CountUp) y etiquetas.</p>
               </div>
 
               <div onClick={() => agregarBloqueNuevo('ServicesBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
@@ -1551,7 +1551,7 @@ export default function TabConstructor() {
                   <div className="bg-gray-700 rounded-md group-hover:bg-[var(--primary)]/40"></div><div className="bg-gray-700 rounded-md group-hover:bg-[var(--primary)]/40"></div><div className="bg-gray-700 rounded-md group-hover:bg-[var(--primary)]/40"></div>
                 </div>
                 <h4 className="text-sm font-bold text-white mb-1">Grilla de Servicios</h4>
-                <p className="text-[10px] text-gray-500">Muestra tu catálogo con iconos, precios y descripciones cortas.</p>
+                <p className="text-[10px] text-gray-500">Muestra tu catÃ¡logo con iconos, precios y descripciones cortas.</p>
               </div>
 
               <div onClick={() => agregarBloqueNuevo('TestimonialsBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
@@ -1559,8 +1559,8 @@ export default function TabConstructor() {
                   <div className="w-full h-4 bg-gray-700 rounded group-hover:bg-[var(--primary)]/30"></div>
                   <div className="w-3/4 h-4 bg-gray-700 rounded group-hover:bg-[var(--primary)]/30"></div>
                 </div>
-                <h4 className="text-sm font-bold text-white mb-1">Testimonios y Reseñas</h4>
-                <p className="text-[10px] text-gray-500">Prueba social. Tarjetas de clientes con calificación de estrellas.</p>
+                <h4 className="text-sm font-bold text-white mb-1">Testimonios y ReseÃ±as</h4>
+                <p className="text-[10px] text-gray-500">Prueba social. Tarjetas de clientes con calificaciÃ³n de estrellas.</p>
               </div>
               
               <div onClick={() => agregarBloqueNuevo('SobreNosotrosBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">
@@ -1576,8 +1576,8 @@ export default function TabConstructor() {
                   <div className="absolute inset-0 bg-[size:10px_10px]" style={{ backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)' }}></div>
                   <Code className="w-8 h-8 text-[var(--primary)] relative z-10" />
                 </div>
-                <h4 className="text-sm font-bold text-white mb-1">Código Libre (Embed)</h4>
-                <p className="text-[10px] text-gray-500">Pega HTML, Iframes, diseños de Canva o videos de YouTube directamente en tu página.</p>
+                <h4 className="text-sm font-bold text-white mb-1">CÃ³digo Libre (Embed)</h4>
+                <p className="text-[10px] text-gray-500">Pega HTML, Iframes, diseÃ±os de Canva o videos de YouTube directamente en tu pÃ¡gina.</p>
               </div>
 
               <div onClick={() => agregarBloqueNuevo('ContactoBlock')} className="p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-[var(--primary)] hover:bg-gray-900 cursor-pointer group transition-all">

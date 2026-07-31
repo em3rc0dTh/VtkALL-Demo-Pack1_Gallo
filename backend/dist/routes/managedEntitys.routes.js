@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const managedEntitys_controller_1 = require("../controllers/managedEntitys.controller");
+const router = (0, express_1.Router)();
+router.get('/', managedEntitys_controller_1.managedEntityController.list);
+router.get('/:id', managedEntitys_controller_1.managedEntityController.getById);
+router.post('/', managedEntitys_controller_1.managedEntityController.create);
+router.put('/:id', managedEntitys_controller_1.managedEntityController.replace);
+router.patch('/:id', managedEntitys_controller_1.managedEntityController.update);
+router.delete('/:id', managedEntitys_controller_1.managedEntityController.delete);
+exports.default = router;

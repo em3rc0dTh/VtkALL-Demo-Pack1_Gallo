@@ -1,0 +1,12 @@
+export { LandingScreen as LandingWireframe } from '../screens/LandingScreen';
+export { DashboardScreen as DashboardSummary } from '../screens/DashboardScreen';
+export { OrdersScreen } from '../screens/OrdersScreen';
+export { AdmissionScreen } from '../screens/AdmissionScreen';
+export { ExecutionScreen } from '../screens/ExecutionScreen';
+export { ClientsScreen } from '../screens/ClientsScreen';
+export { ServicesScreen } from '../screens/ServicesScreen';
+export { MessagesScreen } from '../screens/MessagesScreen';
+export { TeamScreen } from '../screens/TeamScreen';
+export { SettingsScreen } from '../screens/SettingsScreen';
+export { AdminWireframes } from '../screens/AdminWireframes';
+export { LoginWireframe } from '../screens/LoginWireframe';

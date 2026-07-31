@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const decisionRecords_controller_1 = require("../controllers/decisionRecords.controller");
+const router = (0, express_1.Router)();
+router.get('/', decisionRecords_controller_1.decisionRecordController.list);
+router.get('/:id', decisionRecords_controller_1.decisionRecordController.getById);
+router.post('/', decisionRecords_controller_1.decisionRecordController.create);
+router.put('/:id', decisionRecords_controller_1.decisionRecordController.replace);
+router.patch('/:id', decisionRecords_controller_1.decisionRecordController.update);
+router.delete('/:id', decisionRecords_controller_1.decisionRecordController.delete);
+exports.default = router;

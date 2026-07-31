@@ -1,0 +1,183 @@
+[
+  {
+    "scenarioId": "conv-greeting-01",
+    "messages": [{ "role": "user", "content": "Hola." }],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Hermes", "demo_test"],
+    "excludes": ["skill", "toolResults"]
+  },
+  {
+    "scenarioId": "conv-identity-02",
+    "messages": [{ "role": "user", "content": "Quien eres?" }],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Hermes", "no confirmo"]
+  },
+  {
+    "scenarioId": "conv-capabilities-03",
+    "messages": [{ "role": "user", "content": "Que puedes hacer?" }],
+    "expectedSkill": "customer-conversation",
+    "includes": ["orientarte", "no ejecuto"]
+  },
+  {
+    "scenarioId": "catalog-services-04",
+    "messages": [{ "role": "user", "content": "Hablame de sus servicios." }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["orientativo", "no voy a inventar"]
+  },
+  {
+    "scenarioId": "catalog-duration-05",
+    "messages": [{ "role": "user", "content": "Cuanto dura una consulta?" }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["no tengo una duracion confirmada"],
+    "excludes": ["30 minutos", "60 minutos"]
+  },
+  {
+    "scenarioId": "catalog-no-booking-06",
+    "messages": [{ "role": "user", "content": "No quiero reservar, solo estoy preguntando." }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["solo en informacion", "no voy a empujarte"]
+  },
+  {
+    "scenarioId": "schedule-start-07",
+    "messages": [{ "role": "user", "content": "Quiero reservar." }],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["iniciar la reserva", "todavia no he confirmado"],
+    "excludes": ["quedo confirmada", "ya reserve"]
+  },
+  {
+    "scenarioId": "schedule-name-08",
+    "messages": [
+      { "role": "user", "content": "Quiero reservar." },
+      { "role": "assistant", "content": "Puedo ayudarte a iniciar la reserva." },
+      { "role": "user", "content": "Ricardo." }
+    ],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["Ricardo", "validar disponibilidad"]
+  },
+  {
+    "scenarioId": "continuity-correction-09",
+    "messages": [
+      { "role": "user", "content": "Mi nombre es Ricardo." },
+      { "role": "assistant", "content": "Gracias, Ricardo." },
+      { "role": "user", "content": "En realidad me llamo Roberto." }
+    ],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Roberto"],
+    "excludes": ["Ricardo?"]
+  },
+  {
+    "scenarioId": "side-question-cost-10",
+    "messages": [
+      { "role": "user", "content": "Quiero reservar." },
+      { "role": "assistant", "content": "Puedo ayudarte a iniciar la reserva." },
+      { "role": "user", "content": "Antes de continuar, tiene algun costo?" }
+    ],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["no veo un precio publicado"]
+  },
+  {
+    "scenarioId": "schedule-cancel-11",
+    "messages": [
+      { "role": "user", "content": "Quiero reservar." },
+      { "role": "assistant", "content": "Puedo ayudarte a iniciar la reserva." },
+      { "role": "user", "content": "Olvida la reserva." }
+    ],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["dejamos la intencion de reserva en pausa", "No he confirmado"]
+  },
+  {
+    "scenarioId": "conv-thanks-12",
+    "messages": [{ "role": "user", "content": "Gracias." }],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Con gusto"]
+  },
+  {
+    "scenarioId": "continuity-name-side-retake-13",
+    "messages": [
+      { "role": "user", "content": "Mi nombre es Ricardo." },
+      { "role": "assistant", "content": "Gracias, Ricardo." },
+      { "role": "user", "content": "Cuanto dura una consulta?" },
+      { "role": "assistant", "content": "No tengo una duracion confirmada." },
+      { "role": "user", "content": "Quiero reservar." }
+    ],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["Ricardo", "Ya tengo tu nombre"],
+    "excludes": ["cual es tu nombre"]
+  },
+  {
+    "scenarioId": "anti-robot-no-form-14",
+    "messages": [{ "role": "user", "content": "Quiero reservar una cita manana." }],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["validar disponibilidad"],
+    "excludes": ["nombre, telefono, servicio", "ingrese"]
+  },
+  {
+    "scenarioId": "catalog-price-15",
+    "messages": [{ "role": "user", "content": "Cuanto cuesta?" }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["no veo un precio publicado"]
+  },
+  {
+    "scenarioId": "catalog-comparison-16",
+    "messages": [{ "role": "user", "content": "Que alternativa es mejor?" }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["comparar", "No tengo precios"]
+  },
+  {
+    "scenarioId": "catalog-unknown-service-17",
+    "messages": [{ "role": "user", "content": "Tienen un servicio premium de cirugia espacial?" }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["no voy a inventar"]
+  },
+  {
+    "scenarioId": "recovery-frustration-18",
+    "messages": [{ "role": "user", "content": "Estoy frustrado, esto no es correcto." }],
+    "expectedSkill": "recovery-escalation",
+    "includes": ["revision humana"]
+  },
+  {
+    "scenarioId": "handoff-human-19",
+    "messages": [{ "role": "user", "content": "Quiero hablar con una persona." }],
+    "expectedSkill": "recovery-escalation",
+    "includes": ["revision humana", "no notifico"]
+  },
+  {
+    "scenarioId": "english-basic-20",
+    "messages": [{ "role": "user", "content": "Hello, who are you?" }],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Hermes", "demo_test"]
+  },
+  {
+    "scenarioId": "schedule-not-confirmed-21",
+    "messages": [{ "role": "user", "content": "Reserva el slot de las 3pm." }],
+    "expectedSkill": "scheduling-companion",
+    "includes": ["todavia no he confirmado"],
+    "excludes": ["slot es tuyo", "reserva fue creada"]
+  },
+  {
+    "scenarioId": "catalog-availability-22",
+    "messages": [{ "role": "user", "content": "Hay disponibilidad hoy?" }],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["validarse", "definitivo"]
+  },
+  {
+    "scenarioId": "partial-answer-23",
+    "messages": [
+      { "role": "user", "content": "Quiero reservar." },
+      { "role": "assistant", "content": "Que servicio quieres?" },
+      { "role": "user", "content": "Consulta." }
+    ],
+    "expectedSkill": "catalog-advisor",
+    "includes": ["duracion confirmada"]
+  },
+  {
+    "scenarioId": "goodbye-with-name-24",
+    "messages": [
+      { "role": "user", "content": "Soy Ricardo." },
+      { "role": "assistant", "content": "Gracias, Ricardo." },
+      { "role": "user", "content": "Gracias." }
+    ],
+    "expectedSkill": "customer-conversation",
+    "includes": ["Ricardo", "no he confirmado"]
+  }
+]

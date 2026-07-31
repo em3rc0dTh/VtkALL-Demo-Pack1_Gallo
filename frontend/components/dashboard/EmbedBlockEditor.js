@@ -1,4 +1,4 @@
-import { Code, Layout, Link } from 'lucide-react';
+﻿import { Code, Layout, Link } from 'lucide-react';
 
 export default function EmbedBlockEditor({ bloque, onChange }) {
   const conf = bloque.conf || {};
@@ -11,18 +11,18 @@ export default function EmbedBlockEditor({ bloque, onChange }) {
   return (
     <div className="space-y-6">
       
-      {/* Información */}
+      {/* InformaciÃ³n */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
         <h4 className="font-bold flex items-center gap-2 mb-1">
-          <Code className="w-4 h-4" /> Código Libre / Embed
+          <Code className="w-4 h-4" /> CÃ³digo Libre / Embed
         </h4>
-        <p>Pega aquí cualquier código HTML, Iframes de YouTube, Mapas de Google o diseños embebidos de Canva.</p>
+        <p>Pega aquÃ­ cualquier cÃ³digo HTML, Iframes de YouTube, Mapas de Google o diseÃ±os embebidos de Canva.</p>
       </div>
 
-      {/* Configuración General y Navbar */}
+      {/* ConfiguraciÃ³n General y Navbar */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Nombre en el Menú (Navbar)</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Nombre en el MenÃº (Navbar)</label>
           <input 
             type="text" 
             value={nombreNavbar} 
@@ -32,7 +32,7 @@ export default function EmbedBlockEditor({ bloque, onChange }) {
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">ID de la Sección (Enlace)</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">ID de la SecciÃ³n (Enlace)</label>
           <input 
             type="text" 
             value={idSeccion} 
@@ -46,7 +46,7 @@ export default function EmbedBlockEditor({ bloque, onChange }) {
       {/* Estilos Visuales */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Color de Fondo de Sección</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Color de Fondo de SecciÃ³n</label>
           <div className="flex items-center gap-2">
             <input 
               type="color" 
@@ -63,21 +63,21 @@ export default function EmbedBlockEditor({ bloque, onChange }) {
           </div>
         </div>
         <div>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Espaciado Vertical (Márgenes)</label>
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Espaciado Vertical (MÃ¡rgenes)</label>
           <select 
             value={paddingY} 
             onChange={(e) => onChange('paddingY', e.target.value)}
             className="w-full text-sm text-gray-900 bg-white border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
           >
             <option value="py-0">Sin Espaciado</option>
-            <option value="py-8">Pequeño</option>
+            <option value="py-8">PequeÃ±o</option>
             <option value="py-16">Medio (Recomendado)</option>
             <option value="py-24">Grande</option>
           </select>
         </div>
       </div>
 
-      {/* Código HTML */}
+      {/* CÃ³digo HTML */}
       <div className="bg-gray-900 rounded-xl overflow-hidden shadow-sm">
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900">
           <span className="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">

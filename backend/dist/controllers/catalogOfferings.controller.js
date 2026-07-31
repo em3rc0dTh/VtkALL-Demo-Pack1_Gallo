@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.catalogOfferingController = void 0;
+const baseCrud_service_1 = require("../services/baseCrud.service");
+const base_repository_1 = require("../repositories/base.repository");
+const CatalogOffering_model_1 = require("../models/CatalogOffering.model");
+const crud_factory_1 = require("./crud.factory");
+const repository = new base_repository_1.BaseRepository(CatalogOffering_model_1.CatalogOffering);
+const service = new baseCrud_service_1.BaseCrudService(repository);
+exports.catalogOfferingController = (0, crud_factory_1.createCrudController)(service);

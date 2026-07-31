@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const businessProfiles_controller_1 = require("../controllers/businessProfiles.controller");
+const referenceAdminWrite_middleware_1 = require("../middleware/referenceAdminWrite.middleware");
+const router = (0, express_1.Router)();
+router.use(referenceAdminWrite_middleware_1.referenceAdminWriteMiddleware);
+router.get('/', businessProfiles_controller_1.businessProfileController.list);
+router.get('/:id', businessProfiles_controller_1.businessProfileController.getById);
+router.post('/', businessProfiles_controller_1.businessProfileController.create);
+router.put('/:id', businessProfiles_controller_1.businessProfileController.replace);
+router.patch('/:id', businessProfiles_controller_1.businessProfileController.update);
+router.delete('/:id', businessProfiles_controller_1.businessProfileController.delete);
+exports.default = router;
