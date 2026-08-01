@@ -1,11 +1,12 @@
 import { ApiError } from '../api/apiError';
 
 const validModes = new Set(['api', 'mock']);
+const defaultMode = 'api';
 
 export function getDemoTestDataModeStatus() {
   const rawMode = process.env.NEXT_PUBLIC_DEMO_TEST_DATA_MODE
     ?? process.env.NEXT_PUBLIC_DEMO_TEST_DATA_SOURCE
-    ?? '';
+    ?? defaultMode;
   const mode = rawMode.trim();
   const isStrictBuild = process.env.CI === 'true' || process.env.NEXT_PUBLIC_DEMO_TEST_STABLE_MODE === 'true';
 
