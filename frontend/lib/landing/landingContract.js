@@ -24,13 +24,15 @@ export const cloneLandingContent = (content) => JSON.parse(JSON.stringify(conten
 
 export const defaultLandingContent = {
   theme: {
-    primary: '#1d4ed8',
-    accent: '#f59e0b',
-    surface: '#f8fafc',
-    text: '#0f172a',
+    primary: '#00AEEF',
+    accent: '#111827',
+    surface: '#f4f5ff',
+    text: '#3f3436',
   },
   navigation: [
+    { label: 'Inicio', href: '#inicio' },
     { label: 'Servicios', href: '#servicios' },
+    { label: 'Nosotros', href: '#nosotros' },
     { label: 'Contacto', href: '#contacto' },
   ],
   blocks: [
@@ -40,12 +42,21 @@ export const defaultLandingContent = {
       enabled: true,
       order: 10,
       data: {
-        eyebrow: 'Turagua Auto Services',
-        title: 'Diagnostico y cuidado automotriz con agenda asistida',
-        subtitle: 'Servicios mecanicos, estetica y proteccion conectados a la plataforma operativa Pack0.',
-        primaryCta: 'Agendar con Iris',
-        secondaryCta: 'Explorar servicios',
-        imageUrl: '/window.svg',
+        variant: 'turagua_legacy',
+        eyebrow: 'Turagua Racing Peru',
+        title: 'Tu vehiculo protegido, restaurado y listo para exigir',
+        titleHighlight: 'mas.',
+        backdropText: 'Turagua Racing Peru',
+        subtitle: 'Especialistas en proteccion inferior, restauracion de chasis, undercoating, arenado y soluciones automotrices pensadas para resistir oxido, desgaste, humedad y uso extremo.',
+        supportingText: 'Trabajamos con procesos tecnicos, materiales de calidad y atencion personalizada para proteger, restaurar y mejorar la apariencia de tu vehiculo.',
+        primaryCta: 'Agendar cita',
+        secondaryCta: 'Ver servicios',
+        heroMediaUrl: '/images/galeria_taller.png',
+        logoUrl: '/images/turagua.jpg',
+        promotions: [
+          { eyebrow: 'Servicio destacado', title: 'Arenado + Undercoating', cta: 'Obtener' },
+          { eyebrow: 'Promo de lanzamiento', title: 'Especial Web: 20% OFF en Planchado y Pintura', cta: 'Obtener' },
+        ],
       },
     },
     {
@@ -54,8 +65,8 @@ export const defaultLandingContent = {
       enabled: true,
       order: 20,
       data: {
-        title: 'Catalogo Turagua',
-        subtitle: 'Servicios publicados desde CatalogOffering.',
+        title: 'Nuestros Servicios',
+        subtitle: 'Selecciona el servicio que necesita tu vehiculo: undercoating, arenado, pintura, mantenimiento, estetica o preparacion off-road.',
       },
     },
     {

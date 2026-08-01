@@ -72,15 +72,15 @@ export const demoTestLandingSeed: LandingContent = {
 
 export const turaguaLandingSeed: LandingContent = {
   theme: {
-    primary: '#1d4ed8',
-    accent: '#f59e0b',
-    surface: '#f8fafc',
-    text: '#0f172a',
+    primary: '#00AEEF',
+    accent: '#111827',
+    surface: '#f4f5ff',
+    text: '#3f3436',
   },
   navigation: [
+    { label: 'Inicio', href: '#inicio' },
     { label: 'Servicios', href: '#servicios' },
-    { label: 'Taller', href: '#taller' },
-    { label: 'Galeria', href: '#galeria' },
+    { label: 'Nosotros', href: '#nosotros' },
     { label: 'Contacto', href: '#contacto' },
   ],
   blocks: [
@@ -90,12 +90,31 @@ export const turaguaLandingSeed: LandingContent = {
       enabled: true,
       order: 10,
       data: {
-        eyebrow: 'Turagua Auto Services',
-        title: 'Diagnostico y cuidado automotriz con agenda asistida',
-        subtitle: 'Servicios mecanicos, estetica y proteccion para autos modernos, conectados a la plataforma operativa Pack0.',
-        primaryCta: 'Agendar con Iris',
-        secondaryCta: 'Explorar servicios',
-        imageUrl: '/window.svg',
+        variant: 'turagua_legacy',
+        eyebrow: 'Turagua Racing Peru',
+        title: 'Tu vehiculo protegido, restaurado y listo para exigir',
+        titleHighlight: 'mas.',
+        backdropText: 'Turagua Racing Peru',
+        subtitle: 'Especialistas en proteccion inferior, restauracion de chasis, undercoating, arenado y soluciones automotrices pensadas para resistir oxido, desgaste, humedad y uso extremo.',
+        supportingText: 'Trabajamos con procesos tecnicos, materiales de calidad y atencion personalizada para proteger, restaurar y mejorar la apariencia de tu vehiculo.',
+        primaryCta: 'Agendar cita',
+        secondaryCta: 'Ver servicios',
+        heroMediaUrl: '/images/galeria_taller.png',
+        logoUrl: '/images/turagua.jpg',
+        promotions: [
+          {
+            eyebrow: 'Servicio destacado',
+            title: 'Arenado + Undercoating',
+            cta: 'Obtener',
+            message: 'Hola Iris, quiero informacion sobre Arenado + Undercoating.',
+          },
+          {
+            eyebrow: 'Promo de lanzamiento',
+            title: 'Especial Web: 20% OFF en Planchado y Pintura',
+            cta: 'Obtener',
+            message: 'Hola Iris, quiero la promo de lanzamiento de Planchado y Pintura.',
+          },
+        ],
       },
     },
     {
@@ -105,9 +124,9 @@ export const turaguaLandingSeed: LandingContent = {
       order: 20,
       data: {
         items: [
-          { label: 'Servicios activos', value: '8' },
-          { label: 'Equipos', value: '4' },
-          { label: 'Agenda', value: 'Hermes' },
+          { label: 'Trayectoria ininterrumpida', value: '10+ Anos' },
+          { label: 'Rating promedio', value: '4.9' },
+          { label: 'Agenda asistida', value: 'Iris' },
         ],
       },
     },
@@ -117,8 +136,8 @@ export const turaguaLandingSeed: LandingContent = {
       enabled: true,
       order: 30,
       data: {
-        title: 'Catalogo Turagua',
-        subtitle: 'Diagnostico, mantenimiento, frenos, motor, detailing y proteccion.',
+        title: 'Nuestros Servicios',
+        subtitle: 'Selecciona el servicio que necesita tu vehiculo: undercoating, arenado, pintura, mantenimiento, estetica o preparacion off-road.',
         featuredOfferingIds: catalogIds,
       },
     },
@@ -128,8 +147,15 @@ export const turaguaLandingSeed: LandingContent = {
       enabled: true,
       order: 40,
       data: {
-        title: 'Operaciones claras desde el primer contacto',
-        body: 'La landing publica mantiene el estilo comercial de Pack1, pero su informacion sale de BusinessProfile, CatalogOffering y el flujo de agente de Pack0.',
+        eyebrow: 'Sobre Nosotros',
+        title: 'Turagua Racing Peru Calidad, detalle y proteccion automotriz.',
+        body: 'En Turagua Racing Peru nos especializamos en el cuidado, proteccion y renovacion de vehiculos. Nuestro trabajo combina experiencia, procesos tecnicos y atencion personalizada para entregar resultados visibles, duraderos y confiables.',
+        imageUrl: '/images/sobre_nosotros.png',
+        features: [
+          { icon: 'sparkles', title: 'Mecanicos Certificados', body: 'Equipo con experiencia en estetica automotriz, proteccion inferior, restauracion visual y preparacion de vehiculos.' },
+          { icon: 'trophy', title: 'Calidad de Repuestos', body: 'Todos nuestros mantenimientos se realizan con repuestos de la mejor calidad.' },
+          { icon: 'wrench', title: 'Mecanica Especializada', body: 'Brindamos atencion personalizada y garantizada para cada vehiculo.' },
+        ],
       },
     },
     {
@@ -138,8 +164,13 @@ export const turaguaLandingSeed: LandingContent = {
       enabled: true,
       order: 50,
       data: {
-        title: 'Areas de servicio',
-        items: ['Diagnostico electronico', 'Mantenimiento preventivo', 'Lavado premium', 'Carroceria y proteccion'],
+        title: 'Explorar Servicios',
+        items: [
+          { title: 'Arenado', imageUrl: '/images/galeria_taller.png' },
+          { title: 'Undercoating', imageUrl: '/images/galeria_detailing.png' },
+          { title: 'Planchado y pintura', imageUrl: '/images/galeria_pintura.png' },
+          { title: 'Estetica automotriz', imageUrl: '/images/galeria_planchado.png' },
+        ],
       },
     },
     {
@@ -161,7 +192,7 @@ export const turaguaLandingSeed: LandingContent = {
       order: 70,
       data: {
         title: 'Iris puede ayudarte a reservar',
-        body: 'El chat usa DemoTestAgentChat sobre el runtime Hermes/Temporal de Pack0.',
+        body: 'Quieres agendar una cita? Prueba a Iris aqui.',
         cta: 'Abrir chat',
       },
     },
@@ -183,8 +214,8 @@ export const turaguaLandingSeed: LandingContent = {
       enabled: true,
       order: 90,
       data: {
-        company: 'Turagua Auto Services',
-        note: 'Landing reconstruida sobre contratos Pack0.',
+        company: 'Turagua Racing Peru',
+        note: 'Proteccion, restauracion y estetica automotriz.',
       },
     },
   ],
