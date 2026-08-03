@@ -21,7 +21,9 @@ export function LandingPageRenderer({ payload }) {
   const agentName = payload?.businessProfile?.agent?.name || 'Iris';
   const blocks = useMemo(() => sortLandingBlocks(content?.blocks), [content]);
   const theme = content?.theme || {};
-  const heroLogoUrl = blocks.find((block) => block.type === 'hero')?.data?.logoUrl;
+  const heroBlock = blocks.find((block) => block.type === 'hero');
+  const isTuraguaLegacy = heroBlock?.data?.variant === 'turagua_legacy';
+  const heroLogoUrl = heroBlock?.data?.logoUrl;
   const logoUrl = heroLogoUrl || payload?.businessProfile?.brand?.logoUrl;
 
   if (!content) {
@@ -49,7 +51,9 @@ export function LandingPageRenderer({ payload }) {
               </span>
             )}
             <span className="truncate text-base font-black tracking-tight">
-              Turagua <span className="text-[var(--landing-primary)]">Racing Peru</span>
+              {isTuraguaLegacy ? (
+                <>Turagua <span className="text-[var(--landing-primary)]">Racing Peru</span></>
+              ) : businessName}
             </span>
           </a>
           <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-600 md:flex">
