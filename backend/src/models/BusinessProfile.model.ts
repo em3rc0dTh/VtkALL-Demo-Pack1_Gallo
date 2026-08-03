@@ -7,6 +7,8 @@ export interface IBusinessProfile {
   verticalType?: string;
   brand?: any;
   agent?: any;
+  settings?: any;
+  settingsVersion?: number;
   labels?: any;
   features?: any;
   statusProfileId?: string;
@@ -25,6 +27,8 @@ const BusinessProfileSchema: Schema = new Schema(
     verticalType: { type: String },
     brand: { type: Schema.Types.Mixed },
     agent: { type: Schema.Types.Mixed },
+    settings: { type: Schema.Types.Mixed },
+    settingsVersion: { type: Number, default: 0 },
     labels: { type: Schema.Types.Mixed },
     features: { type: Schema.Types.Mixed },
     statusProfileId: { type: String },

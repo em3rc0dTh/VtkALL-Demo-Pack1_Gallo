@@ -144,14 +144,58 @@ const TURAGUA_BUSINESS_PROFILE = {
   verticalType: 'vehicle_service',
   brand: {
     displayName: 'Turagua Racing Peru',
+    logoUrl: '/images/turagua.jpg',
+    tagline: 'Proteccion & estetica automotriz',
     country: 'PE',
     timezone: 'America/Lima',
   },
+  settings: {
+    branding: {
+      displayName: 'Turagua Racing Peru',
+      logoUrl: '/images/turagua.jpg',
+      tagline: 'Proteccion & estetica automotriz',
+      timezone: 'America/Lima',
+      language: 'es-PE',
+    },
+    contact: {
+      primaryPhone: '+51 999 555 010',
+      alternatePhones: [],
+      email: '',
+      whatsapp: '+51 999 555 010',
+    },
+    locations: [
+      {
+        id: 'turagua-main',
+        name: 'Turagua Racing Peru',
+        addressLine: 'Lima, Peru',
+        reference: 'Visita previa coordinacion.',
+        district: '',
+        city: 'Lima',
+        country: 'Peru',
+        latitude: null,
+        longitude: null,
+        directionsUrl: '',
+      },
+    ],
+    commercialHours: {
+      weekdays: '',
+      saturday: '9:00 a 18:00',
+      sunday: '',
+      summary: 'Lunes a sabado, 9:00 a 18:00',
+    },
+    socials: [],
+  },
+  settingsVersion: 0,
   agent: {
     name: 'Iris',
     enabled: true,
     role: 'Asesora virtual de atencion automotriz',
     primaryChannel: 'web_chat',
+    avatarUrl: 'https://i.ibb.co/84r9sJc/imagen-2026-06-08-153923818.png',
+    bannerUrl: '/images/turagua.jpg',
+    welcomeMessage: '¡Hola! 👋 Soy Iris, del equipo de Turagua Racing Perú. ¿En qué te puedo ayudar hoy?',
+    nameColor: '#0f172a',
+    avatarAlignment: 'left',
   },
   labels: {
     customer: 'Cliente',
@@ -523,7 +567,7 @@ const seedNamespace = async (namespace: Exclude<SeedNamespace, 'all'>, reset: bo
       } else {
         let count = 0;
         for (const item of data) {
-          await model.updateOne({ _id: item._id }, { $set: item }, { upsert: true });
+          await model.updateOne({ _id: item._id }, { $setOnInsert: item }, { upsert: true });
           count++;
         }
         results[collectionName] = count;

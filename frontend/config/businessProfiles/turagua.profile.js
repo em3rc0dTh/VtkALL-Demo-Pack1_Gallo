@@ -6,6 +6,45 @@ export const turaguaBusinessProfile = {
   branding: {
     name: "Turagua Racing Peru",
     displayName: "Turagua Racing Peru",
+    logoUrl: "/images/turagua.jpg",
+    tagline: "Proteccion & estetica automotriz",
+  },
+
+  settings: {
+    branding: {
+      displayName: "Turagua Racing Peru",
+      logoUrl: "/images/turagua.jpg",
+      tagline: "Proteccion & estetica automotriz",
+      timezone: "America/Lima",
+      language: "es-PE",
+    },
+    contact: {
+      primaryPhone: "+51 999 555 010",
+      alternatePhones: [],
+      email: "",
+      whatsapp: "+51 999 555 010",
+    },
+    locations: [
+      {
+        id: "turagua-main",
+        name: "Turagua Racing Peru",
+        addressLine: "Lima, Peru",
+        reference: "Visita previa coordinacion.",
+        district: "",
+        city: "Lima",
+        country: "Peru",
+        latitude: null,
+        longitude: null,
+        directionsUrl: "",
+      },
+    ],
+    commercialHours: {
+      weekdays: "",
+      saturday: "9:00 a 18:00",
+      sunday: "",
+      summary: "Lunes a sabado, 9:00 a 18:00",
+    },
+    socials: [],
   },
 
   agent: {

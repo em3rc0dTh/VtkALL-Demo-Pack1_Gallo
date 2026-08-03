@@ -162,8 +162,13 @@ services:
       HERMES_CONTEXT_MAX_INTERPRETATION_CHARS: ${HERMES_CONTEXT_MAX_INTERPRETATION_CHARS:-12000}
       HERMES_CONTEXT_MAX_COMPOSITION_CHARS: ${HERMES_CONTEXT_MAX_COMPOSITION_CHARS:-9000}
       HERMES_BUILD_ID: ${HERMES_BUILD_ID:-unset}
+      BUSINESS_UPLOADS_DIR: /app/uploads
+      SEED_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+      AUTO_SEED_ON_START: ${AUTO_SEED_ON_START:-true}
     ports:
       - "${API_PORT:-4000}:${API_PORT:-4000}"
+    volumes:
+      - business_uploads:/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -202,27 +207,42 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
-        NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-http://localhost:4000}
-        NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${DEMO_TEST_BUSINESS_SLUG:-demo_test}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+        NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+        NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
         NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
         NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
+        APP_BUILD_SHA: ${APP_BUILD_SHA:-local}
     container_name: demo_test_frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: ${FRONTEND_PORT:-3000}
       NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
-      NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-http://localhost:4000}
-      NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${DEMO_TEST_BUSINESS_SLUG:-demo_test}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+      NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+      NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+      NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
       NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
       NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
+      NEXT_PUBLIC_APP_BUILD_SHA: ${APP_BUILD_SHA:-local}
     ports:
       - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    volumes:
+      - landing_uploads:/app/public/uploads
     depends_on:
       api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:' + (process.env.PORT || 3000) + '/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 18
 
 volumes:
   mongo_data:
   temporal_postgresql_data:
   ollama_data:
+  business_uploads:
+  landing_uploads:

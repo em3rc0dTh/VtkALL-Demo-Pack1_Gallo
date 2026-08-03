@@ -1,0 +1,13 @@
+{
+  "catalogFrame": "TuraguaCatalogFrame",
+  "floatingPromoText": [
+    "Servicio destacadoArenado + UndercoatingObtener",
+    "Explorar servicios",
+    "Agendar cita",
+    "Promo de lanzamientoEspecial Web: 20% OFF en Planchado y PinturaObtener",
+    "Hola! Soy IrisComunicate conmigo para obtener mas informacion o agendar tu cita.Abrir chat →"
+  ],
+  "hasExploreCta": true,
+  "heroImage": "/images/galeria_detailing.png",
+  "renderer": "turagua-frames-v2"
+}

@@ -8,6 +8,100 @@ import { LandingContent } from './landing.contracts';
 const versionId = (landingPageId: string, version: number) => `${landingPageId}_v${version}`;
 
 const serializePage = (page: any) => page?.toObject ? page.toObject() : page;
+const clone = (value: any) => JSON.parse(JSON.stringify(value || {}));
+
+const nonEmpty = (...values: any[]) => values.find((value) => typeof value === 'string' && value.trim()) || '';
+const hasOwn = (value: any, key: string) => Boolean(value && Object.prototype.hasOwnProperty.call(value, key));
+
+export const toPublicBusinessProfile = (profile: any) => {
+  const serialized = serializePage(profile);
+  if (!serialized) return null;
+  const settings = serialized.settings || {};
+  const settingsBrand = settings.branding || {};
+  const brand = {
+    ...(serialized.brand || {}),
+    displayName: nonEmpty(settingsBrand.displayName, serialized.brand?.displayName, serialized.businessName, serialized.businessSlug),
+    logoUrl: hasOwn(settingsBrand, 'logoUrl') ? nonEmpty(settingsBrand.logoUrl) : nonEmpty(serialized.brand?.logoUrl),
+    tagline: hasOwn(settingsBrand, 'tagline') ? nonEmpty(settingsBrand.tagline) : nonEmpty(serialized.brand?.tagline),
+  };
+  const contact = {
+    ...(serialized.contact || {}),
+    ...(settings.contact || {}),
+  };
+  const locations = Array.isArray(settings.locations)
+    ? settings.locations
+    : Array.isArray(serialized.locations)
+      ? serialized.locations
+      : [];
+  const commercialHours = {
+    ...(serialized.commercialHours || {}),
+    ...(settings.commercialHours || {}),
+  };
+
+  return {
+    ...serialized,
+    brand,
+    branding: {
+      ...(serialized.branding || {}),
+      displayName: brand.displayName,
+      name: brand.displayName,
+      logoUrl: brand.logoUrl,
+      tagline: brand.tagline,
+    },
+    contact,
+    locations,
+    commercialHours,
+    settings: {
+      ...settings,
+      branding: {
+        ...(settings.branding || {}),
+        displayName: brand.displayName,
+        logoUrl: brand.logoUrl,
+        tagline: brand.tagline,
+      },
+      contact,
+      locations,
+      commercialHours,
+    },
+  };
+};
+
+const stripBusinessOwnedLandingData = (content: any) => {
+  if (!content?.blocks) return content;
+  const next = clone(content);
+  next.blocks = next.blocks.map((block: any) => {
+    const data = { ...(block.data || {}) };
+    if (block.type === 'hero' && data.brandMode !== 'custom') {
+      delete data.logoUrl;
+      delete data.brandName;
+      delete data.brandTagline;
+    }
+    if (block.type === 'contact') {
+      for (const key of ['shopName', 'brandName', 'tagline', 'logoUrl', 'phone', 'email', 'address', 'latitude', 'longitude', 'hours']) {
+        delete data[key];
+      }
+      if (data.locationId) {
+        data.display = { ...(data.display || {}), locationId: data.display?.locationId || data.locationId };
+        delete data.locationId;
+      }
+    }
+    if (block.type === 'footer') {
+      delete data.company;
+    }
+    return { ...block, data };
+  });
+  return next;
+};
+
+const toPublicLandingPageView = (page: any) => {
+  const serialized = serializePage(page);
+  if (!serialized) return null;
+  return {
+    ...serialized,
+    draft: stripBusinessOwnedLandingData(serialized.draft),
+    published: stripBusinessOwnedLandingData(serialized.published),
+  };
+};
 
 export const seedLandingPages = async (seeds: any[], reset: boolean) => {
   if (reset) {
@@ -63,20 +157,25 @@ export const getPublicLandingPage = async (businessSlug: string, pageSlug: strin
     return null;
   }
 
+  const landingPage = toPublicLandingPageView(page);
   return {
-    landingPage: serializePage(page),
-    content: page.published,
-    businessProfile: serializePage(businessProfile),
+    landingPage,
+    content: landingPage?.published,
+    businessProfile: toPublicBusinessProfile(businessProfile),
     catalogOfferings: catalogOfferings.map(serializePage),
   };
 };
 
 export const getAdminLandingPage = async (businessSlug: string, pageSlug: string) => {
-  const page = await LandingPage.findOne({ businessSlug, pageSlug });
+  const [page, businessProfile] = await Promise.all([
+    LandingPage.findOne({ businessSlug, pageSlug }),
+    BusinessProfile.findOne({ businessSlug, active: true }),
+  ]);
   if (!page) return null;
   const versions = await LandingPageVersion.find({ landingPageId: page._id }).sort({ version: -1 }).limit(20);
   return {
-    landingPage: serializePage(page),
+    landingPage: toPublicLandingPageView(page),
+    businessProfile: serializePage(businessProfile),
     versions: versions.map(serializePage),
   };
 };
@@ -95,7 +194,7 @@ export const updateDraftLandingPage = async ({
   if (!page) return null;
 
   if (parsed.title) page.title = parsed.title;
-  if (parsed.draft) page.draft = assertLandingContent(parsed.draft);
+  if (parsed.draft) page.draft = assertLandingContent(stripBusinessOwnedLandingData(parsed.draft));
   await page.save();
   return serializePage(page);
 };
@@ -112,7 +211,7 @@ export const publishLandingPage = async ({
   const page = await LandingPage.findOne({ businessSlug, pageSlug });
   if (!page) return null;
 
-  const content = assertLandingContent(page.draft) as LandingContent;
+  const content = assertLandingContent(stripBusinessOwnedLandingData(page.draft)) as LandingContent;
   const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
   const nextVersion = Number(latest?.version || 0) + 1;
   await LandingPageVersion.create({
@@ -151,7 +250,7 @@ export const restoreLandingPageVersion = async ({
   const snapshot = await LandingPageVersion.findOne({ landingPageId: page._id, version });
   if (!snapshot) return null;
 
-  page.draft = assertLandingContent(snapshot.content);
+  page.draft = assertLandingContent(stripBusinessOwnedLandingData(snapshot.content));
   await page.save();
   const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
   const nextVersion = Number(latest?.version || 0) + 1;

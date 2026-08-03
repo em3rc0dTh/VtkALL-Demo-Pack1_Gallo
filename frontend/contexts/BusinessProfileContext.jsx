@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import { usePathname } from 'next/navigation';
 import { useBusinessProfileQuery } from '@/hooks/server-state/useBusinessProfileQuery';
 import { getDemoTestDataModeStatus } from '@/lib/config/demoTestDataMode';
 import { DEFAULT_PUBLIC_BUSINESS_SLUG } from '@/lib/config/businessSlug';
@@ -33,7 +34,11 @@ function BusinessProfileLoading() {
 
 export function BusinessProfileProvider({ profile: fallbackProfile, children }) {
   const modeStatus = getDemoTestDataModeStatus();
-  const businessSlug = DEFAULT_PUBLIC_BUSINESS_SLUG || fallbackProfile?.businessSlug;
+  const pathname = usePathname();
+  const routeBusinessSlug = pathname?.startsWith('/admin') || pathname === '/' || pathname?.startsWith('/agendar')
+    ? (process.env.NEXT_PUBLIC_ADMIN_BUSINESS_SLUG || 'turagua')
+    : '';
+  const businessSlug = routeBusinessSlug || DEFAULT_PUBLIC_BUSINESS_SLUG || fallbackProfile?.businessSlug;
   const profileQuery = useBusinessProfileQuery({ businessSlug });
 
   if (!modeStatus.valid) {
@@ -51,7 +56,7 @@ export function BusinessProfileProvider({ profile: fallbackProfile, children }) 
   const profile = profileQuery.data?.businessProfile;
 
   return (
-    <BusinessProfileContext.Provider value={{ profile, executionContext: profileQuery.data?.executionContext || null }}>
+    <BusinessProfileContext.Provider value={{ profile, executionContext: profileQuery.data?.executionContext || null, refetchProfile: profileQuery.refetch }}>
       {children}
     </BusinessProfileContext.Provider>
   );

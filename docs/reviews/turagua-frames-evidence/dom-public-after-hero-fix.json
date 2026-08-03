@@ -1,0 +1,73 @@
+{
+  "catalogFrame": "TuraguaCatalogFrame",
+  "rendererVersion": "turagua-frames-v2",
+  "sections": [
+    {
+      "frame": null,
+      "height": 656,
+      "id": "inicio",
+      "renderer": null,
+      "tag": "section",
+      "top": 65,
+      "viewportRatio": 0.91
+    },
+    {
+      "frame": "TuraguaCatalogFrame",
+      "height": 656,
+      "id": "servicios",
+      "renderer": "turagua-frames-v2",
+      "tag": "section",
+      "top": 721,
+      "viewportRatio": 0.91
+    },
+    {
+      "frame": null,
+      "height": 710,
+      "id": "nosotros",
+      "renderer": null,
+      "tag": "section",
+      "top": 1377,
+      "viewportRatio": 0.99
+    },
+    {
+      "frame": null,
+      "height": 389,
+      "id": "galeria",
+      "renderer": null,
+      "tag": "section",
+      "top": 2087,
+      "viewportRatio": 0.54
+    },
+    {
+      "frame": null,
+      "height": 172,
+      "id": null,
+      "renderer": null,
+      "tag": "section",
+      "top": 2476,
+      "viewportRatio": 0.24
+    },
+    {
+      "frame": null,
+      "height": 656,
+      "id": "contacto",
+      "renderer": null,
+      "tag": "section",
+      "top": 2648,
+      "viewportRatio": 0.91
+    },
+    {
+      "frame": null,
+      "height": 89,
+      "id": null,
+      "renderer": null,
+      "tag": "footer",
+      "top": 3304,
+      "viewportRatio": 0.12
+    }
+  ],
+  "viewport": {
+    "height": 720,
+    "width": 1280
+  }
+}

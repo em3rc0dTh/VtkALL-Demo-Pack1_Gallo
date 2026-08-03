@@ -35,6 +35,32 @@ assert.ok(landingSeeds.some((seed) => seed.businessSlug === 'turagua'));
 assert.ok(demoTestLandingSeed.blocks.some((block) => block.type === 'agent_call_to_action'));
 assert.ok(turaguaLandingSeed.blocks.some((block) => block.type === 'catalog'));
 assert.ok(turaguaLandingSeed.blocks.every((block) => LANDING_BLOCK_TYPES.includes(block.type)));
+assert.ok(turaguaLandingSeed.blocks.every((block) => ['viewport', 'compact'].includes(block.frameHeight || 'compact')));
+assert.ok(!turaguaLandingSeed.blocks.some((block) => block.id === 'turagua-stats'));
+assert.ok(turaguaLandingSeed.blocks.find((block) => block.id === 'turagua-hero')?.data.stats?.length);
+assert.equal(turaguaLandingSeed.blocks.find((block) => block.id === 'turagua-catalog')?.layout?.variant, 'turagua_catalog_frame');
+
+const turaguaHeroBlock = turaguaLandingSeed.blocks.find((block) => block.id === 'turagua-hero');
+assert.equal(turaguaHeroBlock?.data.logoUrl, undefined, 'Landing hero block must not own the business logo');
+assert.equal(turaguaHeroBlock?.data.brandName, undefined, 'Landing hero block must not own the business brand name unless explicitly custom');
+
+const turaguaContactBlock = turaguaLandingSeed.blocks.find((block) => block.id === 'turagua-contact');
+assert.equal(turaguaContactBlock?.data.phone, undefined, 'Landing contact block must not own the business phone');
+assert.equal(turaguaContactBlock?.data.address, undefined, 'Landing contact block must not own the business address');
+assert.equal(turaguaContactBlock?.data.hours, undefined, 'Landing contact block must not own business hours');
+assert.equal(turaguaContactBlock?.data.logoUrl, undefined, 'Landing contact block must not own the business logo');
+assert.equal(turaguaContactBlock?.data.shopName, undefined, 'Landing contact block must not own the business name');
+assert.equal(turaguaContactBlock?.data.locationId, undefined, 'Landing contact block location selection must live in display');
+assert.equal(turaguaContactBlock?.data.display?.locationId, 'turagua-main');
+const resolveLandingPhone = (businessProfile: any, contactBlock: any) => businessProfile.settings?.contact?.primaryPhone || contactBlock.data.phone || '';
+assert.equal(
+  resolveLandingPhone({ settings: { contact: { primaryPhone: '+51 111 222 333' } } }, turaguaContactBlock),
+  '+51 111 222 333',
+  'Changing BusinessProfile.settings.contact.primaryPhone must update landing contact without editing the block'
+);
+
+const turaguaFooterBlock = turaguaLandingSeed.blocks.find((block) => block.id === 'turagua-footer');
+assert.equal(turaguaFooterBlock?.data.company, undefined, 'Landing footer block must not own the business name');
 
 const turaguaCatalogBlock = turaguaLandingSeed.blocks.find((block) => block.type === 'catalog');
 assert.deepEqual(turaguaCatalogBlock?.data.featuredOfferingIds, [

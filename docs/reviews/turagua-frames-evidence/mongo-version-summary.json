@@ -1,0 +1,323 @@
+{
+  "pageId": "landing_turagua_home",
+  "draftUpdatedAt": "2026-08-03T15:05:32.946Z",
+  "publishedVersion": 6,
+  "versions": [
+    {
+      "id": "landing_turagua_home_v6",
+      "version": 6,
+      "action": "publish",
+      "createdBy": "admin",
+      "createdAt": "2026-08-03T15:05:32.937Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          "viewport"
+        ],
+        [
+          "turagua-catalog",
+          "viewport"
+        ],
+        [
+          "turagua-about",
+          "viewport"
+        ],
+        [
+          "turagua-gallery",
+          "compact"
+        ],
+        [
+          "turagua-agent",
+          "compact"
+        ],
+        [
+          "turagua-contact",
+          "viewport"
+        ],
+        [
+          "turagua-footer",
+          "compact"
+        ]
+      ]
+    },
+    {
+      "id": "landing_turagua_home_v5",
+      "version": 5,
+      "action": "publish",
+      "createdBy": "codex-frame-contract-fix",
+      "createdAt": "2026-08-03T14:50:32.455Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          "viewport"
+        ],
+        [
+          "turagua-catalog",
+          "viewport"
+        ],
+        [
+          "turagua-about",
+          "viewport"
+        ],
+        [
+          "turagua-gallery",
+          "compact"
+        ],
+        [
+          "turagua-agent",
+          "compact"
+        ],
+        [
+          "turagua-contact",
+          "viewport"
+        ],
+        [
+          "turagua-footer",
+          "compact"
+        ]
+      ]
+    },
+    {
+      "id": "landing_turagua_home_v4",
+      "version": 4,
+      "action": "publish",
+      "createdBy": "integration-test",
+      "createdAt": "2026-08-03T04:52:03.834Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-stats",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-testimonials",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          null
+        ],
+        [
+          "turagua-stats",
+          null
+        ],
+        [
+          "turagua-catalog",
+          null
+        ],
+        [
+          "turagua-about",
+          null
+        ],
+        [
+          "turagua-gallery",
+          null
+        ],
+        [
+          "turagua-testimonials",
+          null
+        ],
+        [
+          "turagua-agent",
+          null
+        ],
+        [
+          "turagua-contact",
+          null
+        ],
+        [
+          "turagua-footer",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "landing_turagua_home_v3",
+      "version": 3,
+      "action": "restore",
+      "createdBy": "integration-test",
+      "createdAt": "2026-08-03T04:52:03.819Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-stats",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-testimonials",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          null
+        ],
+        [
+          "turagua-stats",
+          null
+        ],
+        [
+          "turagua-catalog",
+          null
+        ],
+        [
+          "turagua-about",
+          null
+        ],
+        [
+          "turagua-gallery",
+          null
+        ],
+        [
+          "turagua-testimonials",
+          null
+        ],
+        [
+          "turagua-agent",
+          null
+        ],
+        [
+          "turagua-contact",
+          null
+        ],
+        [
+          "turagua-footer",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "landing_turagua_home_v2",
+      "version": 2,
+      "action": "publish",
+      "createdBy": "integration-test",
+      "createdAt": "2026-08-03T04:52:03.767Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-stats",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-testimonials",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          null
+        ],
+        [
+          "turagua-stats",
+          null
+        ],
+        [
+          "turagua-catalog",
+          null
+        ],
+        [
+          "turagua-about",
+          null
+        ],
+        [
+          "turagua-gallery",
+          null
+        ],
+        [
+          "turagua-testimonials",
+          null
+        ],
+        [
+          "turagua-agent",
+          null
+        ],
+        [
+          "turagua-contact",
+          null
+        ],
+        [
+          "turagua-footer",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "landing_turagua_home_v1",
+      "version": 1,
+      "action": "seed",
+      "createdBy": "seed",
+      "createdAt": "2026-08-03T04:52:03.701Z",
+      "blockIds": [
+        "turagua-hero",
+        "turagua-stats",
+        "turagua-catalog",
+        "turagua-about",
+        "turagua-gallery",
+        "turagua-testimonials",
+        "turagua-agent",
+        "turagua-contact",
+        "turagua-footer"
+      ],
+      "frameHeights": [
+        [
+          "turagua-hero",
+          null
+        ],
+        [
+          "turagua-stats",
+          null
+        ],
+        [
+          "turagua-catalog",
+          null
+        ],
+        [
+          "turagua-about",
+          null
+        ],
+        [
+          "turagua-gallery",
+          null
+        ],
+        [
+          "turagua-testimonials",
+          null
+        ],
+        [
+          "turagua-agent",
+          null
+        ],
+        [
+          "turagua-contact",
+          null
+        ],
+        [
+          "turagua-footer",
+          null
+        ]
+      ]
+    }
+  ]
+}

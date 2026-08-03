@@ -22,6 +22,8 @@ export const sortLandingBlocks = (blocks = []) =>
 
 export const cloneLandingContent = (content) => JSON.parse(JSON.stringify(content));
 
+export const LANDING_FRAME_HEIGHTS = ['viewport', 'compact', 'content'];
+
 export const defaultLandingContent = {
   theme: {
     primary: '#00AEEF',
@@ -35,15 +37,27 @@ export const defaultLandingContent = {
     { label: 'Nosotros', href: '#nosotros' },
     { label: 'Contacto', href: '#contacto' },
   ],
+  motion: 'signature',
+  agent: {
+    name: 'Iris',
+    avatarUrl: 'https://i.ibb.co/84r9sJc/imagen-2026-06-08-153923818.png',
+    bannerUrl: '/images/turagua.jpg',
+    welcomeMessage: '¡Hola! 👋 Soy Iris, del equipo de Turagua Racing Perú. ¿En qué te puedo ayudar hoy?',
+    nameColor: '#0f172a',
+    avatarAlignment: 'left',
+  },
   blocks: [
     {
       id: 'hero',
       type: 'hero',
       enabled: true,
       order: 10,
+      frameHeight: 'viewport',
+      layout: { variant: 'turagua_legacy', media: 'background', align: 'right' },
       data: {
         variant: 'turagua_legacy',
         eyebrow: 'Turagua Racing Peru',
+        brandMode: 'business',
         title: 'Tu vehiculo protegido, restaurado y listo para exigir',
         titleHighlight: 'mas.',
         backdropText: 'Turagua Racing Peru',
@@ -52,10 +66,14 @@ export const defaultLandingContent = {
         primaryCta: 'Agendar cita',
         secondaryCta: 'Ver servicios',
         heroMediaUrl: '/images/galeria_taller.png',
-        logoUrl: '/images/turagua.jpg',
         promotions: [
-          { eyebrow: 'Servicio destacado', title: 'Arenado + Undercoating', cta: 'Obtener' },
-          { eyebrow: 'Promo de lanzamiento', title: 'Especial Web: 20% OFF en Planchado y Pintura', cta: 'Obtener' },
+          { eyebrow: 'Servicio destacado', title: 'Arenado + Undercoating', cta: 'Obtener', position: 'bottom-left' },
+          { eyebrow: 'Promo de lanzamiento', title: 'Especial Web: 20% OFF en Planchado y Pintura', cta: 'Obtener', position: 'bottom-left' },
+        ],
+        stats: [
+          { label: 'Trayectoria', value: '10+ Anos' },
+          { label: 'Rating promedio', value: '4.9' },
+          { label: 'Agenda asistida', value: 'Iris' },
         ],
       },
     },
@@ -64,6 +82,8 @@ export const defaultLandingContent = {
       type: 'catalog',
       enabled: true,
       order: 20,
+      frameHeight: 'viewport',
+      layout: { variant: 'turagua_catalog_frame' },
       data: {
         title: 'Nuestros Servicios',
         subtitle: 'Selecciona el servicio que necesita tu vehiculo: undercoating, arenado, pintura, mantenimiento, estetica o preparacion off-road.',
@@ -82,6 +102,7 @@ export const defaultLandingContent = {
       type: 'agent_call_to_action',
       enabled: true,
       order: 30,
+      frameHeight: 'compact',
       data: {
         title: 'Agenda con Iris',
         body: 'El agente opera sobre Hermes y Temporal.',
@@ -106,8 +127,18 @@ export const mockLandingPayload = {
   businessProfile: {
     businessSlug: 'turagua',
     businessName: 'Turagua Auto Services',
-    brand: { displayName: 'Turagua' },
-    agent: { name: 'Iris' },
+    brand: { displayName: 'Turagua', logoUrl: '/images/turagua.jpg', tagline: 'Proteccion & estetica automotriz' },
+    contact: { primaryPhone: '+51 999 555 010', whatsapp: '+51 999 555 010', email: 'contacto@turagua.pe' },
+    locations: [{ id: 'turagua-main', name: 'Taller principal', addressLine: 'Lima, Peru', city: 'Lima', country: 'Peru' }],
+    commercialHours: { weekdays: '9:00 a 18:00', saturday: '9:00 a 18:00', sunday: 'Cerrado', summary: 'Lunes a sabado, 9:00 a 18:00' },
+    agent: {
+      name: 'Iris',
+      avatarUrl: 'https://i.ibb.co/84r9sJc/imagen-2026-06-08-153923818.png',
+      bannerUrl: '/images/turagua.jpg',
+      welcomeMessage: '¡Hola! 👋 Soy Iris, del equipo de Turagua Racing Perú. ¿En qué te puedo ayudar hoy?',
+      nameColor: '#0f172a',
+      avatarAlignment: 'left',
+    },
   },
   catalogOfferings: [
     { _id: 'off_turagua_general_diagnostic', name: 'Diagnostico general', description: 'Revision integral del vehiculo.', publicVisible: true },

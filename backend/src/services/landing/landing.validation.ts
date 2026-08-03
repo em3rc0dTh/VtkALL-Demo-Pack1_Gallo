@@ -29,6 +29,13 @@ const landingBlockSchema = z.object({
   type: z.enum(LANDING_BLOCK_TYPES),
   enabled: z.boolean().default(true),
   order: z.number().int().nonnegative(),
+  frameHeight: z.enum(['viewport', 'compact', 'content']).optional(),
+  layout: z.object({
+    variant: z.string().min(1).optional(),
+    media: z.enum(['background', 'side', 'none']).optional(),
+    align: z.enum(['left', 'right', 'center']).optional(),
+    density: z.enum(['compact', 'comfortable']).optional(),
+  }).optional(),
   data: z.record(z.string(), z.any()).default({}),
 });
 
@@ -43,6 +50,15 @@ export const landingContentSchema = z.object({
     label: z.string().min(1),
     href: z.string().min(1),
   })).default([]),
+  motion: z.enum(['soft', 'dynamic', 'signature', 'none']).optional(),
+  agent: z.object({
+    name: z.string().min(1).optional(),
+    avatarUrl: z.string().optional(),
+    bannerUrl: z.string().optional(),
+    welcomeMessage: z.string().optional(),
+    nameColor: z.string().optional(),
+    avatarAlignment: z.enum(['left', 'center', 'right']).optional(),
+  }).optional(),
   blocks: z.array(landingBlockSchema).min(1),
 }).superRefine((content, ctx) => {
   try {

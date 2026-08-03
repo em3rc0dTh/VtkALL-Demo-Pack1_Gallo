@@ -52,7 +52,7 @@ export function AdminWireframes() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-app text-text-primary">
+    <div className="fixed inset-0 flex overflow-hidden bg-surface-app text-text-primary">
       <AdminSidebar profile={profile} active={active} onSelect={selectTab} />
       {mobileNavOpen && (
         <div className="fixed inset-0 z-40 md:hidden" role="presentation">

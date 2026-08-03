@@ -3,6 +3,12 @@ import { seedDatabase, getSeedStatus } from '../services/seed.service';
 import mongoose from 'mongoose';
 import { env } from '../config/env';
 import { getHermesOperationalReadiness } from '../agent/hermes/operational/hermesOperationalReadiness.service';
+import { referenceAdminWriteMiddleware } from '../middleware/referenceAdminWrite.middleware';
+import {
+  getBusinessProfileSettingsController,
+  patchBusinessProfileSettingsController,
+  uploadBusinessProfileLogoController,
+} from '../controllers/businessProfileSettings.controller';
 
 const router = Router();
 
@@ -19,6 +25,10 @@ router.get('/hermes/readiness', async (req: Request, res: Response) => {
   const readiness = await getHermesOperationalReadiness();
   res.status(readiness.status === 'not_ready' ? 503 : 200).json(readiness);
 });
+
+router.get('/business-profiles/:businessSlug', getBusinessProfileSettingsController);
+router.patch('/business-profiles/:businessSlug', referenceAdminWriteMiddleware, patchBusinessProfileSettingsController);
+router.post('/business-profiles/:businessSlug/logo', referenceAdminWriteMiddleware, uploadBusinessProfileLogoController);
 
 router.post('/seed', async (req: Request, res: Response) => {
   try {

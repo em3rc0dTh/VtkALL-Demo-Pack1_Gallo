@@ -1,7 +1,7 @@
 import { ApiError } from './apiError';
 
-const publicApiBaseUrl = (process.env.NEXT_PUBLIC_DEMO_TEST_API_BASE_URL || '').replace(/\/$/, '');
-const serverApiBaseUrl = (process.env.NEXT_BACKEND_INTERNAL_URL || publicApiBaseUrl || 'http://127.0.0.1:4000').replace(/\/$/, '');
+const publicApiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_DEMO_TEST_API_BASE_URL || '').replace(/\/$/, '');
+const serverApiBaseUrl = (process.env.NEXT_BACKEND_INTERNAL_URL || publicApiBaseUrl || 'http://localhost:4000').replace(/\/$/, '');
 const apiBaseUrl = typeof window !== 'undefined' ? publicApiBaseUrl : serverApiBaseUrl;
 
 const absoluteUrl = (path) => {

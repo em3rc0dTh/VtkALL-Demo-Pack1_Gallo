@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'node:path';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/openapi';
 import routes from './routes';
@@ -27,6 +28,13 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan('dev'));
+
+const uploadsRoot = path.resolve(process.env.BUSINESS_UPLOADS_DIR || path.join(process.cwd(), 'uploads'));
+app.use('/uploads', express.static(uploadsRoot, {
+  fallthrough: true,
+  immutable: true,
+  maxAge: '1d',
+}));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/openapi.json', (req, res) => {
