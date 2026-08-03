@@ -92,6 +92,19 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
+  ollama-model-init:
+    image: ollama/ollama:latest
+    container_name: demo_test_ollama_model_init
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      HERMES_CONVERSATIONAL_OLLAMA_MODEL: ${HERMES_CONVERSATIONAL_OLLAMA_MODEL:-qwen2.5:0.5b}
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - ollama pull "$${HERMES_CONVERSATIONAL_OLLAMA_MODEL}"
+    depends_on:
+      ollama:
+        condition: service_started
 
   api:
     build:
@@ -158,8 +171,8 @@ services:
         condition: service_healthy
       temporal:
         condition: service_started
-      ollama:
-        condition: service_started
+      ollama-model-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:' + (process.env.API_PORT || 4000) + '/api/v1/admin/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
       interval: 10s
