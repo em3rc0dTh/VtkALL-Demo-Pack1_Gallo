@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { 
@@ -21,7 +21,7 @@ const obtenerLunesDeLaSemana = (fecha) => {
 
 const obtenerDiaActualId = () => {
   const hoyIdx = new Date().getDay();
-  const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const nombresDias = ['Dom', 'Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b'];
   if (hoyIdx === 0) return 'Lun';
   return nombresDias[hoyIdx];
 };
@@ -114,7 +114,7 @@ const splitCitaEnSegmentos = (c, defaultStartHour, defaultEndHour, diasLaborable
     const minutos = Math.round((startHour - hora) * 60);
     const inicio = `${hora.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
     
-    const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const nombresDias = ['Dom', 'Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b'];
     const diaId = nombresDias[fechaSegmento.getDay()];
     
     const duracionHoras = Math.round(horasTrabajoHoy * 10) / 10;
@@ -137,7 +137,7 @@ const splitCitaEnSegmentos = (c, defaultStartHour, defaultEndHour, diasLaborable
       cliente: c.nombre_cliente || c.cliente?.nombre || 'Cliente de Dashboard',
       vehiculo: c.vehiculo || {},
       servicio: c.servicio || 'Servicio General',
-      equipo: c.team_asignado?.nombre || 'Mecánica General',
+      equipo: c.team_asignado?.nombre || 'MecÃ¡nica General',
       tiempoEst: tiempoEstLabel,
       precioFinal: `S/. ${(c.precio_final || c.precio_estimado || 0).toFixed(2)}`,
       precioNumerico: c.precio_final || c.precio_estimado || 0,
@@ -178,7 +178,7 @@ const getTeamColorClass = (teamName) => {
       bar: 'bg-purple-500'
     };
   }
-  if (name.includes('cliente') || name.includes('rápida') || name.includes('rapida')) {
+  if (name.includes('cliente') || name.includes('rÃ¡pida') || name.includes('rapida')) {
     return {
       bg: 'bg-amber-500/10 border-amber-500/30 hover:border-amber-500/60',
       text: 'text-amber-400',
@@ -217,8 +217,8 @@ export default function TabEjecuciones() {
   const diasSemana = Array.from({ length: 6 }).map((_, idx) => {
     const diaFecha = new Date(fechaPivote);
     diaFecha.setDate(fechaPivote.getDate() + idx);
-    const nombresDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const nombresCompletos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const nombresDias = ['Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b'];
+    const nombresCompletos = ['Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado'];
     return {
       id: nombresDias[idx],
       num: diaFecha.getDate().toString().padStart(2, '0'),
@@ -236,7 +236,7 @@ export default function TabEjecuciones() {
         // Filtrar citas que tienen equipo asignado
         const citasConEquipo = res.citas.filter(c => c.team_asignado);
         
-        // Cargar los teams si aún no están cargados
+        // Cargar los teams si aÃºn no estÃ¡n cargados
         let currentTeams = teams;
         if (currentTeams.length === 0) {
           currentTeams = await api.getTeams();
@@ -259,13 +259,13 @@ export default function TabEjecuciones() {
 
         const mapped = [];
         citasConEquipo.forEach(c => {
-          const equipoNombre = c.team_asignado?.nombre || 'Mecánica General';
+          const equipoNombre = c.team_asignado?.nombre || 'MecÃ¡nica General';
           const disp = dispMap[equipoNombre];
 
           // Valores por defecto
           let startHour = 8;
           let endHour = 18;
-          let diasLaborables = [1, 2, 3, 4, 5, 6]; // Lun-Sáb
+          let diasLaborables = [1, 2, 3, 4, 5, 6]; // Lun-SÃ¡b
 
           if (disp) {
             if (disp.hora_inicio) {
@@ -281,7 +281,7 @@ export default function TabEjecuciones() {
             }
           }
 
-          // Mapear días de DB (1-7, 7=Dom) a JS (0=Dom, 1-6)
+          // Mapear dÃ­as de DB (1-7, 7=Dom) a JS (0=Dom, 1-6)
           const diasLaborablesJS = diasLaborables.map(d => d === 7 ? 0 : d);
 
           // Dividir la cita
@@ -367,7 +367,7 @@ export default function TabEjecuciones() {
       }
     } catch (err) {
       console.error('Error al subir imagen:', err);
-      alert('Error al subir una o más imágenes: ' + err.message);
+      alert('Error al subir una o mÃ¡s imÃ¡genes: ' + err.message);
     } finally {
       setSubiendoImg(false);
       e.target.value = '';
@@ -392,7 +392,7 @@ export default function TabEjecuciones() {
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
         if (horasExtra > 0) {
-          // Si cambió la duración, necesitamos recalcular todos los segmentos (puede saltar a otro día)
+          // Si cambiÃ³ la duraciÃ³n, necesitamos recalcular todos los segmentos (puede saltar a otro dÃ­a)
           await cargarEjecuciones();
         } else {
           setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
@@ -426,7 +426,7 @@ export default function TabEjecuciones() {
       const res = await api.actualizarCita(modalFinalizar, payload);
       if (res && res.ok) {
         if (horasExtra > 0) {
-          // Recalcular segmentos si el tiempo cambió
+          // Recalcular segmentos si el tiempo cambiÃ³
           await cargarEjecuciones();
         } else {
           setEjecuciones(prev => prev.map(item => item.originalId === modalFinalizar ? { 
@@ -440,7 +440,7 @@ export default function TabEjecuciones() {
         Swal.fire({
           icon: 'success',
           title: 'Progreso Guardado',
-          text: 'Se registraron las notas y evidencias fotográficas del avance actual.',
+          text: 'Se registraron las notas y evidencias fotogrÃ¡ficas del avance actual.',
           background: '#111827',
           color: '#fff',
           toast: true,
@@ -477,7 +477,7 @@ export default function TabEjecuciones() {
     });
   };
 
-  const equipos = teams.length > 0 ? teams.map(t => t.nombre) : ['Mecánica General', 'Planchado y Pintura', 'Atención Rápida'];
+  const equipos = teams.length > 0 ? teams.map(t => t.nombre) : ['MecÃ¡nica General', 'Planchado y Pintura', 'AtenciÃ³n RÃ¡pida'];
   
   let calendarStartHour = 8;
   let calendarEndHour = 18;
@@ -493,7 +493,7 @@ export default function TabEjecuciones() {
       }
     }
   } else {
-    // Para 'Todos', buscar el mínimo inicio y máximo fin entre las disponibilidades cargadas
+    // Para 'Todos', buscar el mÃ­nimo inicio y mÃ¡ximo fin entre las disponibilidades cargadas
     let minStart = 8;
     let maxEnd = 18;
     const disps = Object.values(disponibilidades);
@@ -531,7 +531,7 @@ export default function TabEjecuciones() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
             <LayoutGrid className="w-4 h-4 text-primary" /> Work Execution Workspace
           </h3>
-          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupación semanal de cada mecánico (Producción y Bahías).</p>
+          <p className="text-[10px] text-gray-500 mt-1">Supervisa las operaciones en curso y la ocupaciÃ³n semanal de cada mecÃ¡nico (ProducciÃ³n y BahÃ­as).</p>
         </div>
         
         {/* Toggle Vistas */}
@@ -558,7 +558,7 @@ export default function TabEjecuciones() {
       {/* Team Selector - Independent Calendars */}
       <div className="bg-dark-card/20 p-3 rounded-2xl border border-gray-850 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <span className="text-[10px] font-bold uppercase text-gray-500 whitespace-nowrap">Mecánico / Equipo:</span>
+          <span className="text-[10px] font-bold uppercase text-gray-500 whitespace-nowrap">MecÃ¡nico / Equipo:</span>
           <div className="flex gap-1.5 overflow-x-auto custom-scrollbar w-full">
             <button
               onClick={() => setTeamSeleccionado('Todos')}
@@ -566,7 +566,7 @@ export default function TabEjecuciones() {
                 teamSeleccionado === 'Todos' ? 'border-b-2 border-primary text-white bg-gray-800/50 rounded-t-lg' : 'bg-transparent text-gray-400 hover:text-white border-b-2 border-transparent hover:border-gray-700'
               }`}
             >
-              Todos los Mecánicos
+              Todos los MecÃ¡nicos
             </button>
             {equipos.map(eq => (
               <button
@@ -685,24 +685,24 @@ export default function TabEjecuciones() {
                                 html: `
                                   <div class="text-left space-y-4 text-sm text-gray-300 mt-4">
                                     <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
-                                      <h4 class="text-purple-400 font-bold mb-2 flex items-center gap-2">🚗 Vehículo y Cliente</h4>
+                                      <h4 class="text-purple-400 font-bold mb-2 flex items-center gap-2">ðŸš— VehÃ­culo y Cliente</h4>
                                       <p><b>Cliente:</b> ${e.cliente || 'No registrado'}</p>
-                                      <p><b>Vehículo:</b> ${e.vehiculo?.marca || ''} ${e.vehiculo?.modelo || ''} ${e.vehiculo?.anio || ''}</p>
+                                      <p><b>VehÃ­culo:</b> ${e.vehiculo?.marca || ''} ${e.vehiculo?.modelo || ''} ${e.vehiculo?.anio || ''}</p>
                                       <p><b>Placa:</b> <span class="bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded font-mono">${e.vehiculo?.patente || 'S/P'}</span></p>
                                     </div>
                                     <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
-                                      <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">🔧 Detalles del Servicio</h4>
+                                      <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">ðŸ”§ Detalles del Servicio</h4>
                                       <p><b>Servicio:</b> ${e.servicio}</p>
                                       <p><b>Responsable:</b> ${e.equipo}</p>
                                       <p><b>Estado:</b> ${e.estado === 'en_curso' ? 'En Progreso' : 'Pendiente'}</p>
                                       <p><b>Inicio Programado:</b> ${e.inicio}</p>
-                                      <p><b>Duración Estimada:</b> ${e.tiempoEst}</p>
+                                      <p><b>DuraciÃ³n Estimada:</b> ${e.tiempoEst}</p>
                                       <p><b>Monto Facturado:</b> <span class="text-green-400 font-bold">${e.precioFinal}</span></p>
                                     </div>
                                     ${e.descripcion_trabajo || e.notas_mecanico ? `
                                     <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
-                                      <h4 class="text-amber-400 font-bold mb-2 flex items-center gap-2">📝 Notas del Mecánico</h4>
-                                      <p class="italic text-gray-400">${e.descripcion_trabajo || 'Sin descripción'} <br/> ${e.notas_mecanico || ''}</p>
+                                      <h4 class="text-amber-400 font-bold mb-2 flex items-center gap-2">ðŸ“ Notas del MecÃ¡nico</h4>
+                                      <p class="italic text-gray-400">${e.descripcion_trabajo || 'Sin descripciÃ³n'} <br/> ${e.notas_mecanico || ''}</p>
                                     </div>` : ''}
                                   </div>
                                 `,
@@ -721,7 +721,7 @@ export default function TabEjecuciones() {
                       
                       {tareasEquipo.length === 0 && (
                         <div className="w-full text-center py-6 text-[10px] font-bold uppercase tracking-widest text-gray-600">
-                          Sin pedidos pendientes para {diaSeleccionado === 'Todo' ? 'esta semana' : 'este día'}
+                          Sin pedidos pendientes para {diaSeleccionado === 'Todo' ? 'esta semana' : 'este dÃ­a'}
                         </div>
                       )}
                     </div>
@@ -742,7 +742,7 @@ export default function TabEjecuciones() {
                   <ChevronLeft className="w-3.5 h-3.5"/> Semana Anterior
                 </button>
                 <div className="text-[11px] font-bold text-gray-300 uppercase tracking-widest bg-gray-950 px-4 py-2 rounded-xl border border-gray-850">
-                  {diasSemana[0]?.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} — {diasSemana[5]?.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {diasSemana[0]?.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} â€” {diasSemana[5]?.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </div>
                 <button 
                   onClick={siguienteSemana} 
@@ -754,7 +754,7 @@ export default function TabEjecuciones() {
 
               <div className="flex justify-between items-center px-2">
                 <h4 className="text-white text-xs font-bold uppercase tracking-wider">
-                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los Mecánicos' : `Mecánico: ${teamSeleccionado}`})
+                  Calendario Semanal ({teamSeleccionado === 'Todos' ? 'Todos los MecÃ¡nicos' : `MecÃ¡nico: ${teamSeleccionado}`})
                 </h4>
                 <div className="flex gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
                   <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div> En Curso</span>
@@ -767,7 +767,7 @@ export default function TabEjecuciones() {
                 <div className="overflow-x-auto custom-scrollbar">
                   <div className="min-w-[1000px]">
                     
-                    {/* Header de horas y días */}
+                    {/* Header de horas y dÃ­as */}
                     <div className="flex border-b border-gray-850 bg-gray-900 sticky top-0 z-30">
                       {/* Corner Hour block */}
                       <div className="w-16 border-r border-gray-850 bg-gray-900 shrink-0"></div>
@@ -814,7 +814,7 @@ export default function TabEjecuciones() {
                         ))}
                       </div>
                       
-                      {/* Grid de fondo (Líneas horizontales) */}
+                      {/* Grid de fondo (LÃ­neas horizontales) */}
                       <div className="absolute left-16 right-0 top-0 bottom-0 pointer-events-none z-0">
                         {horasDia.map((h) => (
                           <div 
@@ -825,7 +825,7 @@ export default function TabEjecuciones() {
                         ))}
                       </div>
                       
-                      {/* Columnas de los días */}
+                      {/* Columnas de los dÃ­as */}
                       <div className="flex-1 grid grid-cols-6 divide-x divide-gray-850/40 relative z-10 h-full overflow-hidden">
                         {diasSemana.map((dia) => {
                           const tareasDelDia = ejecucionesSemana.filter(
@@ -836,7 +836,7 @@ export default function TabEjecuciones() {
                           
                           return (
                             <div key={dia.id} className="relative h-full overflow-hidden">
-                              {/* Citas de este día */}
+                              {/* Citas de este dÃ­a */}
                               {tareasDelDia.map((e) => {
                                 const colors = getTeamColorClass(e.equipo);
                                 const top = (e.horaNum - calendarStartHour) * HOUR_HEIGHT;
@@ -906,7 +906,7 @@ export default function TabEjecuciones() {
         </>
       )}
 
-      {/* MODAL DE FINALIZACIÓN DE TRABAJO */}
+      {/* MODAL DE FINALIZACIÃ“N DE TRABAJO */}
       {modalFinalizar && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -927,7 +927,7 @@ export default function TabEjecuciones() {
               return (
                 <div className="bg-gray-950/60 p-4 rounded-2xl border border-gray-800 mb-6 grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Vehículo y Cliente</span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">VehÃ­culo y Cliente</span>
                     <p className="text-xs font-bold text-white">{ejec.vehiculo?.marca || 'Auto'} {ejec.vehiculo?.modelo || ''} <span className="text-gray-400 font-mono bg-gray-900 px-1 rounded">({ejec.vehiculo?.patente || 'S/P'})</span></p>
                     <p className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-2">
                       <User className="w-3 h-3 text-gray-500" /> {ejec.cliente}
@@ -957,13 +957,13 @@ export default function TabEjecuciones() {
                   required
                   value={notasFinalizacion}
                   onChange={(e) => setNotasFinalizacion(e.target.value)}
-                  placeholder="Ej: Se realizó el cambio de pastillas de frenos y rectificado de discos. Se probó el frenado y responde de forma de manera óptima..."
+                  placeholder="Ej: Se realizÃ³ el cambio de pastillas de frenos y rectificado de discos. Se probÃ³ el frenado y responde de forma de manera Ã³ptima..."
                   className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none custom-scrollbar"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Precio Final de Facturación */}
+                {/* Precio Final de FacturaciÃ³n */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Final Cobrado (S/.) *</label>
                   <input 
@@ -980,7 +980,7 @@ export default function TabEjecuciones() {
                 {/* Agregar Tiempo Extra */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Añadir Tiempo Extra
+                    <Clock className="w-3 h-3" /> AÃ±adir Tiempo Extra
                   </label>
                   <select
                     value={horasExtra}
@@ -990,14 +990,14 @@ export default function TabEjecuciones() {
                     <option value={0}>Sin tiempo extra (A tiempo)</option>
                     <option value={1}>+ 1 hora extra</option>
                     <option value={2}>+ 2 horas extra</option>
-                    <option value={4}>+ 4 horas extra (Medio día)</option>
-                    <option value={8}>+ 8 horas extra (1 Día extra)</option>
-                    <option value={16}>+ 16 horas extra (2 Días extra)</option>
+                    <option value={4}>+ 4 horas extra (Medio dÃ­a)</option>
+                    <option value={8}>+ 8 horas extra (1 DÃ­a extra)</option>
+                    <option value={16}>+ 16 horas extra (2 DÃ­as extra)</option>
                   </select>
                 </div>
               </div>
 
-              {/* Evidencia Fotográfica */}
+              {/* Evidencia FotogrÃ¡fica */}
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
                   <ImageIcon className="w-3.5 h-3.5 text-primary" /> Evidencias (Fotos de avance y entrega)

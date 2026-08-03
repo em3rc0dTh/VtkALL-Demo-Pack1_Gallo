@@ -1,0 +1,28 @@
+profile: demo_test
+model_name: demo-test-agent
+host: 127.0.0.1
+port: 8642
+env: development
+auth:
+  type: bearer
+  env: HERMES_API_KEY
+  production_default: false
+limits:
+  request_timeout_ms: 15000
+  max_request_bytes: 262144
+  max_messages: 40
+  max_message_chars: 12000
+  max_concurrent_requests: 4
+  queue_limit: 20
+runtime:
+  backend_access: false
+  temporal_access: false
+  mongo_access: false
+  terminal_access: false
+  write_access: false
+  readable_files:
+    - hermes/profile/SOUL.md
+    - hermes/workspace/AGENTS.md
+    - hermes/workspace/SKILL_CATALOG.md
+    - hermes/workspace/knowledge/**
+    - hermes/workspace/skills/**

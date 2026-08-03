@@ -1,0 +1,23 @@
+  185:118  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;` react/no-unescaped-entities
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\components\landing\SobreNosotros.js
+  36:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\components\landing\Testimonios.js
+  124:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\components\ui\Navbar.js
+  27:11  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+  37:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+  78:13  warning  Using `<img>` could result in slower LCP and higher bandwidth.
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\hooks\useAuth.js
+  34:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\hooks\useFlowState.js
+  45:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+C:\Users\eduar\Desktop\ai-integrations\demo_test\frontend\hooks\useScrollReveal.js
+  30:6  warning  React Hook useEffect was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+
+✖ 81 problems (39 errors, 42 warnings)

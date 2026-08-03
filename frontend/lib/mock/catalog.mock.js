@@ -1,0 +1,38 @@
+export const catalogMock = [
+  {
+    name: 'Diagnostico computarizado',
+    state: 'Publicado',
+    color: 'AZUL',
+    price: 'Precio desde S/ 80',
+    duration: '60 min',
+    desc: 'Flujo claro',
+    action: 'Flujo claro',
+  },
+  {
+    name: 'Revision de frenos',
+    state: 'Riesgo publico',
+    color: 'ROJO',
+    price: 'Sin duracion publicada',
+    duration: 'Falta dato',
+    desc: 'Ocultar hasta completar',
+    action: 'Ocultar hasta completar',
+  },
+  {
+    name: 'Mantenimiento 60k',
+    state: 'Completo',
+    color: 'VERDE',
+    price: 'S/ 420',
+    duration: '120 min',
+    desc: 'Listo para venta',
+    action: 'Listo para venta',
+  },
+  {
+    name: 'Suspension',
+    state: 'Incompleto',
+    color: 'AMBAR',
+    price: 'Requiere evaluacion',
+    duration: '90 min',
+    desc: 'Definir precio base',
+    action: 'Definir precio base',
+  },
+];

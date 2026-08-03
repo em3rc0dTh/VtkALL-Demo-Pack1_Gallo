@@ -1,0 +1,26 @@
+name: demo-test-hermes
+
+services:
+  hermes-demo-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.overlay
+    container_name: demo_test_hermes
+    restart: unless-stopped
+    environment:
+      HERMES_HOST: 0.0.0.0
+      HERMES_PORT: 8642
+      HERMES_API_KEY: ${HERMES_API_KEY:-local-hermes-dev-key}
+      HERMES_MODEL_NAME: ${HERMES_MODEL_NAME:-demo-test-agent}
+    ports:
+      - "${HERMES_PORT:-8642}:8642"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:8642/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12

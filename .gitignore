@@ -1,8 +1,53 @@
-node_modules
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+.next/
+**/.next/
+build/
+coverage/
+
+# Local environment and secrets
 .env
-*/.env
-frontend/.env
-frontend/.env.example
+.env.*
+!.env.example
+
+# Logs and runtime noise
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker/local volumes
+.docker/
+docker-data/
+tmp/
+temp/
+
+# Codex/local workspace metadata
+.agents/
+.codex/
+hermes/.runtime/
+
+# Local cloned reference suites
+temporal-suite/
+tools/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+
+./env
+./env.example
 backend/.env
-backend/upload_utils/
-openwa.tar.gz
+backend/.env.example
+
+# pnpm
+.pnpm-store/

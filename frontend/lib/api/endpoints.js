@@ -1,0 +1,16 @@
+export const demoTestEndpoints = {
+  customers: "/api/demo-test/customers",
+  managedEntities: "/api/demo-test/managed-entities",
+  cases: "/api/demo-test/cases",
+  availability: "/api/demo-test/availability",
+  scheduleConsultation: "/api/demo-test/schedule-consultation",
+  caseTimeline: (caseId) => `/api/demo-test/cases/${encodeURIComponent(caseId)}/timeline`,
+  agentStart: "/api/demo-test/agent/schedule-consultation/start",
+  agentOpenMessage: "/api/demo-test/agent/message",
+  agentState: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/state`,
+  agentSelectService: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/select-service`,
+  agentCustomerData: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/customer-data`,
+  agentRequestSlots: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/request-slots`,
+  agentSelectSlot: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/select-slot`,
+  agentMessage: (workflowId) => `/api/demo-test/agent/workflows/${encodeURIComponent(workflowId)}/message`,
+};

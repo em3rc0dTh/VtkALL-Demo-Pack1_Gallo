@@ -1,0 +1,64 @@
+{
+  "catalogFrame": "TuraguaCatalogFrame",
+  "hasCatalogFrame": true,
+  "mainHtmlStart": "<main data-landing-renderer-version=\"turagua-frames-v2\" class=\"min-h-screen bg-[var(--landing-surface)] text-[var(--landing-text)]\" style=\"--landing-primary: #00AEEF; --landing-accent: #111827; --landing-surface: #f4f5ff; --landing-text: #3f3436;\"><header class=\"sticky top-0 z-30 border-b border-bla",
+  "rendererVersion": "turagua-frames-v2",
+  "sections": [
+    {
+      "frame": null,
+      "height": 1127,
+      "id": "inicio",
+      "renderer": null,
+      "tag": "section",
+      "top": 65
+    },
+    {
+      "frame": "TuraguaCatalogFrame",
+      "height": 656,
+      "id": "servicios",
+      "renderer": "turagua-frames-v2",
+      "tag": "section",
+      "top": 1192
+    },
+    {
+      "frame": null,
+      "height": 710,
+      "id": "nosotros",
+      "renderer": null,
+      "tag": "section",
+      "top": 1848
+    },
+    {
+      "frame": null,
+      "height": 389,
+      "id": "galeria",
+      "renderer": null,
+      "tag": "section",
+      "top": 2558
+    },
+    {
+      "frame": null,
+      "height": 172,
+      "id": null,
+      "renderer": null,
+      "tag": "section",
+      "top": 2947
+    },
+    {
+      "frame": null,
+      "height": 656,
+      "id": "contacto",
+      "renderer": null,
+      "tag": "section",
+      "top": 3119
+    },
+    {
+      "frame": null,
+      "height": 89,
+      "id": null,
+      "renderer": null,
+      "tag": "footer",
+      "top": 3775
+    }
+  ]
+}

@@ -1,168 +1,248 @@
-version: '3.8'
+name: demo-test
 
 services:
-  # ==========================================
-  # 1. BASES DE DATOS (Mongo para la app, Postgres para Temporal)
-  # ==========================================
   mongo:
-    image: mongo:latest
-    container_name: ${PROJECT_NAME}-mongo
-    command: mongod --quiet --logpath /dev/null
-    restart: always
+    image: mongo:6
+    container_name: demo_test_mongo
+    restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-vtkall}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-vtkall_demo_pack_1}
     ports:
-      - "${MONGO_PORT}:27017"
+      - "${MONGO_PORT:-27017}:27017"
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    networks:
-      - mecanica-network
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   mongo-express:
     image: mongo-express:latest
-    container_name: ${PROJECT_NAME}-mongo-express
-    restart: always
-    ports:
-      - "${MONGO_EXPRESS_PORT}:8081"
+    container_name: demo_test_mongo_express
+    restart: unless-stopped
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongo:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME:-vtkall}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/
+      ME_CONFIG_BASICAUTH: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
+      ME_CONFIG_SITE_BASEURL: /temotest-db/
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
     depends_on:
-      - mongo
-    networks:
-      - mecanica-network
+      mongo:
+        condition: service_healthy
 
   temporal-postgresql:
-    image: postgres:13
-    container_name: ${PROJECT_NAME}-postgresql
+    image: postgres:16
+    container_name: demo_test_temporal_postgresql
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: temporal
-      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER:-temporal}
+      POSTGRES_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD:-temporal}
     ports:
-      - "${DB_PORT}:5432"
+      - "${TEMPORAL_POSTGRES_PORT:-5432}:5432"
     volumes:
-      - temporal-db:/var/lib/postgresql/data
+      - temporal_postgresql_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U temporal"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
       timeout: 5s
-      retries: 10
-    networks:
-      - mecanica-network
-    restart: always
+      retries: 12
 
-  # ==========================================
-  # 2. SERVICIOS TEMPORAL & OPENWA
-  # ==========================================
   temporal:
-    image: temporalio/auto-setup:latest
-    container_name: ${PROJECT_NAME}-temporal
+    image: temporalio/auto-setup:1.27.2
+    container_name: demo_test_temporal
+    restart: unless-stopped
     depends_on:
       temporal-postgresql:
         condition: service_healthy
     environment:
-      - DB=postgres12
-      - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=temporal-postgresql
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER:-temporal}
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD:-temporal}
+      POSTGRES_SEEDS: temporal-postgresql
     ports:
-      - "${TEMPORAL_PORT}:7233"
-    networks:
-      - mecanica-network
-    restart: always
+      - "${TEMPORAL_PORT:-7233}:7233"
 
   temporal-ui:
-    image: temporalio/ui:latest
-    container_name: ${PROJECT_NAME}-temporal-ui
+    image: temporalio/ui:2.36.0
+    container_name: demo_test_temporal_ui
+    restart: unless-stopped
     depends_on:
       - temporal
     environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:${FRONTEND_PORT}
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-3000},http://localhost:${API_PORT:-4000}
+      TEMPORAL_UI_PUBLIC_PATH: ${TEMPORAL_UI_PUBLIC_PATH:-}
     ports:
-      - "${TEMPORAL_UI_PORT}:8080"
-    networks:
-      - mecanica-network
-    restart: always
+      - "${TEMPORAL_UI_PORT:-8080}:8080"
 
-  openwa:
-    build:
-      context: ./openwa
-      dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME}-openwa
+  ollama:
+    image: ollama/ollama:latest
+    container_name: demo_test_ollama
+    restart: unless-stopped
     ports:
-      - "${OPENWA_PORT}:2785"
-    networks:
-      - mecanica-network
-    restart: always
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
 
-  # ==========================================
-  # 3. APP MECÁNICA (Backend y Frontend)
-  # ==========================================
-  backend:
+  ollama-model-init:
+    image: ollama/ollama:latest
+    container_name: demo_test_ollama_model_init
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      HERMES_CONVERSATIONAL_OLLAMA_MODEL: ${HERMES_CONVERSATIONAL_OLLAMA_MODEL:-qwen2.5:0.5b}
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - ollama pull "$${HERMES_CONVERSATIONAL_OLLAMA_MODEL}"
+    depends_on:
+      ollama:
+        condition: service_started
+
+  api:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME}-backend
-    ports:
-      - "${BACKEND_PORT}:4000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    container_name: demo_test_api
+    restart: unless-stopped
     environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - FRONTEND_ORIGIN=http://localhost:${FRONTEND_PORT}
-      - VERTIKALL_BUSINESS=${VERTIKALL_BUSINESS:-turagua}
-      - VERTIKALL_VERTICAL=${VERTIKALL_VERTICAL:-vehicle_service}
-      - VERTIKALL_CONFIG_STRICT=${VERTIKALL_CONFIG_STRICT:-false}
-      - JWT_SECRET=${JWT_SECRET:-change-this-in-local}
-      - JWT_COOKIE_NAME=${JWT_COOKIE_NAME:-token}
-      - JWT_COOKIE_MAX_AGE_HOURS=${JWT_COOKIE_MAX_AGE_HOURS:-24}
-      - JWT_COOKIE_SAMESITE=${JWT_COOKIE_SAMESITE:-strict}
-      - ENABLE_TEMPORAL=false
-      - TEMPORAL_ADDRESS=temporal:7233
-      - ENABLE_AUTO_SEED=true
-      - SEED_PROFILE=legacy
-      - ENABLE_RECORDATORIOS=true
-      - ENABLE_PUBLIC_UPLOAD=true
-      - OPENWA_API_URL=http://openwa:2785
-      - MONGODB_URI=mongodb://admin:admin@mongo:27017/${PROJECT_NAME}?authSource=admin
+      API_PORT: ${API_PORT:-4000}
+      NODE_ENV: development
+      MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/${MONGO_DATABASE:-vtkall_demo_pack_1}?authSource=admin
+      TEMPORAL_ADDRESS: temporal:7233
+      DEMO_TEST_ADMIN_WRITE_TOKEN: ${DEMO_TEST_ADMIN_WRITE_TOKEN:-local-dev-admin}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GCP_API_KEY: ${GCP_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-1600}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      OLLAMA_TIMEOUT_MS: ${OLLAMA_TIMEOUT_MS:-1200}
+      HERMES_CONTEXT_ENABLED: ${HERMES_CONTEXT_ENABLED:-true}
+      HERMES_READ_BUSINESS_CONTEXT: ${HERMES_READ_BUSINESS_CONTEXT:-true}
+      HERMES_READ_CATALOG_CONTEXT: ${HERMES_READ_CATALOG_CONTEXT:-true}
+      HERMES_READ_CUSTOMER_CONTEXT: ${HERMES_READ_CUSTOMER_CONTEXT:-true}
+      HERMES_READ_CASE_CONTEXT: ${HERMES_READ_CASE_CONTEXT:-true}
+      HERMES_READ_PROCESS_CONTEXT: ${HERMES_READ_PROCESS_CONTEXT:-true}
+      HERMES_PERSIST_SHADOW: ${HERMES_PERSIST_SHADOW:-false}
+      HERMES_VISIBLE_RUNTIME_ENABLED: ${HERMES_VISIBLE_RUNTIME_ENABLED:-true}
+      HERMES_VISIBLE_RUNTIME_CANARY_PERCENT: ${HERMES_VISIBLE_RUNTIME_CANARY_PERCENT:-100}
+      HERMES_VISIBLE_RUNTIME_FAIL_OPEN: ${HERMES_VISIBLE_RUNTIME_FAIL_OPEN:-true}
+      HERMES_VISIBLE_RUNTIME_POST_COMMIT_LEGACY_FALLBACK: ${HERMES_VISIBLE_RUNTIME_POST_COMMIT_LEGACY_FALLBACK:-false}
+      HERMES_AVAILABILITY_ENABLED: ${HERMES_AVAILABILITY_ENABLED:-true}
+      HERMES_AVAILABILITY_CANARY_PERCENT: ${HERMES_AVAILABILITY_CANARY_PERCENT:-100}
+      HERMES_BOOKING_ENABLED: ${HERMES_BOOKING_ENABLED:-true}
+      HERMES_BOOKING_CANARY_PERCENT: ${HERMES_BOOKING_CANARY_PERCENT:-100}
+      HERMES_CONVERSATIONAL_PROVIDER_ORDER: ${HERMES_CONVERSATIONAL_PROVIDER_ORDER:-ollama-first}
+      HERMES_CONVERSATIONAL_OLLAMA_MODEL: ${HERMES_CONVERSATIONAL_OLLAMA_MODEL:-qwen2.5:0.5b}
+      HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS: ${HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS:-8000}
+      HERMES_MODEL_INTERPRETATION_TIMEOUT_MS: ${HERMES_MODEL_INTERPRETATION_TIMEOUT_MS:-15000}
+      HERMES_MODEL_COMPOSITION_TIMEOUT_MS: ${HERMES_MODEL_COMPOSITION_TIMEOUT_MS:-10000}
+      HERMES_MODEL_OLLAMA_NUM_PREDICT: ${HERMES_MODEL_OLLAMA_NUM_PREDICT:-256}
+      HERMES_MODEL_OLLAMA_NUM_CTX: ${HERMES_MODEL_OLLAMA_NUM_CTX:-}
+      HERMES_OLLAMA_WARMUP_ENABLED: ${HERMES_OLLAMA_WARMUP_ENABLED:-true}
+      HERMES_OLLAMA_WARMUP_TIMEOUT_MS: ${HERMES_OLLAMA_WARMUP_TIMEOUT_MS:-20000}
+      HERMES_OLLAMA_KEEP_ALIVE: ${HERMES_OLLAMA_KEEP_ALIVE:-30m}
+      HERMES_MODEL_MAX_CONCURRENT: ${HERMES_MODEL_MAX_CONCURRENT:-1}
+      HERMES_MODEL_MAX_QUEUE: ${HERMES_MODEL_MAX_QUEUE:-4}
+      HERMES_MODEL_QUEUE_WAIT_MS: ${HERMES_MODEL_QUEUE_WAIT_MS:-2000}
+      HERMES_MODEL_CIRCUIT_FAILURE_THRESHOLD: ${HERMES_MODEL_CIRCUIT_FAILURE_THRESHOLD:-3}
+      HERMES_MODEL_CIRCUIT_COOLDOWN_MS: ${HERMES_MODEL_CIRCUIT_COOLDOWN_MS:-30000}
+      HERMES_MODEL_METRICS_LOG_EVERY: ${HERMES_MODEL_METRICS_LOG_EVERY:-20}
+      HERMES_CONTEXT_MAX_HISTORY_MESSAGES: ${HERMES_CONTEXT_MAX_HISTORY_MESSAGES:-8}
+      HERMES_CONTEXT_MAX_MEMORY_FACTS: ${HERMES_CONTEXT_MAX_MEMORY_FACTS:-8}
+      HERMES_CONTEXT_MAX_CATALOG_OFFERINGS: ${HERMES_CONTEXT_MAX_CATALOG_OFFERINGS:-5}
+      HERMES_CONTEXT_MAX_OFFERING_DESCRIPTION_CHARS: ${HERMES_CONTEXT_MAX_OFFERING_DESCRIPTION_CHARS:-220}
+      HERMES_CONTEXT_MAX_INTERPRETATION_CHARS: ${HERMES_CONTEXT_MAX_INTERPRETATION_CHARS:-12000}
+      HERMES_CONTEXT_MAX_COMPOSITION_CHARS: ${HERMES_CONTEXT_MAX_COMPOSITION_CHARS:-9000}
+      HERMES_BUILD_ID: ${HERMES_BUILD_ID:-unset}
+      BUSINESS_UPLOADS_DIR: /app/uploads
+      SEED_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+      AUTO_SEED_ON_START: ${AUTO_SEED_ON_START:-true}
+    ports:
+      - "${API_PORT:-4000}:${API_PORT:-4000}"
+    volumes:
+      - business_uploads:/app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - openwa
-      - temporal
-      - mongo
-    networks:
-      - mecanica-network
-    restart: always
+      mongo:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+      ollama-model-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:' + (process.env.API_PORT || 4000) + '/api/v1/admin/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  temporal-worker:
+    build:
+      context: ./backend
+    container_name: demo_test_temporal_worker
+    restart: unless-stopped
+    command: npm run temporal:worker
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/${MONGO_DATABASE:-vtkall_demo_pack_1}?authSource=admin
+      TEMPORAL_ADDRESS: temporal:7233
+    depends_on:
+      api:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+      ollama:
+        condition: service_started
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME}-frontend
-    ports:
-      - "${FRONTEND_PORT}:3000"
+      args:
+        NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+        NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+        NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+        NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
+        APP_BUILD_SHA: ${APP_BUILD_SHA:-local}
+    container_name: demo_test_frontend
+    restart: unless-stopped
     environment:
-      - BACKEND_INTERNAL_URL=http://backend:4000
+      NODE_ENV: production
+      PORT: ${FRONTEND_PORT:-3000}
+      NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+      NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+      NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+      NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
+      NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
+      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
+      NEXT_PUBLIC_APP_BUILD_SHA: ${APP_BUILD_SHA:-local}
+    ports:
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    volumes:
+      - landing_uploads:/app/public/uploads
     depends_on:
-      - backend
-    networks:
-      - mecanica-network
-    restart: always
-
-networks:
-  mecanica-network:
-    driver: bridge
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:' + (process.env.PORT || 3000) + '/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 18
 
 volumes:
-  temporal-db:
-    driver: local
-  mongodb_data:
-    driver: local
-  mongodb_config:
-    driver: local
+  mongo_data:
+  temporal_postgresql_data:
+  ollama_data:
+  business_uploads:
+  landing_uploads:
