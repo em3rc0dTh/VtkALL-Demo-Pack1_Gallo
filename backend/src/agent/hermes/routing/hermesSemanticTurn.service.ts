@@ -120,7 +120,7 @@ const hasOpenWorldSymptomShape = (message: string) =>
 
 const catalogMatchesFrom = (message: string, context?: HermesReadOnlyContext): DomainResolution['catalogMatches'] => {
   const text = normalize(message);
-  const catalog = context?.catalog || [];
+  const catalog = (context?.catalog || []).filter((offering) => offering.active && offering.publicVisible);
   const matches: DomainResolution['catalogMatches'] = [];
   for (const offering of catalog) {
     const name = normalize(offering.name || '');
@@ -142,6 +142,11 @@ const catalogMatchesFrom = (message: string, context?: HermesReadOnlyContext): D
     }
     if (/\b(embrague|clutch|caja|transmision)\b/.test(text) && /\bdiagnostico|motor|rendimiento|mantenimiento\b/.test(haystack)) {
       matches.push({ offeringId: offering.id, confidence: 0.55, relation: 'possible' });
+      continue;
+    }
+    if (/\b(parte inferior|bajos|chasis|undercoating|oxido|humedad|anticorrosiv|desgaste)\b/.test(text)
+      && /\b(undercoating|arenado|chasis|oxido|humedad|anticorrosiv|desgaste|proteccion inferior)\b/.test(haystack)) {
+      matches.push({ offeringId: offering.id, confidence: 0.82, relation: 'broader' });
     }
   }
   return matches.slice(0, 3);
@@ -388,8 +393,9 @@ export const buildAutomotiveGuidanceReply = async (input: {
     .map((match) => input.context?.catalog?.find((offering) => offering.id === match.offeringId)?.name)
     .filter(Boolean)
     .slice(0, 2);
+  const businessName = input.context?.business?.businessName || 'este negocio';
   const related = relatedOfferings.length
-    ? ` En Turagua podemos evaluarlo mediante ${relatedOfferings.join(' o ')}.`
+    ? ` En ${businessName} podemos evaluarlo mediante ${relatedOfferings.join(' o ')}.`
     : '';
   const finalize = (reply: string) => withAutomotiveSideAnswers(reply, input.message);
   const currentMentionsBrakes = /\bfreno|frenos|pastilla|pastillas|disco|discos|frenar\b/.test(current);
@@ -400,6 +406,14 @@ export const buildAutomotiveGuidanceReply = async (input: {
   const currentIsCatalogOrOffering = /\b(undercoating|arenado|servicio|servicios|catalogo|catalogo|opciones|ofrecen|ofreces|tienen|tienes|corresponde)\b/.test(current);
   const currentAsksUnderbodyProtection = /\b(parte inferior|bajos|chasis|undercoating|oxido|humedad)\b/.test(current)
     && /\b(proteger|proteccion|recomiendas|conviene|mejor)\b/.test(current);
+  const underbodyOffering = currentAsksUnderbodyProtection
+    ? domain.catalogMatches
+      .map((match) => input.context?.catalog?.find((offering) => offering.id === match.offeringId && offering.active && offering.publicVisible))
+      .find((offering) => {
+        const haystack = normalize(`${offering?.name || ''} ${offering?.description || ''}`);
+        return /\b(undercoating|arenado|chasis|oxido|humedad|anticorrosiv|desgaste|proteccion inferior)\b/.test(haystack);
+      })
+    : undefined;
 
   if (delta.correctedFacts['engine.powerLoss'] === false && hasFact(conversationState, 'symptom.vibration', true)) {
     return finalize(`Perfecto, entonces no es perdida de potencia: el dato clave es la vibracion. Puede venir de soportes, ruedas, suspension, frenos o transmision segun cuando aparece. Vibra en minimo, al acelerar o al frenar?${resume}`);
@@ -434,7 +448,13 @@ export const buildAutomotiveGuidanceReply = async (input: {
   }
 
   if (currentAsksUnderbodyProtection) {
-    return finalize(`Para proteger la parte inferior del carro, la opcion mas alineada es Arenado + Undercoating. Esta pensado para proteccion inferior y restauracion de chasis contra oxido, humedad, desgaste y uso fuerte. Si solo estas comparando opciones, puedo explicarte en que consiste sin iniciar una reserva.${resume}`);
+    if (underbodyOffering?.name) {
+      const description = underbodyOffering.description
+        ? ` ${underbodyOffering.description}`
+        : ' Esta orientado a proteccion inferior y cuidado del chasis.';
+      return finalize(`Para proteger la parte inferior del carro, la opcion mas alineada del catalogo es ${underbodyOffering.name}.${description} Si solo estas comparando opciones, puedo explicarte en que consiste sin iniciar una reserva.${resume}`);
+    }
+    return finalize(`Para proteger la parte inferior del carro conviene buscar una proteccion inferior o tratamiento anticorrosivo para chasis, pero no veo un servicio activo del catalogo que pueda recomendarte con nombre desde aqui.${resume}`);
   }
 
   if (currentIsCatalogOrOffering && domain.catalogMatches.length) {

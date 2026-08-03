@@ -5,12 +5,16 @@ import { evaluateHermesConversationalCoherence } from '../orchestration/hermesCo
 import { resolveHermesVisibleRuntime } from '../orchestration/hermesVisibleRuntime.service';
 import { buildAutomotiveGuidanceReply, classifyHermesSemanticTurn } from '../routing/hermesSemanticTurn.service';
 
-const context = (history: HermesReadOnlyContext['conversation']['history']): HermesReadOnlyContext => ({
+const context = (
+  history: HermesReadOnlyContext['conversation']['history'],
+  overrides: Partial<Pick<HermesReadOnlyContext, 'business' | 'catalog'>> = {},
+): HermesReadOnlyContext => ({
   business: {
     businessSlug: 'turagua',
     businessName: 'Turagua Racing Peru',
     timezone: 'America/Lima',
     agent: { name: 'Iris', role: 'asistente automotriz' },
+    ...overrides.business,
   },
   conversation: {
     conversationId: `h12-${Date.now()}`,
@@ -21,6 +25,7 @@ const context = (history: HermesReadOnlyContext['conversation']['history']): Her
   catalog: [
     { id: 'diagnostico-general', name: 'Diagnostico general', description: 'Revision general', durationMinutes: 60, pricing: { type: 'not_published' }, publicVisible: true, active: true },
   ],
+  ...('catalog' in overrides ? { catalog: overrides.catalog } : {}),
   permissions: { mode: 'qa_primary', readOnly: true, canExecuteActions: false },
 });
 
@@ -135,6 +140,57 @@ const run = async () => {
     context: ctx,
   });
   assert(bookingNegation.intent !== 'booking_intent', `booking negation should not be booking_intent, got ${bookingNegation.intent}`);
+
+  const turaguaUnderbodyCtx = context([], {
+    catalog: [
+      {
+        id: 'off_turagua_sandblasting_undercoating',
+        name: 'Arenado + Undercoating',
+        description: 'Proteccion inferior y restauracion de chasis contra oxido, humedad y desgaste.',
+        durationMinutes: 180,
+        pricing: { type: 'not_published' },
+        publicVisible: true,
+        active: true,
+      },
+    ],
+  });
+  const turaguaUnderbodyReply = await buildAutomotiveGuidanceReply({
+    message: 'Cual recomiendas para proteger la parte inferior del carro?',
+    context: turaguaUnderbodyCtx,
+  });
+  assert(/Arenado \+ Undercoating/i.test(turaguaUnderbodyReply), 'turagua underbody answer should recommend active catalog offering');
+  assert(/catalogo/i.test(turaguaUnderbodyReply), 'turagua underbody answer should identify catalog grounding');
+
+  const otherBusinessUnderbodyReply = await buildAutomotiveGuidanceReply({
+    message: 'Cual recomiendas para proteger la parte inferior del carro?',
+    context: context([], {
+      business: { businessSlug: 'otro_taller', businessName: 'Otro Taller' },
+      catalog: [
+        { id: 'diag', name: 'Diagnostico general', description: 'Revision general', durationMinutes: 60, pricing: { type: 'not_published' }, publicVisible: true, active: true },
+      ],
+    }),
+  });
+  assert(!/Arenado \+ Undercoating/i.test(otherBusinessUnderbodyReply), 'other business must not receive Turagua offering name');
+  assert(/no veo un servicio activo del catalogo/i.test(otherBusinessUnderbodyReply), 'other business should avoid inventing an offering');
+
+  const inactiveUnderbodyReply = await buildAutomotiveGuidanceReply({
+    message: 'Cual recomiendas para proteger la parte inferior del carro?',
+    context: context([], {
+      catalog: [
+        {
+          id: 'off_turagua_sandblasting_undercoating',
+          name: 'Arenado + Undercoating',
+          description: 'Proteccion inferior y restauracion de chasis contra oxido, humedad y desgaste.',
+          durationMinutes: 180,
+          pricing: { type: 'not_published' },
+          publicVisible: true,
+          active: false,
+        },
+      ],
+    }),
+  });
+  assert(!/Arenado \+ Undercoating/i.test(inactiveUnderbodyReply), 'inactive underbody offering must not be recommended');
+  assert(/no veo un servicio activo del catalogo/i.test(inactiveUnderbodyReply), 'inactive underbody offering should not be treated as available');
 
   const semantic = await classifyHermesSemanticTurn({
     message: 'Enfria, pero suena el compresor. Eso es peligroso y cuanto cuesta revisarlo?',
