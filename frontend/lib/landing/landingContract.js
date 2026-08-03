@@ -67,6 +67,14 @@ export const defaultLandingContent = {
       data: {
         title: 'Nuestros Servicios',
         subtitle: 'Selecciona el servicio que necesita tu vehiculo: undercoating, arenado, pintura, mantenimiento, estetica o preparacion off-road.',
+        featuredOfferingIds: [
+          'off_turagua_general_diagnostic',
+          'off_turagua_preventive_maintenance',
+          'off_turagua_brake_service',
+          'off_turagua_lavado_premium',
+          'off_turagua_prepurchase_inspection',
+          'off_turagua_sandblasting_undercoating',
+        ],
       },
     },
     {
@@ -102,8 +110,9 @@ export const mockLandingPayload = {
     agent: { name: 'Iris' },
   },
   catalogOfferings: [
-    { _id: 'off_general_diagnostic', name: 'Diagnostico general', description: 'Revision integral del vehiculo.', publicVisible: true },
-    { _id: 'off_preventive_maintenance', name: 'Mantenimiento preventivo', description: 'Servicio programado por kilometraje.', publicVisible: true },
-    { _id: 'off_lavado_premium', name: 'Lavado premium', description: 'Limpieza profunda interior y exterior.', publicVisible: true },
+    { _id: 'off_turagua_general_diagnostic', name: 'Diagnostico general', description: 'Revision integral del vehiculo.', publicVisible: true },
+    { _id: 'off_turagua_preventive_maintenance', name: 'Mantenimiento preventivo', description: 'Servicio programado por kilometraje.', publicVisible: true },
+    { _id: 'off_turagua_lavado_premium', name: 'Lavado premium', description: 'Limpieza profunda interior y exterior.', publicVisible: true },
+    { _id: 'off_turagua_sandblasting_undercoating', name: 'Arenado + Undercoating', description: 'Proteccion inferior contra oxido y desgaste.', publicVisible: true },
   ],
 };

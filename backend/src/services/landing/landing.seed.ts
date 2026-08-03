@@ -1,12 +1,12 @@
 import { LandingContent } from './landing.contracts';
 
 const catalogIds = [
-  'off_general_diagnostic',
-  'off_preventive_maintenance',
-  'off_brake_service',
-  'off_lavado_premium',
-  'off_prepurchase_inspection',
-  'off_sandblasting_undercoating',
+  'off_turagua_general_diagnostic',
+  'off_turagua_preventive_maintenance',
+  'off_turagua_brake_service',
+  'off_turagua_lavado_premium',
+  'off_turagua_prepurchase_inspection',
+  'off_turagua_sandblasting_undercoating',
 ];
 
 export const demoTestLandingSeed: LandingContent = {

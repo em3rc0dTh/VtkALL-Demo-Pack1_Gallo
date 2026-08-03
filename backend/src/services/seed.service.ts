@@ -136,34 +136,201 @@ const DEMO_TEST_WORK_TEAM_SCHEDULE_RULES = [
   { _id: 'rule_consultation_fri_0900_1700', businessSlug: 'demo_test', teamId: 'team_consultation', weekday: 5, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
 ];
 
-const OFFERING_DURATION_BY_ID: Record<string, { teamId: string; durationMinutes: number }> = {
-  off_general_diagnostic: { teamId: 'team_mechanics', durationMinutes: 60 },
-  off_preventive_maintenance: { teamId: 'team_mechanics', durationMinutes: 90 },
-  off_brake_service: { teamId: 'team_mechanics', durationMinutes: 60 },
-  off_engine_check: { teamId: 'team_mechanics', durationMinutes: 60 },
-  off_lavado_premium: { teamId: 'team_detailing', durationMinutes: 120 },
-  off_body_paint: { teamId: 'team_bodywork', durationMinutes: 180 },
-  off_prepurchase_inspection: { teamId: 'team_mechanics', durationMinutes: 90 },
-  off_sandblasting_undercoating: { teamId: 'team_bodywork', durationMinutes: 180 },
+const TURAGUA_BUSINESS_PROFILE = {
+  _id: 'bp_turagua',
+  businessSlug: 'turagua',
+  businessName: 'Turagua Racing Peru',
+  displayName: 'Turagua Racing Peru',
+  verticalType: 'vehicle_service',
+  brand: {
+    displayName: 'Turagua Racing Peru',
+    country: 'PE',
+    timezone: 'America/Lima',
+  },
+  agent: {
+    name: 'Iris',
+    enabled: true,
+    role: 'Asesora virtual de atencion automotriz',
+    primaryChannel: 'web_chat',
+  },
+  labels: {
+    customer: 'Cliente',
+    case: 'Solicitud',
+    managedEntity: 'Vehiculo',
+    appointment: 'Cita',
+  },
+  features: {
+    supportsAppointments: true,
+    supportsQuotes: true,
+    supportsWorkOrders: true,
+    supportsVehicleData: true,
+  },
+  active: true,
 };
 
-const enrichCatalogOfferings = () =>
-  ((mockData as any).catalogOfferings || []).map((offering: any) => {
-    const operational = OFFERING_DURATION_BY_ID[offering._id];
-    if (!operational) {
-      return offering;
-    }
+export const TURAGUA_CATALOG_OFFERING_IDS = [
+  'off_turagua_general_diagnostic',
+  'off_turagua_preventive_maintenance',
+  'off_turagua_brake_service',
+  'off_turagua_lavado_premium',
+  'off_turagua_prepurchase_inspection',
+  'off_turagua_sandblasting_undercoating',
+];
 
-    return {
-      ...offering,
-      fulfillmentPolicy: {
-        ...(offering.fulfillmentPolicy || {}),
-        suggestedTeamId: operational.teamId,
-        estimatedDurationMinutes: operational.durationMinutes,
-        slotGranularityMinutes: 15,
-      },
-    };
-  });
+const TURAGUA_CATALOG_OFFERINGS = [
+  {
+    _id: 'off_turagua_general_diagnostic',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Diagnostico general',
+    description: 'Revision tecnica inicial para identificar necesidades de mantenimiento, proteccion o restauracion del vehiculo.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 10,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: true,
+      requiresWorkOrder: false,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 60,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+  {
+    _id: 'off_turagua_preventive_maintenance',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Mantenimiento preventivo',
+    description: 'Servicio programado para conservar el rendimiento del vehiculo y prevenir fallas por desgaste.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 20,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: true,
+      requiresWorkOrder: true,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 90,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+  {
+    _id: 'off_turagua_brake_service',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Servicio de frenos',
+    description: 'Revision y mantenimiento del sistema de frenos con foco en seguridad y respuesta.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 30,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: true,
+      requiresWorkOrder: true,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 60,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+  {
+    _id: 'off_turagua_lavado_premium',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Lavado premium',
+    description: 'Limpieza profunda interior y exterior para recuperar presencia, detalle y cuidado visual.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 40,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: false,
+      requiresWorkOrder: false,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 120,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+  {
+    _id: 'off_turagua_prepurchase_inspection',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Inspeccion pre-compra',
+    description: 'Evaluacion tecnica para revisar el estado de un vehiculo antes de tomar una decision de compra.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 50,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: true,
+      requiresWorkOrder: false,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 90,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+  {
+    _id: 'off_turagua_sandblasting_undercoating',
+    businessSlug: 'turagua',
+    verticalType: 'vehicle_service',
+    offeringType: 'service',
+    category: 'automotive',
+    name: 'Arenado + Undercoating',
+    description: 'Preparacion, arenado y proteccion inferior para resistir oxido, humedad, desgaste y uso exigente.',
+    publicVisible: true,
+    active: true,
+    displayOrder: 60,
+    pricingPolicy: { type: 'informational' },
+    fulfillmentPolicy: {
+      requiresAppointment: true,
+      requiresAssessment: true,
+      requiresWorkOrder: true,
+      suggestedTeamId: 'team_turagua_service',
+      estimatedDurationMinutes: 180,
+      slotGranularityMinutes: 15,
+      defaultTaskTemplates: [],
+    },
+  },
+];
+
+const TURAGUA_WORK_TEAMS = [
+  {
+    _id: 'team_turagua_service',
+    businessSlug: 'turagua',
+    name: 'Equipo de Servicio Turagua',
+    type: 'mechanics',
+    capacity: 1,
+    slotGranularityMinutes: 15,
+    active: true,
+  },
+];
+
+const TURAGUA_WORK_TEAM_SCHEDULE_RULES = [
+  { _id: 'rule_turagua_service_mon_0900_1700', businessSlug: 'turagua', teamId: 'team_turagua_service', weekday: 1, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
+  { _id: 'rule_turagua_service_tue_0900_1700', businessSlug: 'turagua', teamId: 'team_turagua_service', weekday: 2, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
+  { _id: 'rule_turagua_service_wed_0900_1700', businessSlug: 'turagua', teamId: 'team_turagua_service', weekday: 3, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
+  { _id: 'rule_turagua_service_thu_0900_1700', businessSlug: 'turagua', teamId: 'team_turagua_service', weekday: 4, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
+  { _id: 'rule_turagua_service_fri_0900_1700', businessSlug: 'turagua', teamId: 'team_turagua_service', weekday: 5, startTime: '09:00', endTime: '17:00', capacity: 1, active: true },
+];
 
 const MOCK_WORK_TEAMS = [
   {
@@ -324,19 +491,14 @@ const dataForNamespace = (collectionName: string, namespace: Exclude<SeedNamespa
     return [];
   }
 
-  return collectionName === 'availabilitySlots'
-    ? MOCK_AVAILABILITY_SLOTS
-    : collectionName === 'catalogOfferings'
-      ? enrichCatalogOfferings()
-      : collectionName === 'workTeams'
-        ? MOCK_WORK_TEAMS
-        : collectionName === 'workTeamScheduleRules'
-          ? MOCK_WORK_TEAM_SCHEDULE_RULES
-          : collectionName === 'workTeamScheduleOverrides'
-            ? MOCK_WORK_TEAM_SCHEDULE_OVERRIDES
-            : collectionName === 'resourceReservations'
-              ? []
-              : (mockData as any)[collectionName] || [];
+  if (collectionName === 'businessProfiles') return [TURAGUA_BUSINESS_PROFILE];
+  if (collectionName === 'catalogOfferings') return TURAGUA_CATALOG_OFFERINGS;
+  if (collectionName === 'workTeams') return TURAGUA_WORK_TEAMS;
+  if (collectionName === 'workTeamScheduleRules') return TURAGUA_WORK_TEAM_SCHEDULE_RULES;
+  if (collectionName === 'workTeamScheduleOverrides') return [];
+  if (collectionName === 'resourceReservations') return [];
+  if (collectionName === 'availabilitySlots') return [];
+  return [];
 };
 
 const seedNamespace = async (namespace: Exclude<SeedNamespace, 'all'>, reset: boolean) => {

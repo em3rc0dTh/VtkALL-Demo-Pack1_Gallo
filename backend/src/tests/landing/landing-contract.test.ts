@@ -36,4 +36,14 @@ assert.ok(demoTestLandingSeed.blocks.some((block) => block.type === 'agent_call_
 assert.ok(turaguaLandingSeed.blocks.some((block) => block.type === 'catalog'));
 assert.ok(turaguaLandingSeed.blocks.every((block) => LANDING_BLOCK_TYPES.includes(block.type)));
 
+const turaguaCatalogBlock = turaguaLandingSeed.blocks.find((block) => block.type === 'catalog');
+assert.deepEqual(turaguaCatalogBlock?.data.featuredOfferingIds, [
+  'off_turagua_general_diagnostic',
+  'off_turagua_preventive_maintenance',
+  'off_turagua_brake_service',
+  'off_turagua_lavado_premium',
+  'off_turagua_prepurchase_inspection',
+  'off_turagua_sandblasting_undercoating',
+]);
+
 console.log('Landing contract acceptance passed.');
