@@ -945,10 +945,41 @@ export const modelProposalsFromUnderstanding = (input: {
     .slice(0, 2);
 };
 
-const isClientSafeReply = (reply: string) => {
+const compactVisibleEchoText = (value: string) =>
+  normalize(value)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const visibleEchoTokens = (value: string) =>
+  compactVisibleEchoText(value)
+    .split(' ')
+    .filter((token) => token.length >= 3);
+
+const echoesCurrentUserMessage = (userMessage: string, reply: string) => {
+  const user = compactVisibleEchoText(userMessage);
+  const text = compactVisibleEchoText(reply);
+  if (Boolean(user) && user.length >= 8 && text === user) return true;
+  const userTokens = visibleEchoTokens(userMessage);
+  const replyTokens = visibleEchoTokens(reply);
+  if (userTokens.length < 2 || replyTokens.length < 2 || userTokens.length > 8 || replyTokens.length > 8) return false;
+  const replySet = new Set(replyTokens);
+  const overlap = userTokens.filter((token) => replySet.has(token)).length;
+  const coverage = overlap / Math.max(userTokens.length, replyTokens.length);
+  return coverage >= 0.75 && Math.abs(userTokens.length - replyTokens.length) <= 2;
+};
+
+const echoesRecentUserMessage = (reply: string, context?: HermesReadOnlyContext) =>
+  (context?.conversation?.history || [])
+    .slice(-8)
+    .some((entry) => entry.role === 'user' && echoesCurrentUserMessage(entry.content, reply));
+
+const isClientSafeReply = (reply: string, userMessage = '', context?: HermesReadOnlyContext) => {
   const normalized = normalize(reply);
   return Boolean(reply.trim())
     && reply.trim().length <= 1200
+    && !echoesCurrentUserMessage(userMessage, reply)
+    && !echoesRecentUserMessage(reply, context)
     && !FORBIDDEN_VISIBLE_TERMS.some((term) => normalized.includes(term));
 };
 
@@ -1060,7 +1091,7 @@ export const composeHermesReply = async (input: {
     });
   }
   const reply = String((result?.parsed as any)?.reply || '').trim();
-  if (!isClientSafeReply(reply)) {
+  if (!isClientSafeReply(reply, input.userMessage, input.context)) {
     logIrisTurnBriefMetric({
       ...input,
       conversationalState,

@@ -4,6 +4,12 @@ import { HermesTriageResult } from '../contracts/hermesTriage.contract';
 import { HermesSkillResult } from '../contracts/hermesSkillRegistry.contract';
 import { HermesQuestionSummary, HermesSkillId, HermesTurnAssessment } from '../contracts/hermesTurnAssessment.contract';
 
+const normalizeText = (value: string) =>
+  String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
 const awaitingFromState = (state?: any) =>
   String(
     state?.awaiting?.nextRecommendedField
@@ -175,6 +181,9 @@ const proposalsFrom = (input: {
   const hasContactData = Boolean(input.assessment.extractedData.phonePresent || input.assessment.extractedData.emailPresent);
   const primaryIntent = input.assessment.primaryIntent.type;
   const activeProcess = Boolean(input.assessment.activeProcess);
+  const normalizedTurn = normalizeText(turnText);
+  const bookingNegated = /\b(no quiero|no deseo|no voy a|todavia no|aun no|solo|solamente)\b.*\b(reserv|agend|cita|turno)\w*/.test(normalizedTurn)
+    || /\b(solo|solamente)\s+(estoy\s+)?(consultando|preguntando|averiguando)\b/.test(normalizedTurn);
 
   if (input.plan.decision === 'DELEGATE_INFORMATIONAL') {
     proposals.push({
@@ -186,6 +195,7 @@ const proposalsFrom = (input: {
   }
 
   if (!['PROPOSE_ACTION', 'CONTINUE_ACTIVE_PROCESS'].includes(input.plan.decision)) return proposals;
+  if (bookingNegated) return proposals;
   const transactionalQuestion =
     primaryIntent === 'request_availability'
     || primaryIntent === 'select_slot'

@@ -30,6 +30,7 @@ export type HermesCoherenceRejectionReason =
   | 'TOPIC_REFERENCE_LOST'
   | 'AUTOMOTIVE_QUERY_REJECTED_AS_OFF_DOMAIN'
   | 'IRRELEVANT_OFF_DOMAIN_REASON'
+  | 'USER_MESSAGE_ECHO'
   | 'OBLIGATION_MISSING'
   | 'OBLIGATION_CONTRADICTED'
   | 'REPEATED_RESPONSE_AFTER_NEW_EVIDENCE';
@@ -91,6 +92,35 @@ const isMostlyEnglish = (reply: string) => {
 const hasBrokenSpanish = (reply: string) =>
   /\bcomo se suena\b|\bcomo se (?:vibra|falla|ruido)\b|\bque te suena\b|\bcomo se siente\b.*\bruido\b/i.test(normalize(reply));
 
+const compactEchoText = (value: string) =>
+  normalize(value)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const echoTokens = (value: string) =>
+  compactEchoText(value)
+    .split(' ')
+    .filter((token) => token.length >= 3);
+
+const echoesCurrentUserMessage = (message: string, reply: string) => {
+  const user = compactEchoText(message);
+  const text = compactEchoText(reply);
+  if (Boolean(user) && user.length >= 8 && text === user) return true;
+  const userTokens = echoTokens(message);
+  const replyTokens = echoTokens(reply);
+  if (userTokens.length < 2 || replyTokens.length < 2 || userTokens.length > 8 || replyTokens.length > 8) return false;
+  const replySet = new Set(replyTokens);
+  const overlap = userTokens.filter((token) => replySet.has(token)).length;
+  const coverage = overlap / Math.max(userTokens.length, replyTokens.length);
+  return coverage >= 0.75 && Math.abs(userTokens.length - replyTokens.length) <= 2;
+};
+
+const echoesRecentUserMessage = (reply: string, context?: HermesReadOnlyContext) =>
+  (context?.conversation?.history || [])
+    .slice(-8)
+    .some((entry) => entry.role === 'user' && echoesCurrentUserMessage(entry.content, reply));
+
 const isWeakEchoQuestion = (message: string, reply: string) => {
   const user = normalize(message);
   const text = normalize(reply);
@@ -125,6 +155,15 @@ const hasMafMapContradiction = (reply: string) => {
     || /\bescaner(?:a)? de combustible\b/.test(normalized)
   );
 };
+
+const hasUnderbodyProtectionContradiction = (message: string, reply: string) =>
+  /\b(parte inferior|bajos|chasis|undercoating|oxido|humedad)\b/.test(normalize(message))
+  && /\b(desempeno|estabilidad|rendimiento)\b.*\bmotor\b|\bmotor\b.*\b(desempeno|estabilidad|rendimiento)\b/.test(normalize(reply));
+
+const missesUnderbodyProtectionAnswer = (message: string, reply: string) =>
+  /\b(parte inferior|bajos|chasis|undercoating|oxido|humedad)\b/.test(normalize(message))
+  && /\b(proteger|proteccion|recomiendas|conviene|mejor)\b/.test(normalize(message))
+  && !/\b(undercoating|arenado|chasis|oxido|humedad|desgaste|anticorrosiv)\b/.test(normalize(reply));
 
 const asksForPreviousSteps = (message: string, context?: HermesReadOnlyContext) => {
   const normalized = normalize(message);
@@ -213,11 +252,14 @@ export const evaluateHermesConversationalCoherence = async (input: {
   });
   const automotive = domain.domain === 'automotive' || isAutomotiveSemanticIntent(semantic.intent) || await hasAutomotiveDomainSignal(userMessage, input.context);
 
+  if (echoesCurrentUserMessage(userMessage, reply) || echoesRecentUserMessage(reply, input.context)) rejectionReasons.push('USER_MESSAGE_ECHO');
   if (isMostlyEnglish(reply) || hasBrokenSpanish(reply)) rejectionReasons.push('LOCALE_MISMATCH');
   if (isWeakEchoQuestion(userMessage, reply)) rejectionReasons.push('TOPIC_REFERENCE_LOST');
   if (echoesOldCommercialQuestion(userMessage, reply)) rejectionReasons.push('TOPIC_REFERENCE_LOST');
   if (hasIdentityContradiction(reply)) rejectionReasons.push('IDENTITY_CONTRADICTION');
   if (hasMafMapContradiction(reply)) rejectionReasons.push('TECHNICAL_FACT_CONTRADICTION');
+  if (hasUnderbodyProtectionContradiction(userMessage, reply)) rejectionReasons.push('TECHNICAL_FACT_CONTRADICTION');
+  if (missesUnderbodyProtectionAnswer(userMessage, reply)) rejectionReasons.push('TECHNICAL_FACT_CONTRADICTION');
   if (!isCatalogRequest(userMessage) && isCatalogPivot(reply)) rejectionReasons.push('UNREQUESTED_CATALOG_PIVOT');
   if (asksForPreviousSteps(userMessage, input.context) && isCatalogPivot(reply)) rejectionReasons.push('TOPIC_DISCONTINUITY');
   if (automotive && isOffDomainReply(reply)) rejectionReasons.push('OFF_DOMAIN_FALSE_POSITIVE');

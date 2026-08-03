@@ -105,6 +105,10 @@ const hasUnsupportedServiceRequest = (message: string) =>
 const hasGenericBookingRequest = (message: string) =>
   /\b(quiero|quisiera|necesito|busco)\b.*\b(cita|reserva|reservar|agendar|turno)\b|\b(agendar|reservar)\b/.test(normalize(message));
 
+const hasBookingNegation = (message: string) =>
+  /\b(no quiero|no deseo|no voy a|todavia no|aun no|solo|solamente)\b.*\b(reserv|agend|cita|turno)\w*/.test(normalize(message))
+  || /\b(solo|solamente)\s+(estoy\s+)?(consultando|preguntando|averiguando)\b/.test(normalize(message));
+
 const hasMemoryRecallQuestion = (message: string) =>
   /\b(recuerdas|te acuerdas|cuando te dije|lo que te dije|eso que te dije|hablamos)\b/i.test(normalize(message));
 
@@ -334,6 +338,10 @@ const currentTurnAnswer = async (input: ResponseSynthesisInput) => {
       return 'No encontre una conversacion previa con ese dato. Igual podemos empezar desde aqui. Cuentame que necesitas revisar.';
     }
     return 'Gracias. Tomo ese dato para revisar la continuidad de la atencion. No necesito ningun codigo de seguridad por aqui; cuentame en que te ayudo y seguimos desde lo que corresponda.';
+  }
+
+  if (hasBookingNegation(input.userMessage)) {
+    return 'Claro, seguimos solo como consulta. No inicio una reserva; puedo explicarte servicios, diferencias o recomendaciones para tu vehiculo.';
   }
 
   if (input.turnAssessment.arbitration?.lane === 'clearly_external' || primaryIntent === 'off_domain') {

@@ -95,6 +95,47 @@ const run = async () => {
   });
   assert(!stalePriceGate.accepted, 'gate should reject stale commercial question echoes');
 
+  const literalEchoGate = await evaluateHermesConversationalCoherence({
+    userMessage: 'Hola Iris, como estas?',
+    reply: 'Hola Iris, como estas?',
+    context: ctx,
+  });
+  assert(!literalEchoGate.accepted, 'gate should reject literal echoes of the current user message');
+  assert(literalEchoGate.rejectionReasons.includes('USER_MESSAGE_ECHO'), 'literal echo reason should be present');
+
+  const recentUserEchoGate = await evaluateHermesConversationalCoherence({
+    userMessage: 'Quien eres?',
+    reply: 'Hola Iris, como estas?',
+    context: context([
+      { role: 'user', content: 'Hola Iris, como estas?' },
+      { role: 'assistant', content: 'Aqui estoy contigo. Cuentame que necesitas revisar o resolver.' },
+    ]),
+  });
+  assert(!recentUserEchoGate.accepted, 'gate should reject echoes of recent user messages');
+  assert(recentUserEchoGate.rejectionReasons.includes('USER_MESSAGE_ECHO'), 'recent user echo reason should be present');
+
+  const underbodyContradictionGate = await evaluateHermesConversationalCoherence({
+    userMessage: 'Cual recomiendas para proteger la parte inferior del carro?',
+    reply: 'Para proteger la parte inferior del carro, recomiendo Arenado + Undercoating para garantizar el desempeno y la estabilidad del motor.',
+    context: ctx,
+  });
+  assert(!underbodyContradictionGate.accepted, 'gate should reject underbody protection answers grounded in motor performance');
+  assert(underbodyContradictionGate.rejectionReasons.includes('TECHNICAL_FACT_CONTRADICTION'), 'underbody contradiction reason should be present');
+
+  const underbodyMissGate = await evaluateHermesConversationalCoherence({
+    userMessage: 'Cual recomiendas para proteger la parte inferior del carro?',
+    reply: 'Para proteger la parte inferior del carro, recomiendo usar un protector de seguridad y un cinturon de seguridad para asegurar tu vehiculo.',
+    context: ctx,
+  });
+  assert(!underbodyMissGate.accepted, 'gate should reject underbody answers that miss the undercoating/chassis grounding');
+  assert(underbodyMissGate.rejectionReasons.includes('TECHNICAL_FACT_CONTRADICTION'), 'underbody missing-grounding reason should be present');
+
+  const bookingNegation = await classifyHermesSemanticTurn({
+    message: 'Solo estoy consultando, todavia no quiero reservar.',
+    context: ctx,
+  });
+  assert(bookingNegation.intent !== 'booking_intent', `booking negation should not be booking_intent, got ${bookingNegation.intent}`);
+
   const semantic = await classifyHermesSemanticTurn({
     message: 'Enfria, pero suena el compresor. Eso es peligroso y cuanto cuesta revisarlo?',
     context: ctx,
@@ -154,6 +195,46 @@ const run = async () => {
   });
   assert(visible.runtime === 'hermes', 'composed candidate should be eligible for Hermes visible runtime');
   assert(/compresor/i.test(visible.message), 'visible reply should come from composed candidate');
+
+  const echoVisible = await resolveHermesVisibleRuntime({
+    businessSlug: 'turagua',
+    conversationId: 'h12-echo-candidate',
+    route: 'initial',
+    userMessage: 'Hola Iris, como estas?',
+    runtimeResult: {
+      provider: 'hermes',
+      model: 'ollama-test',
+      message: 'Hola Iris, como estas?',
+      toolResults: [],
+    },
+    context: ctx,
+    candidate: {
+      status: 'CANDIDATE_READY',
+      candidateText: 'Hola Iris, como estas?',
+      responsePurpose: 'direct_response',
+      processContinuity: 'none',
+      answeredSideQuestions: [],
+      actionDisclosure: {
+        executionOccurred: false,
+        availabilityVerified: false,
+        confirmationIssued: false,
+      },
+      authorityDisclosure: {
+        mentionsPendingValidation: false,
+        mentionsPendingAvailability: false,
+        mentionsHumanReview: false,
+      },
+      sourceSkillId: 'customer-conversation',
+      requiresVisibilityGate: true,
+      fallbackRecommendation: 'none',
+      sanitizedMetadata: {},
+    },
+    selectedSkill: 'customer-conversation',
+  });
+  assert(echoVisible.runtime === 'hermes', 'echo candidate should be repaired post gate');
+  assert(echoVisible.naturalizationFallbackUsed, 'echo candidate should use naturalized repair');
+  assert(!/Hola Iris, como estas\?/i.test(echoVisible.message), 'visible reply must not echo the user');
+  assert(echoVisible.validationResult.rejectionReasons.includes('REPAIRED_USER_MESSAGE_ECHO'), 'visible decision should expose repaired echo reason');
 
   console.log('h12-response-obligations: PASS');
 };

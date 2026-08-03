@@ -275,6 +275,10 @@ const hasCatalogOfferingQuestion = (message: string) =>
 const hasBookingIntent = (message: string) =>
   /\b(reserv|agend|cita|turno|horario|disponib|quiero reservar|agendame|separar)\w*/.test(normalize(message));
 
+const hasBookingNegation = (message: string) =>
+  /\b(no quiero|no deseo|no voy a|todavia no|aun no|solo|solamente)\b.*\b(reserv|agend|cita|turno)\w*/.test(normalize(message))
+  || /\b(solo|solamente)\s+(estoy\s+)?(consultando|preguntando|averiguando)\b/.test(normalize(message));
+
 const hasServiceRequest = (message: string) =>
   /\b(quiero que revisen|quiero revisar|necesito revisar|necesito que revisen|quiero que vean|necesito solucionar|revisen mi|revisar mi|evaluar mi|evaluacion para|revision para|quiero un|quiero una|necesito un|necesito una|limpiar|escanear|pasarle scanner)\b/.test(normalize(message));
 
@@ -298,7 +302,7 @@ export const classifyHermesSemanticTurn = async (input: {
   const domain = await resolveHermesDomain({ message, context: input.context });
 
   if (domain.domain === 'clearly_external') return { intent: 'off_domain', confidence: 'high', reasonCode: `EXTERNAL_${domain.externalCategory || 'other'}` };
-  if (hasBookingIntent(message)) return { intent: 'booking_intent', confidence: 'high', reasonCode: 'BOOKING_TERMS' };
+  if (hasBookingIntent(message) && !hasBookingNegation(message)) return { intent: 'booking_intent', confidence: 'high', reasonCode: 'BOOKING_TERMS' };
   if (hasCatalogGeneralRequest(message)) return { intent: 'catalog_general', confidence: 'high', reasonCode: 'CATALOG_GENERAL_TERMS' };
 
   const automotive = domain.domain === 'automotive' || (await hasAutomotiveDomainSignal(message, input.context));
@@ -394,6 +398,8 @@ export const buildAutomotiveGuidanceReply = async (input: {
   const currentMentionsMaf = /\bmaf\b/.test(current);
   const currentAsksPreviousSteps = /\b(cuales son los pasos|que pasos|los pasos|cuales pasos)\b/.test(current);
   const currentIsCatalogOrOffering = /\b(undercoating|arenado|servicio|servicios|catalogo|catalogo|opciones|ofrecen|ofreces|tienen|tienes|corresponde)\b/.test(current);
+  const currentAsksUnderbodyProtection = /\b(parte inferior|bajos|chasis|undercoating|oxido|humedad)\b/.test(current)
+    && /\b(proteger|proteccion|recomiendas|conviene|mejor)\b/.test(current);
 
   if (delta.correctedFacts['engine.powerLoss'] === false && hasFact(conversationState, 'symptom.vibration', true)) {
     return finalize(`Perfecto, entonces no es perdida de potencia: el dato clave es la vibracion. Puede venir de soportes, ruedas, suspension, frenos o transmision segun cuando aparece. Vibra en minimo, al acelerar o al frenar?${resume}`);
@@ -425,6 +431,10 @@ export const buildAutomotiveGuidanceReply = async (input: {
 
   if (currentMentionsMaf || (currentAsksPreviousSteps && /\bmaf\b/.test(text))) {
     return finalize(`El MAF es el sensor de flujo de masa de aire. Algunas senales de problema son perdida de potencia, ralenti inestable, tirones, mayor consumo o check engine. Esos sintomas tambien pueden venir de otras causas, asi que conviene revisar codigos OBD, cableado, fugas de admision y lecturas del sensor antes de cambiar piezas. Has notado alguno de esos sintomas?${resume}`);
+  }
+
+  if (currentAsksUnderbodyProtection) {
+    return finalize(`Para proteger la parte inferior del carro, la opcion mas alineada es Arenado + Undercoating. Esta pensado para proteccion inferior y restauracion de chasis contra oxido, humedad, desgaste y uso fuerte. Si solo estas comparando opciones, puedo explicarte en que consiste sin iniciar una reserva.${resume}`);
   }
 
   if (currentIsCatalogOrOffering && domain.catalogMatches.length) {
