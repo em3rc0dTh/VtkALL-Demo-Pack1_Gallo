@@ -55,7 +55,6 @@ export const teamRepository = {
       label: 'WorkTeam',
       params: {
       businessSlug,
-      active: true,
       limit: 100,
       sort: 'name',
       },

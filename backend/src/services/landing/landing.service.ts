@@ -4,6 +4,8 @@ import { BusinessProfile } from '../../models/BusinessProfile.model';
 import { CatalogOffering } from '../../models/CatalogOffering.model';
 import { assertLandingContent, landingPagePatchSchema } from './landing.validation';
 import { LandingContent } from './landing.contracts';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const versionId = (landingPageId: string, version: number) => `${landingPageId}_v${version}`;
 
@@ -12,6 +14,49 @@ const clone = (value: any) => JSON.parse(JSON.stringify(value || {}));
 
 const nonEmpty = (...values: any[]) => values.find((value) => typeof value === 'string' && value.trim()) || '';
 const hasOwn = (value: any, key: string) => Boolean(value && Object.prototype.hasOwnProperty.call(value, key));
+const managedAssetRootFor = (assetUrl: string) => {
+  if (assetUrl.startsWith('/uploads/')) {
+    return {
+      root: path.resolve(process.env.BUSINESS_UPLOADS_DIR || path.join(process.cwd(), 'uploads')),
+      relativePath: assetUrl.replace(/^\/uploads\//, ''),
+    };
+  }
+  if (assetUrl.startsWith('/upload_utils/')) {
+    return {
+      root: path.resolve(process.env.UPLOAD_UTILS_DIR || path.join(process.cwd(), 'upload_utils')),
+      relativePath: assetUrl.replace(/^\/upload_utils\//, ''),
+    };
+  }
+  return null;
+};
+
+const assertManagedAssetExists = async (assetUrl: string, label: string) => {
+  const normalized = String(assetUrl || '').split(/[?#]/)[0];
+  const managed = managedAssetRootFor(normalized);
+  if (!managed) return;
+  const target = path.resolve(managed.root, managed.relativePath);
+  if (!target.startsWith(`${managed.root}${path.sep}`)) {
+    const error: any = new Error(`${label} references an invalid managed asset path.`);
+    error.status = 422;
+    error.code = 'LANDING_ASSET_INVALID_PATH';
+    throw error;
+  }
+  try {
+    const stats = await fs.stat(target);
+    if (stats.isFile()) return;
+  } catch (error) {
+    // handled below
+  }
+  const error: any = new Error(`${label} file is no longer available.`);
+  error.status = 422;
+  error.code = 'LANDING_ASSET_NOT_FOUND';
+  throw error;
+};
+
+const assertLandingAgentAssetsExist = async (content: any) => {
+  await assertManagedAssetExists(content?.agent?.avatarUrl || '', 'Agent avatar');
+  await assertManagedAssetExists(content?.agent?.bannerUrl || '', 'Agent banner');
+};
 
 export const toPublicBusinessProfile = (profile: any) => {
   const serialized = serializePage(profile);
@@ -194,7 +239,11 @@ export const updateDraftLandingPage = async ({
   if (!page) return null;
 
   if (parsed.title) page.title = parsed.title;
-  if (parsed.draft) page.draft = assertLandingContent(stripBusinessOwnedLandingData(parsed.draft));
+  if (parsed.draft) {
+    const nextDraft = assertLandingContent(stripBusinessOwnedLandingData(parsed.draft));
+    await assertLandingAgentAssetsExist(nextDraft);
+    page.draft = nextDraft;
+  }
   await page.save();
   return serializePage(page);
 };
@@ -212,6 +261,7 @@ export const publishLandingPage = async ({
   if (!page) return null;
 
   const content = assertLandingContent(stripBusinessOwnedLandingData(page.draft)) as LandingContent;
+  await assertLandingAgentAssetsExist(content);
   const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
   const nextVersion = Number(latest?.version || 0) + 1;
   await LandingPageVersion.create({

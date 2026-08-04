@@ -61,4 +61,71 @@ export const adminMutationRepository = {
 
     return response?.data || response;
   },
+
+  async createCatalogOffering(payload) {
+    const response = await apiRequest('/api/v1/catalog-offerings', {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    return response?.data || response;
+  },
+
+  async updateCatalogOffering({ offeringId, patch }) {
+    const response = await apiRequest(`/api/v1/catalog-offerings/${encodeURIComponent(offeringId)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: JSON.stringify(patch),
+    });
+
+    return response?.data || response;
+  },
+
+  async deleteCatalogOffering(offeringId) {
+    const response = await apiRequest(`/api/v1/catalog-offerings/${encodeURIComponent(offeringId)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: JSON.stringify({
+        active: false,
+        publicVisible: false,
+        archivedAt: new Date().toISOString(),
+      }),
+    });
+
+    return response?.data || response;
+  },
+
+  async createWorkTeam(payload) {
+    const response = await apiRequest('/api/v1/work-teams', {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    return response?.data || response;
+  },
+
+  async updateWorkTeam({ teamId, patch }) {
+    const response = await apiRequest(`/api/v1/work-teams/${encodeURIComponent(teamId)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: JSON.stringify(patch),
+    });
+
+    return response?.data || response;
+  },
+
+  async deleteWorkTeam(teamId) {
+    const response = await apiRequest(`/api/v1/work-teams/${encodeURIComponent(teamId)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: JSON.stringify({
+        active: false,
+        archivedAt: new Date().toISOString(),
+      }),
+    });
+
+    return response?.data || response;
+  },
 };

@@ -10,8 +10,16 @@ const nextConfig = {
         destination: `${backendInternalUrl}/api/v1/:path*`,
       },
       {
+        source: '/api/demo-test/:path*',
+        destination: `${backendInternalUrl}/api/demo-test/:path*`,
+      },
+      {
         source: '/uploads/:path*',
         destination: `${backendInternalUrl}/uploads/:path*`,
+      },
+      {
+        source: '/upload_utils/:path*',
+        destination: `${backendInternalUrl}/upload_utils/:path*`,
       },
     ];
   },

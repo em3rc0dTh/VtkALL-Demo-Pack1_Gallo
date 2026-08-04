@@ -213,19 +213,21 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
     if (data.variant === 'turagua_legacy') {
       return <TuraguaLegacyHero data={data} businessName={businessName} businessIdentity={businessIdentity} agentName={agentName} logoUrl={logoUrl} onOpenChat={onOpenChat} builderEditing={builderEditing} />;
     }
+    const heroDark = data.variant === 'hero_dark_panel' || block.layout?.variant === 'hero_dark_panel';
+    const heroSplit = data.variant === 'hero_split_clean' || block.layout?.variant === 'hero_split_clean';
 
     return (
-      <section id="inicio" className="bg-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
+      <section id="inicio" className={heroDark ? 'bg-slate-950 text-white' : heroSplit ? 'bg-slate-50' : 'bg-white'}>
+        <div className={`mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:py-20 ${heroSplit ? 'lg:grid-cols-2' : 'lg:grid-cols-[1.05fr_0.95fr]'}`}>
           <div className="flex flex-col justify-center">
             <span className="mb-5 inline-flex w-fit items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black uppercase tracking-wide text-blue-700">
               <Sparkles className="h-4 w-4" />
               {data.eyebrow || businessName}
             </span>
-            <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-normal text-slate-950 sm:text-5xl lg:text-6xl">
+            <h1 className={`max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-5xl lg:text-6xl ${heroDark ? 'text-white' : 'text-slate-950'}`}>
               {data.title}
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">{data.subtitle}</p>
+            <p className={`mt-6 max-w-2xl text-lg leading-8 ${heroDark ? 'text-slate-300' : 'text-slate-600'}`}>{data.subtitle}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button type="button" onClick={onOpenChat} className="bg-[var(--landing-primary)] px-6">
                 <Bot className="h-4 w-4" />
@@ -236,8 +238,8 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
               </Button>
             </div>
           </div>
-          <div className="min-h-[360px] overflow-hidden rounded-lg border border-slate-200 bg-slate-950">
-            <div className="flex h-full flex-col justify-between bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_52%,#f59e0b_100%)] p-7 text-white">
+          <div className={`min-h-[360px] overflow-hidden rounded-lg border ${heroDark ? 'border-white/10 bg-white/8' : 'border-slate-200 bg-slate-950'}`}>
+            <div className={`flex h-full flex-col justify-between p-7 text-white ${heroSplit ? 'bg-[linear-gradient(135deg,#0284c7_0%,#0f172a_62%,#22d3ee_100%)]' : 'bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_52%,#f59e0b_100%)]'}`}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black uppercase tracking-wide">{businessName}</span>
                 <CalendarClock className="h-6 w-6" />
@@ -261,13 +263,16 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'stats') {
+    const variant = block.layout?.variant || '';
+    const dark = variant === 'stats_dark';
+    const strip = variant === 'stats_strip';
     return (
-      <section className="border-y border-slate-200 bg-slate-50">
-        <div className="mx-auto grid max-w-7xl gap-3 px-4 py-6 sm:grid-cols-3 sm:px-6">
+      <section className={`border-y ${dark ? 'border-slate-800 bg-slate-950 text-white' : strip ? 'border-sky-100 bg-white' : 'border-slate-200 bg-slate-50'}`}>
+        <div className={`mx-auto grid max-w-7xl gap-3 px-4 sm:grid-cols-3 sm:px-6 ${strip ? 'py-3' : 'py-6'}`}>
           {(data.items || []).map((item, index) => (
-            <div key={`${item.label}-${item.value}`} className="rounded-lg border border-slate-200 bg-white p-5">
+            <div key={`${item.label}-${item.value}`} className={`rounded-lg border p-5 ${dark ? 'border-white/10 bg-white/8' : strip ? 'border-transparent bg-sky-50' : 'border-slate-200 bg-white'}`}>
               <div className="text-3xl font-black text-[var(--landing-primary)]">{item.value}</div>
-              <div className="mt-1 text-sm font-semibold text-slate-600">{item.label}</div>
+              <div className={`mt-1 text-sm font-semibold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{item.label}</div>
             </div>
           ))}
         </div>
@@ -276,7 +281,7 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'catalog') {
-    if (block.layout?.variant === 'turagua_catalog_frame') {
+    if (['turagua_catalog_frame', 'turagua_catalog_compact', 'turagua_catalog_showcase'].includes(block.layout?.variant)) {
       return <TuraguaCatalogFrame id={id} block={block} offerings={catalogOfferings} businessName={businessName} agentName={agentName} onOpenChat={onOpenChat} builderEditing={builderEditing} />;
     }
 
@@ -307,7 +312,7 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'about' || block.type === 'structured_content') {
-    if (block.layout?.variant === 'turagua_about_frame') {
+    if (['turagua_about_frame', 'turagua_about_dark', 'turagua_about_clean'].includes(block.layout?.variant)) {
       return <TuraguaAboutFrame id={id === 'taller' ? 'nosotros' : id} block={block} builderEditing={builderEditing} />;
     }
 
@@ -346,17 +351,20 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
     if (block.layout?.variant === 'turagua_explore_services') {
       return <TuraguaExploreFrame id={id} block={block} onOpenChat={onOpenChat} builderEditing={builderEditing} />;
     }
+    const variant = block.layout?.variant || '';
+    const dark = variant === 'gallery_dark';
+    const strip = variant === 'gallery_strip';
 
     return (
-      <section id={id} className="bg-white py-14">
+      <section id={id} className={`${dark ? 'bg-slate-950 text-white' : 'bg-white'} py-14`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="text-3xl font-black text-slate-950">{data.title || 'Galeria'}</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className={`text-3xl font-black ${dark ? 'text-white' : 'text-slate-950'}`}>{data.title || 'Galeria'}</h2>
+          <div className={`mt-8 grid gap-4 ${strip ? 'auto-cols-[minmax(260px,1fr)] grid-flow-col overflow-x-auto' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
             {(data.items || []).map((item) => {
               const title = typeof item === 'string' ? item : item.title;
               const imageUrl = typeof item === 'string' ? '' : item.imageUrl;
               return (
-              <div key={title} className="relative flex min-h-44 items-end overflow-hidden rounded-lg bg-slate-950 p-5 text-white">
+              <div key={title} className={`relative flex items-end overflow-hidden rounded-lg bg-slate-950 p-5 text-white ${strip ? 'min-h-56' : 'min-h-44'}`}>
                 {imageUrl ? <img src={imageUrl} alt={title} className="absolute inset-0 h-full w-full object-cover opacity-65" /> : null}
                 <span className="relative z-10 text-lg font-black">{title}</span>
               </div>
@@ -368,12 +376,15 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'testimonials') {
+    const variant = block.layout?.variant || '';
+    const dark = variant === 'testimonials_dark';
+    const wall = variant === 'testimonials_quote_wall';
     return (
-      <section className="bg-slate-50 py-14">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 md:grid-cols-2">
+      <section className={`${dark ? 'bg-slate-950 text-white' : 'bg-slate-50'} py-14`}>
+        <div className={`mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 ${wall ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           {(data.items || []).map((item, index) => (
-            <blockquote key={`${item.author}-${item.quote}`} className="rounded-lg border border-slate-200 bg-white p-6">
-              <p className="text-lg font-semibold leading-8 text-slate-800">&ldquo;{item.quote}&rdquo;</p>
+            <blockquote key={`${item.author}-${item.quote}`} className={`rounded-lg border p-6 ${dark ? 'border-white/10 bg-white/8' : 'border-slate-200 bg-white'}`}>
+              <p className={`text-lg font-semibold leading-8 ${dark ? 'text-slate-100' : 'text-slate-800'}`}>&ldquo;{item.quote}&rdquo;</p>
               <footer className="mt-4 text-sm font-bold text-[var(--landing-primary)]">{item.author}</footer>
             </blockquote>
           ))}
@@ -383,9 +394,12 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'agent_call_to_action' || block.type === 'call_to_action') {
+    const variant = block.layout?.variant || '';
+    const dark = variant === 'cta_dark';
+    const panel = variant === 'cta_panel';
     return (
-      <section className="bg-[var(--landing-primary)] py-12 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:items-center">
+      <section className={`${dark ? 'bg-slate-950' : panel ? 'bg-slate-50' : 'bg-[var(--landing-primary)]'} py-12 text-white`}>
+        <div className={`mx-auto flex max-w-7xl flex-col gap-5 px-4 sm:px-6 ${panel ? 'items-center rounded-2xl bg-[var(--landing-primary)] p-8 text-center shadow-xl' : 'items-start justify-between lg:flex-row lg:items-center'}`}>
           <div>
             <h2 className="text-3xl font-black">{data.title || `Habla con ${agentName}`}</h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-blue-50">{data.body}</p>
@@ -400,7 +414,7 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'contact') {
-    if (block.layout?.variant === 'turagua_contact_frame') {
+    if (['turagua_contact_frame', 'turagua_contact_split', 'turagua_contact_compact', 'turagua_contact_dark'].includes(block.layout?.variant)) {
       return <TuraguaContactFrame id={id} block={block} businessName={businessName} businessIdentity={businessIdentity} agentName={agentName} onOpenChat={onOpenChat} builderEditing={builderEditing} />;
     }
 
@@ -416,12 +430,15 @@ function LandingBlock({ block, catalogOfferings, businessName, businessProfile, 
   }
 
   if (block.type === 'footer') {
+    const variant = block.layout?.variant || 'footer_dark';
+    const light = variant === 'footer_light';
+    const compact = variant === 'footer_compact';
     return (
-      <footer className="border-t border-slate-800 bg-slate-950 px-4 py-7 text-white sm:px-6">
+      <footer className={`border-t px-4 sm:px-6 ${compact ? 'py-4' : 'py-7'} ${light ? 'border-slate-200 bg-white text-slate-950' : 'border-slate-800 bg-slate-950 text-white'}`}>
         <div className="mx-auto flex max-w-[1320px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <span className="text-base font-black">{businessName}</span>
-            <p className="mt-1 text-sm text-slate-400">{businessIdentity.tagline || data.note}</p>
+            {!compact ? <p className={`mt-1 text-sm ${light ? 'text-slate-600' : 'text-slate-400'}`}>{businessIdentity.tagline || data.note}</p> : null}
           </div>
           <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">© {new Date().getFullYear()} {businessName}</span>
         </div>
@@ -1342,14 +1359,19 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
   const data = block.data || {};
   const editing = builderEditing?.enabled;
   const updateData = (patch) => builderEditing?.onBlockDataChange?.(block.type, patch);
-  const selected = data.featuredOfferingIds?.length
-    ? offerings.filter((offering) => data.featuredOfferingIds.includes(offering._id))
-    : offerings;
-  const services = selected.length ? selected : fallbackTuraguaServices;
+  const variant = block.layout?.variant || 'turagua_catalog_frame';
+  const compact = variant === 'turagua_catalog_compact';
+  const showcase = variant === 'turagua_catalog_showcase';
+  const services = offerings.length ? offerings : fallbackTuraguaServices;
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const openChatFromCatalog = () => {
+    setSelectedService(null);
+    setCatalogOpen(false);
+    onOpenChat();
+  };
   const categories = data.categories?.length ? data.categories : ['Todos'];
   const filtered = services.filter((service) => {
     const name = service.name || service.title || service.nombre || '';
@@ -1365,12 +1387,12 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
       id={id}
       data-landing-frame="TuraguaCatalogFrame"
       data-landing-renderer-version="turagua-frames-v2"
-      className="landing-section relative min-h-[calc(100vh-4rem)] overflow-hidden bg-[#eef2ff] py-[clamp(48px,7vh,80px)] scroll-mt-16"
+      className={`landing-section relative overflow-hidden scroll-mt-16 ${compact ? 'bg-slate-50 py-10' : showcase ? 'min-h-[calc(100vh-4rem)] bg-white py-[clamp(56px,8vh,92px)]' : 'min-h-[calc(100vh-4rem)] bg-[#eef2ff] py-[clamp(48px,7vh,80px)]'}`}
       onClick={() => editing && builderEditing?.onSelectElement?.({ blockId: block.id, blockType: block.type, label: 'Catalogo de servicios' })}
     >
       <div className="pointer-events-none absolute -right-24 top-16 text-[12vw] font-black uppercase tracking-tight text-white/55">Servicios</div>
-      <div className="relative mx-auto grid min-h-[calc(100vh-12rem)] max-w-[1320px] gap-8 px-[clamp(24px,5vw,72px)] lg:grid-cols-[0.34fr_0.66fr] lg:items-center">
-        <aside className="landing-reveal border border-slate-200 bg-white/94 p-6 shadow-lg shadow-slate-200/70 backdrop-blur">
+      <div className={`relative mx-auto grid max-w-[1320px] gap-8 px-[clamp(24px,5vw,72px)] ${compact ? 'lg:grid-cols-[0.28fr_0.72fr] lg:items-start' : showcase ? 'min-h-[calc(100vh-13rem)] lg:grid-cols-[0.44fr_0.56fr] lg:items-center' : 'min-h-[calc(100vh-12rem)] lg:grid-cols-[0.34fr_0.66fr] lg:items-center'}`}>
+        <aside className={`landing-reveal border border-slate-200 bg-white/94 p-6 backdrop-blur ${showcase ? 'shadow-2xl shadow-slate-200' : 'shadow-lg shadow-slate-200/70'}`}>
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--landing-primary)]">{data.eyebrow || 'Servicios Turagua'}</p>
           <h2 className="mt-3 text-3xl font-black leading-tight text-[#3f3436]">
             <EditableCanvasText value={data.title || 'Nuestros servicios'} enabled={editing} onChange={(title) => updateData({ title })} />
@@ -1378,7 +1400,7 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
           <p className="mt-4 text-sm leading-6 text-slate-600">
             <EditableCanvasText value={data.subtitle} enabled={editing} multiline onChange={(subtitle) => updateData({ subtitle })} />
           </p>
-          <div className="mt-6 grid grid-cols-3 gap-2 lg:grid-cols-1">
+          <div className={`mt-6 grid gap-2 ${compact ? 'grid-cols-1' : 'grid-cols-3 lg:grid-cols-1'}`}>
             {['Elige', `${agentName} coordina`, 'Box reservado'].map((step, index) => (
               <div key={step} className="landing-reveal landing-step-card border border-slate-200 bg-slate-50 p-3" style={{ '--landing-stagger': `${120 + index * 80}ms` }}>
                 <span className="text-lg font-black text-[var(--landing-primary)]">0{index + 1}</span>
@@ -1401,7 +1423,7 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
         </aside>
 
         <div className="min-w-0">
-          <ServiceGrid services={services.slice(0, 6)} onSelect={setSelectedService} />
+          <ServiceGrid services={services.slice(0, compact ? 8 : showcase ? 9 : 6)} onSelect={setSelectedService} variant={variant} />
         </div>
       </div>
 
@@ -1418,7 +1440,7 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
           services={filtered}
           onClose={() => setCatalogOpen(false)}
           onSelect={setSelectedService}
-          onOpenChat={onOpenChat}
+          onOpenChat={openChatFromCatalog}
         />
       ) : null}
 
@@ -1428,27 +1450,29 @@ function TuraguaCatalogFrame({ id, block, offerings, businessName, agentName, on
           businessName={businessName}
           agentName={agentName}
           onClose={() => setSelectedService(null)}
-          onOpenChat={onOpenChat}
+          onOpenChat={openChatFromCatalog}
         />
       ) : null}
     </section>
   );
 }
 
-function ServiceGrid({ services, onSelect }) {
+function ServiceGrid({ services, onSelect, variant = 'turagua_catalog_frame' }) {
+  const compact = variant === 'turagua_catalog_compact';
+  const showcase = variant === 'turagua_catalog_showcase';
   return (
-    <div className="landing-service-grid grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className={`landing-service-grid grid gap-4 ${compact ? 'md:grid-cols-2 xl:grid-cols-4' : showcase ? 'md:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
       {services.map((service, index) => (
           <button
             key={service._id || service.name || service.nombre}
             type="button"
             onClick={() => onSelect(service)}
-            className="landing-service-card landing-reveal relative flex min-h-48 flex-col justify-between overflow-hidden border border-slate-200 bg-white/95 p-5 text-left shadow-sm transition hover:border-sky-300"
+            className={`landing-service-card landing-reveal relative flex flex-col justify-between overflow-hidden border border-slate-200 bg-white/95 text-left shadow-sm transition hover:border-sky-300 ${compact ? 'min-h-36 p-4' : showcase ? 'min-h-56 p-6' : 'min-h-48 p-5'}`}
             style={{ '--landing-stagger': `${index * 60}ms` }}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="landing-service-index text-2xl font-black leading-none text-[var(--landing-primary)]">0{index + 1}</span>
+                <span className={`landing-service-index font-black leading-none text-[var(--landing-primary)] ${showcase ? 'text-4xl' : 'text-2xl'}`}>0{index + 1}</span>
                 <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{service.category || service.categoria || 'Especialidad'}</p>
               </div>
               <Wrench className="landing-service-icon h-5 w-5 shrink-0 text-[var(--landing-primary)]" />
@@ -1563,32 +1587,37 @@ function TuraguaAboutFrame({ id, block, builderEditing = null }) {
   const editing = builderEditing?.enabled;
   const updateData = (patch) => builderEditing?.onBlockDataChange?.(block.type, patch);
   const select = (label) => builderEditing?.onSelectElement?.({ blockId: block.id, blockType: block.type, label });
+  const variant = block.layout?.variant || 'turagua_about_frame';
+  const dark = variant === 'turagua_about_dark';
+  const clean = variant === 'turagua_about_clean';
   return (
-    <section id={id} className="landing-about-frame landing-section relative min-h-[calc(100vh-4rem)] overflow-hidden bg-white py-[clamp(52px,7vh,84px)] scroll-mt-16" onClick={() => editing && select('Sobre nosotros')}>
-      <div className="pointer-events-none absolute -left-10 bottom-8 h-32 w-1/2 border-l-4 border-[var(--landing-primary)]/20 bg-gradient-to-r from-sky-50/70 to-transparent" />
-      <div className="landing-about-connector" aria-hidden="true" />
-      <div className="relative mx-auto grid min-h-[calc(100vh-12rem)] max-w-[1320px] gap-10 px-[clamp(24px,5vw,72px)] lg:grid-cols-[0.48fr_0.52fr] lg:items-center">
-        <div className="landing-media-reveal relative min-h-[460px] overflow-hidden bg-slate-950 shadow-2xl shadow-slate-300/50">
-          {data.imageUrl ? <img src={data.imageUrl} alt={data.title || 'Turagua'} className="absolute inset-0 h-full w-full object-cover opacity-85" /> : null}
+    <section id={id} className={`landing-about-frame landing-section relative overflow-hidden py-[clamp(52px,7vh,84px)] scroll-mt-16 ${dark ? 'min-h-[calc(100vh-4rem)] bg-slate-950 text-white' : clean ? 'bg-slate-50' : 'min-h-[calc(100vh-4rem)] bg-white'}`} onClick={() => editing && select('Sobre nosotros')}>
+      {!clean ? <div className="pointer-events-none absolute -left-10 bottom-8 h-32 w-1/2 border-l-4 border-[var(--landing-primary)]/20 bg-gradient-to-r from-sky-50/70 to-transparent" /> : null}
+      {!clean ? <div className="landing-about-connector" aria-hidden="true" /> : null}
+      <div className={`relative mx-auto grid max-w-[1320px] gap-10 px-[clamp(24px,5vw,72px)] ${clean ? 'lg:grid-cols-1' : 'min-h-[calc(100vh-12rem)] lg:grid-cols-[0.48fr_0.52fr] lg:items-center'}`}>
+        {!clean ? (
+        <div className={`landing-media-reveal relative min-h-[460px] overflow-hidden bg-slate-950 shadow-2xl ${dark ? 'shadow-sky-950/40' : 'shadow-slate-300/50'}`}>
+          {data.imageUrl ? <img src={data.imageUrl} alt={data.title || 'Turagua'} className={`absolute inset-0 h-full w-full object-cover ${dark ? 'opacity-55' : 'opacity-85'}`} /> : null}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/65 to-transparent p-5">
             <div className="inline-flex rounded bg-[var(--landing-primary)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white">Detalle Turagua</div>
           </div>
         </div>
-        <div>
+        ) : null}
+        <div className={clean ? 'mx-auto max-w-5xl text-center' : ''}>
           <p className="landing-reveal text-xs font-black uppercase tracking-[0.24em] text-[var(--landing-primary)]">
             <EditableCanvasText value={data.eyebrow} enabled={editing} onChange={(eyebrow) => updateData({ eyebrow })} />
           </p>
-          <h2 className="landing-reveal mt-4 max-w-3xl text-4xl font-black leading-tight text-[#3f3436] sm:text-5xl" style={{ '--landing-stagger': '80ms' }}>
+          <h2 className={`landing-reveal mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl ${dark ? 'text-white' : 'text-[#3f3436]'} ${clean ? 'mx-auto' : ''}`} style={{ '--landing-stagger': '80ms' }}>
             <EditableCanvasText value={data.title} enabled={editing} onChange={(title) => updateData({ title })} />
           </h2>
-          <p className="landing-reveal mt-5 max-w-3xl text-lg leading-8 text-slate-600" style={{ '--landing-stagger': '160ms' }}>
+          <p className={`landing-reveal mt-5 max-w-3xl text-lg leading-8 ${dark ? 'text-slate-300' : 'text-slate-600'} ${clean ? 'mx-auto' : ''}`} style={{ '--landing-stagger': '160ms' }}>
             <EditableCanvasText value={data.body} enabled={editing} multiline onChange={(body) => updateData({ body, highlight: body })} />
           </p>
           <div className="landing-feature-grid mt-7 grid gap-3 md:grid-cols-3">
             {(data.features || []).map((feature, index) => (
               <div
                 key={feature.title}
-                className={`landing-feature-card landing-reveal border border-slate-200 bg-slate-50 p-4 ${editing ? 'transition hover:border-[var(--landing-primary)] hover:ring-2 hover:ring-[var(--landing-primary)]/20' : ''}`}
+                className={`landing-feature-card landing-reveal border p-4 ${dark ? 'border-white/10 bg-white/8' : clean ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-50'} ${editing ? 'transition hover:border-[var(--landing-primary)] hover:ring-2 hover:ring-[var(--landing-primary)]/20' : ''}`}
                 style={{ '--landing-stagger': `${240 + index * 80}ms` }}
                 data-landing-canvas-selectable={editing ? 'Feature' : undefined}
                 onClick={(event) => {
@@ -1598,7 +1627,7 @@ function TuraguaAboutFrame({ id, block, builderEditing = null }) {
                 }}
               >
                 <FeatureIcon name={feature.icon} />
-                <h3 className="mt-4 text-sm font-black text-[#3f3436]">
+                <h3 className={`mt-4 text-sm font-black ${dark ? 'text-white' : 'text-[#3f3436]'}`}>
                   <EditableCanvasText
                     value={feature.title}
                     enabled={editing}
@@ -1609,7 +1638,7 @@ function TuraguaAboutFrame({ id, block, builderEditing = null }) {
                     }}
                   />
                 </h3>
-                <p className="mt-2 text-xs leading-5 text-slate-500">
+                <p className={`mt-2 text-xs leading-5 ${dark ? 'text-slate-300' : 'text-slate-500'}`}>
                   <EditableCanvasText
                     value={feature.body || feature.description}
                     enabled={editing}
@@ -1677,6 +1706,10 @@ function TuraguaContactFrame({ id, block, businessName, businessIdentity = {}, a
   const editing = builderEditing?.enabled;
   const updateData = (patch) => builderEditing?.onBlockDataChange?.(block.type, patch);
   const select = (label) => builderEditing?.onSelectElement?.({ blockId: block.id, blockType: block.type, label });
+  const variant = block.layout?.variant || 'turagua_contact_frame';
+  const split = variant === 'turagua_contact_split';
+  const compact = variant === 'turagua_contact_compact';
+  const dark = variant === 'turagua_contact_dark';
   const selectedLocation = (businessIdentity.locations || []).find((location) => location.id === display.locationId) || businessIdentity.locations?.[0] || {};
   const email = businessIdentity.contact?.email || '';
   const phone = businessIdentity.contact?.primaryPhone || '';
@@ -1715,20 +1748,20 @@ function TuraguaContactFrame({ id, block, businessName, businessIdentity = {}, a
     onOpenChat();
   };
   return (
-    <section id={id} className="landing-contact-frame landing-section relative min-h-[calc(100vh-4rem)] overflow-hidden bg-[#f5f7fb] py-[clamp(52px,7vh,84px)] scroll-mt-16" onClick={() => editing && select('Contacto')}>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(0,174,239,0.12),transparent_32%),linear-gradient(135deg,rgba(17,24,39,0.04),transparent_55%)]" />
-      <div className="pointer-events-none absolute bottom-10 left-[8vw] text-[10vw] font-black uppercase tracking-tight text-white/70">Contacto</div>
-      <div className="relative mx-auto grid min-h-[calc(100vh-12rem)] max-w-[1320px] gap-8 px-[clamp(24px,5vw,72px)] lg:grid-cols-[0.56fr_0.44fr] lg:items-center">
+    <section id={id} className={`landing-contact-frame landing-section relative overflow-hidden scroll-mt-16 ${compact ? 'bg-white py-10' : dark ? 'min-h-[calc(100vh-4rem)] bg-slate-950 py-[clamp(52px,7vh,84px)] text-white' : split ? 'min-h-[calc(100vh-4rem)] bg-white py-[clamp(52px,7vh,84px)]' : 'min-h-[calc(100vh-4rem)] bg-[#f5f7fb] py-[clamp(52px,7vh,84px)]'}`} onClick={() => editing && select('Contacto')}>
+      {!compact ? <div className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(circle_at_20%_30%,rgba(0,174,239,0.18),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.06),transparent_55%)]' : 'bg-[radial-gradient(circle_at_20%_30%,rgba(0,174,239,0.12),transparent_32%),linear-gradient(135deg,rgba(17,24,39,0.04),transparent_55%)]'}`} /> : null}
+      {!compact ? <div className={`pointer-events-none absolute bottom-10 left-[8vw] text-[10vw] font-black uppercase tracking-tight ${dark ? 'text-white/5' : 'text-white/70'}`}>Contacto</div> : null}
+      <div className={`relative mx-auto grid max-w-[1320px] gap-8 px-[clamp(24px,5vw,72px)] ${compact ? 'lg:grid-cols-[0.7fr_0.3fr] lg:items-start' : split ? 'min-h-[calc(100vh-12rem)] lg:grid-cols-2 lg:items-stretch' : 'min-h-[calc(100vh-12rem)] lg:grid-cols-[0.56fr_0.44fr] lg:items-center'}`}>
         <div className="landing-reveal">
           <p className="landing-reveal text-xs font-black uppercase tracking-[0.24em] text-[var(--landing-primary)]">{content.eyebrow || data.eyebrow || 'Contacto & Atencion'}</p>
-          <h2 className="landing-reveal mt-4 text-5xl font-black text-[#3f3436]" style={{ '--landing-stagger': '80ms' }}>
+          <h2 className={`landing-reveal mt-4 font-black ${compact ? 'text-3xl' : 'text-5xl'} ${dark ? 'text-white' : 'text-[#3f3436]'}`} style={{ '--landing-stagger': '80ms' }}>
             <EditableCanvasText value={content.title || data.title || 'Contacto'} enabled={editing} onChange={(title) => updateData({ content: { ...content, title } })} />
           </h2>
-          <p className="landing-reveal mt-4 max-w-2xl text-lg leading-8 text-slate-600" style={{ '--landing-stagger': '160ms' }}>
+          <p className={`landing-reveal mt-4 max-w-2xl leading-8 ${compact ? 'text-base' : 'text-lg'} ${dark ? 'text-slate-300' : 'text-slate-600'}`} style={{ '--landing-stagger': '160ms' }}>
             <EditableCanvasText value={content.description || data.body} enabled={editing} multiline onChange={(description) => updateData({ content: { ...content, description } })} />
           </p>
 
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+          <div className={`mt-7 grid gap-3 ${compact ? 'sm:grid-cols-4' : 'sm:grid-cols-2'}`}>
             {(display.showAddress !== false) ? (
               <ContactFact icon={MapPin} label={data.addressLabel || 'Ubicacion del taller'} value={locationText} editable={false} onSelect={() => select('Direccion')} />
             ) : null}
@@ -1746,7 +1779,7 @@ function TuraguaContactFrame({ id, block, businessName, businessIdentity = {}, a
           {socials.length ? (
             <div className="landing-reveal mt-5 flex flex-wrap gap-2" style={{ '--landing-stagger': '260ms' }}>
               {socials.map((social) => (
-                <a key={social.url} href={social.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[var(--landing-primary)] hover:text-[var(--landing-primary)]">
+                <a key={social.url} href={social.url} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-black transition hover:border-[var(--landing-primary)] hover:text-[var(--landing-primary)] ${dark ? 'border-white/10 bg-white/10 text-slate-200' : 'border-slate-200 bg-white/80 text-slate-600'}`}>
                   {social.label}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -1755,8 +1788,8 @@ function TuraguaContactFrame({ id, block, businessName, businessIdentity = {}, a
           ) : null}
         </div>
 
-        <div className="landing-contact-panel landing-reveal rounded-2xl border border-slate-200 bg-white/94 p-6 shadow-2xl shadow-slate-300/40 backdrop-blur" style={{ '--landing-stagger': '120ms' }}>
-          <div className="rounded-xl bg-slate-950 p-5 text-white">
+        <div className={`landing-contact-panel landing-reveal rounded-2xl border p-6 backdrop-blur ${dark ? 'border-white/10 bg-white/8 shadow-2xl shadow-sky-950/20' : split ? 'border-slate-200 bg-slate-50 shadow-xl shadow-slate-200/60' : 'border-slate-200 bg-white/94 shadow-2xl shadow-slate-300/40'}`} style={{ '--landing-stagger': '120ms' }}>
+          <div className={`rounded-xl p-5 text-white ${dark ? 'bg-white/10' : 'bg-slate-950'}`}>
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[var(--landing-primary)]/18 text-[var(--landing-primary)]">
                 <MessageCircle className="h-5 w-5" />
@@ -1776,11 +1809,11 @@ function TuraguaContactFrame({ id, block, businessName, businessIdentity = {}, a
           </div>
 
           <div className="mt-4 grid gap-3">
-            <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+            <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm leading-6 ${dark ? 'border-white/10 bg-white/8 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
               <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[var(--landing-primary)]" />
               <span>{content.trustMessage || 'Proteccion, restauracion y estetica automotriz con seguimiento desde el primer contacto.'}</span>
             </div>
-            <div className="rounded-xl border border-sky-100 bg-sky-50/80 p-4">
+            <div className={`rounded-xl border p-4 ${dark ? 'border-sky-400/20 bg-sky-400/10' : 'border-sky-100 bg-sky-50/80'}`}>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-600">{content.processTitle || 'Proceso Turagua'}</p>
               <div className="mt-3 grid gap-2 text-sm font-bold text-[#3f3436]">
                 {(content.processSteps || [

@@ -35,6 +35,12 @@ app.use('/uploads', express.static(uploadsRoot, {
   immutable: true,
   maxAge: '1d',
 }));
+const uploadUtilsRoot = path.resolve(process.env.UPLOAD_UTILS_DIR || path.join(process.cwd(), 'upload_utils'));
+app.use('/upload_utils', express.static(uploadUtilsRoot, {
+  fallthrough: true,
+  immutable: true,
+  maxAge: '1d',
+}));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/openapi.json', (req, res) => {

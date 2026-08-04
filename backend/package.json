@@ -19,7 +19,7 @@
     "test:demo-test:seed": "tsx src/tests/demoTest/seed-inspection.ts",
     "test:demo-test:smoke": "tsx src/tests/demoTest/write-smoke.ts",
     "test:pack-0:landing": "npm run test:pack-1:landing:contract",
-    "test:pack-1:landing:contract": "tsx src/tests/landing/landing-contract.test.ts",
+    "test:pack-1:landing:contract": "tsx src/tests/landing/landing-contract.test.ts && tsx src/tests/landing/landing-asset-upload.test.ts",
     "test:pack-1:landing:integration": "tsx src/tests/landing/landing-persistence.integration.ts",
     "test:pack-1:landing:public-frames": "tsx src/tests/landing/landing-public-frames.integration.ts",
     "test:pack-1:landing": "npm run test:pack-1:landing:contract && npm run test:pack-1:landing:integration && npm run test:pack-1:landing:public-frames",

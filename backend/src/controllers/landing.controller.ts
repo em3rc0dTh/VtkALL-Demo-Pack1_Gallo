@@ -7,6 +7,7 @@ import {
   restoreLandingPageVersion,
   updateDraftLandingPage,
 } from '../services/landing/landing.service';
+import { uploadLandingAsset } from '../services/landing/landingAssetUpload.service';
 
 const routeParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value || '';
 
@@ -70,4 +71,17 @@ export const restoreAdminLandingPage = async (req: Request, res: Response) => {
     return sendErrorResponse(res, 'LANDING_VERSION_NOT_FOUND', 'Landing page version not found.', req.params, 404);
   }
   return sendSingleResponse(res, page);
+};
+
+export const uploadAdminLandingAsset = async (req: Request, res: Response) => {
+  try {
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const asset = await uploadLandingAsset(String(req.headers['content-type'] || ''), Buffer.concat(chunks));
+    return sendSingleResponse(res, asset);
+  } catch (error: any) {
+    return sendErrorResponse(res, error.code || 'LANDING_ASSET_UPLOAD_ERROR', error.message || 'No se pudo subir el archivo.', {}, error.status || 500);
+  }
 };

@@ -64,6 +64,8 @@ const getAllPages = async ({ path, params, label }) => {
   };
 };
 
+const withoutArchived = (items = []) => items.filter((item) => !item?.archivedAt);
+
 export const adminDataRepository = {
   async list(resource, { businessSlug, active, sort = '-createdAt', limit = 100 } = {}) {
     const path = listEndpoints[resource];
@@ -101,7 +103,7 @@ export const adminDataRepository = {
       this.list('managedEntities', { businessSlug }),
       this.list('cases', { businessSlug }),
       this.list('appointments', { businessSlug }),
-      this.list('catalogOfferings', { businessSlug, active: true, sort: 'name' }),
+      this.list('catalogOfferings', { businessSlug, sort: 'name' }),
       this.list('customerInteractions', { businessSlug }),
       this.list('timelineEvents', { businessSlug }),
       this.list('notifications', { businessSlug }),
@@ -114,11 +116,11 @@ export const adminDataRepository = {
       managedEntities: managedEntities.data,
       cases: cases.data,
       appointments: appointments.data,
-      catalogOfferings: catalogOfferings.data,
+      catalogOfferings: withoutArchived(catalogOfferings.data),
       customerInteractions: customerInteractions.data,
       timelineEvents: timelineEvents.data,
       notifications: notifications.data,
-      workTeams: workTeams.data,
+      workTeams: withoutArchived(workTeams.data),
       resourceReservations: resourceReservations.data,
     };
   },
