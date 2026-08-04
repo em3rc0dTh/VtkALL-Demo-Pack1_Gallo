@@ -9,7 +9,7 @@ import {
   getFilteredRowModel,
 } from '@tanstack/react-table';
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, pageSize = 5 }) {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const table = useReactTable({
@@ -24,7 +24,7 @@ export function DataTable({ columns, data }) {
     getFilteredRowModel: getFilteredRowModel(),
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize,
       },
     },
   });

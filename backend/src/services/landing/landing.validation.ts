@@ -3,6 +3,20 @@ import { LANDING_BLOCK_TYPES } from './landing.contracts';
 
 const unsafeKeyPattern = /^(html|rawHtml|embedHtml|script|dangerouslySetInnerHTML)$/i;
 const unsafeValuePattern = /<\s*\/?\s*(script|iframe|object|embed|style|link|meta|form|input|textarea|button|svg|math|img|video|audio|source|canvas)\b|on[a-z]+\s*=|javascript:/i;
+const allowedManagedAssetPathPattern = /^\/(?:uploads|upload_utils)\//i;
+const forbiddenAssetValuePattern = /^(blob|data|file):|c:\\fakepath|^[a-z]:[\\/]|^\\\\/i;
+const bareFileNamePattern = /^[^/\\]+\.(?:png|jpe?g|webp|gif|mp4|webm|ogg)$/i;
+
+const isAllowedPublicAssetUrl = (value = '') => {
+  const path = String(value || '').trim();
+  if (!path) return true;
+  if (forbiddenAssetValuePattern.test(path) || bareFileNamePattern.test(path)) return false;
+  return /^https:\/\//i.test(path) || allowedManagedAssetPathPattern.test(path);
+};
+
+const publicAssetUrlSchema = z.string().trim().refine(isAllowedPublicAssetUrl, {
+  message: 'Asset URL must be https://, /uploads/... or /upload_utils/...',
+}).optional();
 
 const assertNoUnsafeContent = (value: unknown, path: string[] = []) => {
   if (typeof value === 'string') {
@@ -53,7 +67,7 @@ export const landingContentSchema = z.object({
   motion: z.enum(['soft', 'dynamic', 'signature', 'none']).optional(),
   agent: z.object({
     name: z.string().min(1).optional(),
-    avatarUrl: z.string().optional(),
+    avatarUrl: publicAssetUrlSchema,
     bannerUrl: z.string().optional(),
     welcomeMessage: z.string().optional(),
     nameColor: z.string().optional(),

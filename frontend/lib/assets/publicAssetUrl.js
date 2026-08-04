@@ -9,6 +9,6 @@ export function resolvePublicAssetUrl(value) {
   const path = String(value).trim();
   if (!path) return '';
   if (/^https:\/\//i.test(path)) return path;
-  if (path.startsWith('/uploads/') && publicAssetBaseUrl) return `${publicAssetBaseUrl}${path}`;
+  if ((path.startsWith('/uploads/') || path.startsWith('/upload_utils/')) && publicAssetBaseUrl) return `${publicAssetBaseUrl}${path}`;
   return path;
 }

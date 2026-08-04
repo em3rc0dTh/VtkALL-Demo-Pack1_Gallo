@@ -9,6 +9,9 @@ import { resolvePublicAssetUrl } from '@/lib/assets/publicAssetUrl';
 const nextMessageId = () => `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const conversationStorageKey = (businessSlug) => `demo_test_agent_conversation_${businessSlug || 'default'}`;
 const introPushDismissedKey = (businessSlug) => `demo_test_agent_intro_push_dismissed_${businessSlug || 'default'}`;
+const introPushResetEventName = 'demo-test-agent:intro-push-reset';
+const hasTemporaryBlockingOverlay = () =>
+  Boolean(document.querySelector('[role="dialog"], [data-cookie-banner], [data-modal-open="true"]'));
 const stableConversationId = (businessSlug) => {
   const fallback = `web_${businessSlug}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   if (typeof window === 'undefined') return fallback;
@@ -74,6 +77,7 @@ export function DemoTestAgentChat({
   const [error, setError] = useState('');
   const [showIntroPush, setShowIntroPush] = useState(false);
   const [introPushHovered, setIntroPushHovered] = useState(false);
+  const [introPushResetCount, setIntroPushResetCount] = useState(0);
   const scrollRef = useRef(null);
   const seededInitialMessageRef = useRef('');
   const introDismissedRef = useRef(false);
@@ -149,6 +153,19 @@ export function DemoTestAgentChat({
   }, [initialMessage, loading, open, sendFreeMessage]);
 
   useEffect(() => {
+    const handleReset = (event) => {
+      const targetSlug = event?.detail?.businessSlug;
+      if (targetSlug && targetSlug !== businessSlug) return;
+      window.sessionStorage.removeItem(introPushDismissedKey(businessSlug));
+      introDismissedRef.current = false;
+      setShowIntroPush(false);
+      setIntroPushResetCount((count) => count + 1);
+    };
+    window.addEventListener(introPushResetEventName, handleReset);
+    return () => window.removeEventListener(introPushResetEventName, handleReset);
+  }, [businessSlug]);
+
+  useEffect(() => {
     if (open || !introPush) {
       const clearTimer = window.setTimeout(() => setShowIntroPush(false), 0);
       return () => window.clearTimeout(clearTimer);
@@ -157,15 +174,22 @@ export function DemoTestAgentChat({
     const dismissed = window.sessionStorage.getItem(introPushDismissedKey(businessSlug)) === '1';
     if (dismissed || introDismissedRef.current) return undefined;
 
-    const showTimer = window.setTimeout(() => {
-      if (document.querySelector('[role="dialog"], [data-cookie-banner], [data-modal-open="true"]')) return;
+    const startedAt = Date.now();
+    let showTimer;
+    const tryShow = () => {
+      if (window.sessionStorage.getItem(introPushDismissedKey(businessSlug)) === '1' || introDismissedRef.current || open) return;
+      if (hasTemporaryBlockingOverlay() && Date.now() - startedAt < 30000) {
+        showTimer = window.setTimeout(tryShow, 800);
+        return;
+      }
       setShowIntroPush(true);
-    }, 4200);
+    };
+    showTimer = window.setTimeout(tryShow, 4200);
 
     return () => {
       window.clearTimeout(showTimer);
     };
-  }, [businessSlug, introPush, open]);
+  }, [businessSlug, introPush, introPushResetCount, open]);
 
   useEffect(() => {
     if (!showIntroPush || introPushHovered) return undefined;

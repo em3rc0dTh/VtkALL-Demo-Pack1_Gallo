@@ -39,13 +39,16 @@ export async function apiRequest(path, options = {}) {
     }
 
     let payload = null;
+    let rawText = '';
     try {
-      payload = await response.json();
+      rawText = await response.text();
+      payload = rawText ? JSON.parse(rawText) : null;
     } catch (e) {
       if (!response.ok) {
+        const snippet = rawText ? `: ${rawText.replace(/\s+/g, ' ').slice(0, 180)}` : '';
         throw new ApiError({
           code: 'INVALID_API_RESPONSE',
-          message: 'La respuesta del servidor no es JSON valido',
+          message: `La respuesta del servidor no es JSON valido (${response.status})${snippet}`,
           status: response.status,
           kind: 'invalid_response',
           cause: e

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowUp,
@@ -26,9 +26,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { FieldHint, FieldLabel, Input, Select, Textarea } from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
-import { LandingPageRenderer } from './LandingPageRenderer';
 import { LANDING_FRAME_HEIGHTS, cloneLandingContent, defaultLandingContent } from '@/lib/landing/landingContract';
 import { landingRepository } from '@/lib/landing/landingRepository';
+import { resolvePublicAssetUrl } from '@/lib/assets/publicAssetUrl';
 
 const queryKeyFor = (businessSlug, pageSlug) => ['landing-page', 'admin', businessSlug, pageSlug];
 const currentTuraguaTheme = {
@@ -85,11 +85,18 @@ const promoPositionLabels = {
 };
 const defaultStat = { value: '+12', label: 'ANOS DE EXPERIENCIA', visible: true };
 const defaultStep = { number: '01', title: 'Elige', description: 'Selecciona un servicio publico del catalogo.', icon: 'sparkles', visible: true };
+const PREVIEW_VIEWPORTS = {
+  desktop: { label: 'Desktop', width: 1440, height: 900 },
+  tablet: { label: 'Tablet', width: 834, height: 1112 },
+  mobile: { label: 'Movil', width: 390, height: 844 },
+};
+const introPushDismissedKey = (businessSlug) => `demo_test_agent_intro_push_dismissed_${businessSlug || 'default'}`;
 
 export function LandingAdminPage({ businessSlug = 'turagua', pageSlug = 'home', embedded = false }) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [preview, setPreview] = useState('desktop');
+  const [previewZoom, setPreviewZoom] = useState('fit');
   const [activePanel, setActivePanel] = useState('constructor');
   const [activeBlockId, setActiveBlockId] = useState('');
   const [themeOpen, setThemeOpen] = useState(false);
@@ -319,9 +326,11 @@ export function LandingAdminPage({ businessSlug = 'turagua', pageSlug = 'home', 
         message={message}
         isDirty={isDirty}
         preview={preview}
+        previewZoom={previewZoom}
         activePanel={activePanel}
         onPanelChange={setActivePanel}
         onPreviewChange={setPreview}
+        onPreviewZoomChange={setPreviewZoom}
         onThemeOpen={() => setThemeOpen(true)}
         onUndo={undoChange}
         onRedo={redoChange}
@@ -392,6 +401,7 @@ export function LandingAdminPage({ businessSlug = 'turagua', pageSlug = 'home', 
           ) : (
             <IrisPanel
               agent={editableDraft.agent}
+              businessSlug={businessSlug}
               businessName={previewPayload?.businessProfile?.brand?.displayName || previewPayload?.businessProfile?.businessName || 'Turagua Racing Peru'}
               onChange={(agent) => updateContent((base) => {
                 base.agent = { ...(base.agent || {}), ...agent };
@@ -402,6 +412,7 @@ export function LandingAdminPage({ businessSlug = 'turagua', pageSlug = 'home', 
 
         <LiveCanvas
           preview={preview}
+          previewZoom={previewZoom}
           payload={previewPayload}
           onHeroDataChange={updateHeroFromCanvas}
           onBlockDataChange={updateCanvasBlockData}
@@ -420,9 +431,11 @@ function WorkbenchToolbar({
   message,
   isDirty,
   preview,
+  previewZoom,
   activePanel,
   onPanelChange,
   onPreviewChange,
+  onPreviewZoomChange,
   onThemeOpen,
   onUndo,
   onRedo,
@@ -486,7 +499,15 @@ function WorkbenchToolbar({
               className={`inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-sm font-bold ${preview === 'desktop' ? 'bg-surface-panel text-action-primary shadow-sm' : 'text-text-secondary'}`}
             >
               <Monitor className="h-4 w-4" />
-              Web
+              Desktop
+            </button>
+            <button
+              type="button"
+              onClick={() => onPreviewChange('tablet')}
+              className={`inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-sm font-bold ${preview === 'tablet' ? 'bg-surface-panel text-action-primary shadow-sm' : 'text-text-secondary'}`}
+            >
+              <Monitor className="h-4 w-4" />
+              Tablet
             </button>
             <button
               type="button"
@@ -496,6 +517,18 @@ function WorkbenchToolbar({
               <Smartphone className="h-4 w-4" />
               Movil
             </button>
+          </div>
+          <div className="inline-flex rounded-lg border border-border-default bg-surface-subtle p-1">
+            {['fit', 'actual'].map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onPreviewZoomChange(mode)}
+                className={`min-h-9 rounded-md px-3 text-sm font-bold ${previewZoom === mode ? 'bg-surface-panel text-action-primary shadow-sm' : 'text-text-secondary'}`}
+              >
+                {mode === 'fit' ? 'Ajustar' : '100%'}
+              </button>
+            ))}
           </div>
           <Button variant="secondary" loading={saving} onClick={onSave}>
             <Save className="h-4 w-4" />
@@ -571,6 +604,7 @@ function FrameControls({ block, onChange }) {
     updateLayoutField('align', value);
     if (block.type === 'hero') onChange({ data: { align: value } });
   };
+  const designOptions = designOptionsForBlock(block.type);
 
   return (
     <div className="mb-4 rounded-lg border border-border-subtle bg-surface-subtle p-3">
@@ -587,10 +621,9 @@ function FrameControls({ block, onChange }) {
             updateLayoutField('variant', event.target.value);
             if (block.type === 'hero') onChange({ data: { variant: event.target.value } });
           }}>
-            <option value="turagua_legacy">Turagua visual</option>
-            <option value="turagua_catalog_frame">Servicios visuales</option>
-            <option value="turagua_about_frame">Historia con imagen</option>
-            <option value="">Basico</option>
+            {designOptions.map((option) => (
+              <option key={option.value || 'basic'} value={option.value}>{option.label}</option>
+            ))}
           </Select>
         </label>
       </div>
@@ -611,6 +644,104 @@ function FrameControls({ block, onChange }) {
       </div>
     </div>
   );
+}
+
+function designOptionsForBlock(type) {
+  if (type === 'hero') {
+    return [
+      { value: 'turagua_legacy', label: 'Turagua visual' },
+      { value: 'hero_split_clean', label: 'Hero split limpio' },
+      { value: 'hero_dark_panel', label: 'Hero oscuro' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'stats') {
+    return [
+      { value: 'stats_cards', label: 'Metricas en cards' },
+      { value: 'stats_strip', label: 'Franja compacta' },
+      { value: 'stats_dark', label: 'Metricas oscuras' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'catalog') {
+    return [
+      { value: 'turagua_catalog_frame', label: 'Servicios visuales' },
+      { value: 'turagua_catalog_compact', label: 'Catalogo compacto' },
+      { value: 'turagua_catalog_showcase', label: 'Catalogo amplio' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'about') {
+    return [
+      { value: 'turagua_about_frame', label: 'Historia con imagen' },
+      { value: 'turagua_about_dark', label: 'Historia oscura' },
+      { value: 'turagua_about_clean', label: 'Historia limpia' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'structured_content') {
+    return [
+      { value: 'turagua_about_frame', label: 'Historia con imagen' },
+      { value: 'turagua_about_dark', label: 'Historia oscura' },
+      { value: 'turagua_about_clean', label: 'Historia limpia' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'gallery' || type === 'promotion') {
+    return [
+      { value: 'turagua_explore_services', label: 'Explorar visual' },
+      { value: 'gallery_mosaic', label: 'Mosaico' },
+      { value: 'gallery_strip', label: 'Franja horizontal' },
+      { value: 'gallery_dark', label: 'Galeria oscura' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'testimonials') {
+    return [
+      { value: 'testimonials_cards', label: 'Testimonios cards' },
+      { value: 'testimonials_quote_wall', label: 'Muro de citas' },
+      { value: 'testimonials_dark', label: 'Testimonios oscuro' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'agent_call_to_action' || type === 'call_to_action') {
+    return [
+      { value: 'cta_band', label: 'Banda CTA' },
+      { value: 'cta_panel', label: 'Panel centrado' },
+      { value: 'cta_dark', label: 'CTA oscuro' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'contact') {
+    return [
+      { value: 'turagua_contact_frame', label: 'Contacto visual' },
+      { value: 'turagua_contact_split', label: 'Contacto split' },
+      { value: 'turagua_contact_compact', label: 'Contacto compacto' },
+      { value: 'turagua_contact_dark', label: 'Contacto oscuro' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  if (type === 'footer') {
+    return [
+      { value: 'footer_dark', label: 'Footer oscuro' },
+      { value: 'footer_light', label: 'Footer claro' },
+      { value: 'footer_compact', label: 'Footer compacto' },
+      { value: '', label: 'Basico' },
+    ];
+  }
+
+  return [
+    { value: '', label: 'Basico' },
+  ];
 }
 
 function SemanticBlockEditor({ block, onChange }) {
@@ -1002,30 +1133,102 @@ function GenericBlockEditor({ block, onChange }) {
   );
 }
 
-function LiveCanvas({ preview, payload, onHeroDataChange, onBlockDataChange, onSelectElement }) {
+function LiveCanvas({ preview, previewZoom, payload, onHeroDataChange, onBlockDataChange, onSelectElement }) {
+  const shellRef = useRef(null);
+  const iframeRef = useRef(null);
+  const [availableSize, setAvailableSize] = useState({ width: 0, height: 0 });
+  const [previewMetrics, setPreviewMetrics] = useState(null);
+  const viewport = PREVIEW_VIEWPORTS[preview] || PREVIEW_VIEWPORTS.desktop;
+  const previewUrl = `/admin/landing/preview?mode=draft&viewport=${preview}`;
+  const previewScale = previewZoom === 'actual'
+    ? 1
+    : Math.min(
+      availableSize.width ? availableSize.width / viewport.width : 1,
+      availableSize.height ? availableSize.height / viewport.height : 1,
+      1
+    );
+  const scaledWidth = Math.ceil(viewport.width * previewScale);
+  const scaledHeight = Math.ceil(viewport.height * previewScale);
+
+  useEffect(() => {
+    const node = shellRef.current;
+    if (!node) return undefined;
+    const updateSize = () => {
+      const rect = node.getBoundingClientRect();
+      setAvailableSize({ width: Math.max(0, rect.width - 32), height: Math.max(0, rect.height - 32) });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+      const { type } = event.data || {};
+      if (type === 'landing-preview:ready') {
+        if (event.data.metrics) setPreviewMetrics(event.data.metrics);
+        iframeRef.current?.contentWindow?.postMessage({ type: 'landing-preview:update', payload }, window.location.origin);
+      }
+      if (type === 'landing-preview:element-selected') onSelectElement(event.data.selection);
+      if (type === 'landing-preview:hero-data-change') onHeroDataChange(event.data.patch);
+      if (type === 'landing-preview:block-data-change') onBlockDataChange(event.data.blockType, event.data.patch);
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onBlockDataChange, onHeroDataChange, onSelectElement, payload]);
+
+  useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'landing-preview:update', payload }, window.location.origin);
+  }, [payload, preview]);
+
   return (
     <section className="hidden min-h-0 flex-col bg-surface-subtle xl:flex">
       <div className="flex min-h-11 items-center justify-between border-b border-border-default bg-surface-panel px-4">
-        <span className="text-sm font-black">Canvas vivo</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black">Canvas vivo</span>
+          <span className="rounded-md bg-surface-subtle px-2 py-1 text-[11px] font-black text-text-muted">
+            {viewport.label} {viewport.width} x {viewport.height} · {previewZoom === 'actual' ? '100%' : `${Math.round(previewScale * 100)}%`}
+          </span>
+          {previewMetrics ? (
+            <span className="rounded-md bg-surface-subtle px-2 py-1 text-[11px] font-bold text-text-muted">
+              iframe {previewMetrics.innerWidth}px · sin overflow X: {previewMetrics.scrollWidth <= previewMetrics.clientWidth ? 'si' : 'no'}
+            </span>
+          ) : null}
+        </div>
         <span className="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary">
           <Check className="h-4 w-4 text-status-success" />
           Haz clic en un texto para editarlo.
         </span>
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden p-4">
+      <div ref={shellRef} className="min-h-0 flex-1 overflow-auto p-4">
         <div
-          data-landing-preview-mode="draft"
-          className={`mx-auto h-full overflow-y-auto rounded-lg border border-border-default bg-surface-panel shadow-xl ${preview === 'mobile' ? 'w-[390px] max-w-full' : 'w-full'}`}
+          className={`mx-auto ${preview === 'desktop' ? '' : 'rounded-[24px] bg-slate-950/5 p-2 shadow-xl'}`}
+          style={{ width: scaledWidth || viewport.width, height: scaledHeight || viewport.height }}
         >
-          <LandingPageRenderer
-            payload={payload}
-            builderEditing={{
-              enabled: true,
-              onHeroDataChange,
-              onBlockDataChange,
-              onSelectElement,
+          <div
+            data-landing-preview-mode="draft"
+            data-landing-renderer-version="turagua-frames-v2"
+            className="origin-top-left overflow-hidden rounded-lg border border-border-default bg-white shadow-xl"
+            style={{
+              width: viewport.width,
+              height: viewport.height,
+              transform: `scale(${previewScale})`,
+              transformOrigin: 'top left',
+              contain: 'layout paint size',
             }}
-          />
+          >
+            <iframe
+              ref={iframeRef}
+              title="Vista previa de la landing"
+              src={previewUrl}
+              width={viewport.width}
+              height={viewport.height}
+              onLoad={() => iframeRef.current?.contentWindow?.postMessage({ type: 'landing-preview:update', payload }, window.location.origin)}
+              className="block h-full w-full border-0 bg-white"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -1092,7 +1295,7 @@ function GeneralPanel({ content, onThemeOpen, onMotionChange }) {
   );
 }
 
-function IrisPanel({ agent = {}, businessName, onChange }) {
+function IrisPanel({ agent = {}, businessSlug, businessName, onChange }) {
   const activeAgent = {
     name: 'Iris',
     avatarUrl: 'https://i.ibb.co/84r9sJc/imagen-2026-06-08-153923818.png',
@@ -1104,6 +1307,11 @@ function IrisPanel({ agent = {}, businessName, onChange }) {
   };
   const avatarPositionClass = activeAgent.avatarAlignment === 'center' ? 'left-1/2 -translate-x-1/2' : activeAgent.avatarAlignment === 'right' ? 'right-4' : 'left-4';
   const statusPositionClass = activeAgent.avatarAlignment === 'center' ? 'justify-center' : activeAgent.avatarAlignment === 'right' ? 'mr-24 justify-end' : 'ml-24 justify-start';
+  const resetIntroPush = () => {
+    if (typeof window === 'undefined') return;
+    window.sessionStorage.removeItem(introPushDismissedKey(businessSlug));
+    window.dispatchEvent(new CustomEvent('demo-test-agent:intro-push-reset', { detail: { businessSlug } }));
+  };
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -1150,6 +1358,12 @@ function IrisPanel({ agent = {}, businessName, onChange }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <MediaUploadField label="Avatar" value={activeAgent.avatarUrl} accept="image/*" onChange={(avatarUrl) => onChange({ avatarUrl })} />
               <MediaUploadField label="Banner del chat" value={activeAgent.bannerUrl} accept="image/*" onChange={(bannerUrl) => onChange({ bannerUrl })} />
+            </div>
+            <div className="rounded-lg border border-border-default bg-surface-subtle p-3">
+              <button type="button" onClick={resetIntroPush} className="text-xs font-black text-action-primary hover:underline">
+                Restablecer aviso de Iris
+              </button>
+              <FieldHint>Accion QA del builder: limpia el aviso de esta sesion sin publicarse en el landing.</FieldHint>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
@@ -1343,14 +1557,68 @@ function AreaField({ label, value = '', onChange, marker }) {
   );
 }
 
+const isScrollableElement = (element) => {
+  if (!element || element === document.body || element === document.documentElement) return false;
+  const style = window.getComputedStyle(element);
+  return /(auto|scroll)/.test(`${style.overflow}${style.overflowY}${style.overflowX}`)
+    && (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth);
+};
+
+const captureScrollPositions = (origin) => {
+  if (typeof window === 'undefined') return () => {};
+  const entries = [{ element: window, top: window.scrollY, left: window.scrollX }];
+  const scrollableElements = Array.from(document.querySelectorAll('*')).filter(isScrollableElement);
+  const addElement = (node) => {
+    if (isScrollableElement(node)) {
+      entries.push({ element: node, top: node.scrollTop, left: node.scrollLeft });
+    }
+  };
+  scrollableElements.forEach(addElement);
+  let node = origin?.parentElement;
+  while (node) {
+    addElement(node);
+    node = node.parentElement;
+  }
+
+  return () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        entries.forEach(({ element, top, left }) => {
+          if (element === window) {
+            window.scrollTo(left, top);
+          } else {
+            element.scrollTop = top;
+            element.scrollLeft = left;
+          }
+        });
+      });
+    });
+  };
+};
+
+const verifyPublicAssetReachable = async (url) => {
+  const resolvedUrl = resolvePublicAssetUrl(url);
+  if (!resolvedUrl || /^https:\/\//i.test(resolvedUrl)) return true;
+  const response = await fetch(resolvedUrl, { method: 'HEAD', cache: 'no-store' });
+  if (response.ok) return true;
+  const fallback = await fetch(resolvedUrl, { method: 'GET', cache: 'no-store' });
+  return fallback.ok;
+};
+
 function MediaUploadField({ label, value = '', accept = 'image/*,video/*', onChange, marker }) {
+  const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [unavailableAssetValue, setUnavailableAssetValue] = useState('');
   const [showUrl, setShowUrl] = useState(false);
   const isVideo = /\.(mp4|webm|ogg)($|\?)/i.test(value || '');
+  const resolvedValue = resolvePublicAssetUrl(value);
+  const assetUnavailable = Boolean(value && unavailableAssetValue === value);
+  const unavailableMessage = label === 'Avatar' ? 'El archivo ya no esta disponible. Vuelve a subir avatar.' : 'El archivo ya no esta disponible.';
 
-  const uploadFile = async (file) => {
+  const uploadFile = async (file, origin) => {
     if (!file) return;
+    const restoreScroll = captureScrollPositions(origin);
     setUploading(true);
     setError('');
     try {
@@ -1364,53 +1632,107 @@ function MediaUploadField({ label, value = '', accept = 'image/*,video/*', onCha
       if (!response.ok || payload?.ok === false) {
         throw new Error(payload?.message || 'No se pudo subir el archivo.');
       }
-      onChange(payload?.data?.url || '');
+      const nextUrl = payload?.data?.url || '';
+      const reachable = await verifyPublicAssetReachable(nextUrl);
+      if (!reachable) {
+        throw new Error('El archivo se subio, pero no responde desde la URL publica.');
+      }
+      setUnavailableAssetValue('');
+      onChange(nextUrl);
+      restoreScroll();
     } catch (err) {
       setError(err.message || 'No se pudo subir el archivo.');
+      restoreScroll();
     } finally {
       setUploading(false);
     }
   };
 
+  const chooseFile = (event) => {
+    event.preventDefault();
+    fileInputRef.current?.click();
+  };
+
+  const clearFile = (event) => {
+    event.preventDefault();
+    const restoreScroll = captureScrollPositions(event.currentTarget);
+    onChange('');
+    restoreScroll();
+  };
+
+  const toggleUrl = (event) => {
+    event.preventDefault();
+    const restoreScroll = captureScrollPositions(event.currentTarget);
+    setShowUrl((current) => !current);
+    restoreScroll();
+  };
+
+  const updateUrl = (event) => {
+    const restoreScroll = captureScrollPositions(event.currentTarget);
+    setUnavailableAssetValue('');
+    onChange(event.target.value);
+    restoreScroll();
+  };
+
   return (
     <div>
       <FieldLabel>{label}</FieldLabel>
-      {value ? (
-        <div className="mb-2 overflow-hidden rounded-lg border border-border-default bg-surface-subtle">
-          {isVideo ? (
-            <video src={value} className="h-28 w-full object-cover" muted playsInline controls />
-          ) : (
-            <img src={value} alt={label} className="h-28 w-full object-cover" />
-          )}
-        </div>
-      ) : null}
-      <label
+      <div className="mb-2 aspect-video min-h-28 overflow-hidden rounded-lg border border-border-default bg-surface-subtle">
+        {value && !assetUnavailable ? isVideo ? (
+          <video src={resolvedValue} className="h-full w-full object-cover" muted playsInline controls onError={() => setUnavailableAssetValue(value)} />
+        ) : (
+          <img src={resolvedValue} alt={label} className="h-full w-full object-cover" onError={() => setUnavailableAssetValue(value)} />
+        ) : value && assetUnavailable ? (
+          <div className="flex h-full min-h-28 flex-col items-center justify-center gap-2 px-4 text-center text-xs font-semibold text-status-danger">
+            <span>{unavailableMessage}</span>
+            <button type="button" onClick={chooseFile} className="font-black text-action-primary hover:underline">
+              {label === 'Avatar' ? 'Volver a subir avatar' : 'Volver a subir archivo'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex h-full min-h-28 items-center justify-center px-4 text-center text-xs font-semibold text-text-muted">
+            Sin archivo seleccionado
+          </div>
+        )}
+      </div>
+      <div
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
-          uploadFile(event.dataTransfer.files?.[0]);
+          uploadFile(event.dataTransfer.files?.[0], event.currentTarget);
         }}
-        className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-dashed border-border-default bg-surface-panel px-4 py-3 text-sm font-bold text-text-secondary transition hover:border-action-primary hover:text-action-primary"
+        className="rounded-lg border border-dashed border-border-default bg-surface-panel transition hover:border-action-primary hover:text-action-primary"
       >
-        <span className="inline-flex min-w-0 items-center gap-2">
-          <UploadCloud className="h-4 w-4 shrink-0" />
-          <span className="truncate">{uploading ? 'Subiendo...' : 'Subir archivo'}</span>
-        </span>
-        <input
-          type="file"
-          accept={accept}
+        <button
+          type="button"
           disabled={uploading}
-          className="sr-only"
-          onChange={(event) => uploadFile(event.target.files?.[0])}
-        />
-      </label>
+          onClick={chooseFile}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold text-text-secondary disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <UploadCloud className="h-4 w-4 shrink-0" />
+            <span className="truncate">{uploading ? 'Subiendo...' : value ? 'Cambiar archivo' : 'Subir archivo'}</span>
+          </span>
+        </button>
+      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        accept={accept}
+        disabled={uploading}
+        onChange={(event) => {
+          uploadFile(event.target.files?.[0], event.currentTarget);
+          event.currentTarget.value = '';
+        }}
+      />
       {value ? <p className="mt-2 truncate rounded-lg bg-surface-subtle px-3 py-2 text-xs font-semibold text-text-secondary">{displayAssetName(value)}</p> : null}
       {value ? (
-        <button type="button" onClick={() => onChange('')} className="mt-2 mr-3 text-xs font-black text-status-danger hover:underline">
+        <button type="button" onClick={clearFile} className="mt-2 mr-3 text-xs font-black text-status-danger hover:underline">
           Eliminar archivo
         </button>
       ) : null}
-      <button type="button" onClick={() => setShowUrl(!showUrl)} className="mt-2 text-xs font-black text-action-primary hover:underline">
+      <button type="button" onClick={toggleUrl} className="mt-2 text-xs font-black text-action-primary hover:underline">
         {showUrl ? 'Ocultar URL' : 'Usar URL'}
       </button>
       {showUrl ? (
@@ -1418,7 +1740,7 @@ function MediaUploadField({ label, value = '', accept = 'image/*,video/*', onCha
           data-landing-builder-field={marker}
           className="mt-2"
           value={value || ''}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={updateUrl}
           placeholder="Pega una URL de imagen o video"
         />
       ) : null}

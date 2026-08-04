@@ -356,6 +356,10 @@ const TURAGUA_CATALOG_OFFERINGS = [
   },
 ];
 
+const TURAGUA_LEGACY_CATALOG_OFFERING_IDS = [
+  'off_sandblasting_undercoating',
+];
+
 const TURAGUA_WORK_TEAMS = [
   {
     _id: 'team_turagua_service',
@@ -575,6 +579,20 @@ const seedNamespace = async (namespace: Exclude<SeedNamespace, 'all'>, reset: bo
     } else {
       results[collectionName] = 0;
     }
+  }
+
+  if (namespace === 'turagua') {
+    await CatalogOffering.updateMany(
+      { _id: { $in: TURAGUA_LEGACY_CATALOG_OFFERING_IDS }, businessSlug: 'turagua' },
+      {
+        $set: {
+          active: false,
+          publicVisible: false,
+          archivedAt: new Date().toISOString(),
+          archivedReason: 'legacy_catalog_offering_replaced_by_canonical_seed',
+        },
+      }
+    ).exec();
   }
 
   return results;

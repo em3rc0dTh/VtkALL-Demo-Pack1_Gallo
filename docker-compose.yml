@@ -91,6 +91,12 @@ services:
       - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 10s
 
   ollama-model-init:
     image: ollama/ollama:latest
@@ -104,7 +110,7 @@ services:
       - ollama pull "$${HERMES_CONVERSATIONAL_OLLAMA_MODEL}"
     depends_on:
       ollama:
-        condition: service_started
+        condition: service_healthy
 
   api:
     build:
@@ -141,9 +147,9 @@ services:
       HERMES_BOOKING_CANARY_PERCENT: ${HERMES_BOOKING_CANARY_PERCENT:-100}
       HERMES_CONVERSATIONAL_PROVIDER_ORDER: ${HERMES_CONVERSATIONAL_PROVIDER_ORDER:-ollama-first}
       HERMES_CONVERSATIONAL_OLLAMA_MODEL: ${HERMES_CONVERSATIONAL_OLLAMA_MODEL:-qwen2.5:0.5b}
-      HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS: ${HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS:-8000}
-      HERMES_MODEL_INTERPRETATION_TIMEOUT_MS: ${HERMES_MODEL_INTERPRETATION_TIMEOUT_MS:-15000}
-      HERMES_MODEL_COMPOSITION_TIMEOUT_MS: ${HERMES_MODEL_COMPOSITION_TIMEOUT_MS:-10000}
+      HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS: ${HERMES_CONVERSATIONAL_MODEL_TIMEOUT_MS:-25000}
+      HERMES_MODEL_INTERPRETATION_TIMEOUT_MS: ${HERMES_MODEL_INTERPRETATION_TIMEOUT_MS:-25000}
+      HERMES_MODEL_COMPOSITION_TIMEOUT_MS: ${HERMES_MODEL_COMPOSITION_TIMEOUT_MS:-25000}
       HERMES_MODEL_OLLAMA_NUM_PREDICT: ${HERMES_MODEL_OLLAMA_NUM_PREDICT:-256}
       HERMES_MODEL_OLLAMA_NUM_CTX: ${HERMES_MODEL_OLLAMA_NUM_CTX:-}
       HERMES_OLLAMA_WARMUP_ENABLED: ${HERMES_OLLAMA_WARMUP_ENABLED:-true}
@@ -200,16 +206,16 @@ services:
       temporal:
         condition: service_started
       ollama:
-        condition: service_started
+        condition: service_healthy
 
   frontend:
     build:
       context: ./frontend
       args:
         NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:${API_PORT:-4000}}
         NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
-        NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+        NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-http://localhost:${API_PORT:-4000}}
         NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
         NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
         NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
@@ -220,17 +226,15 @@ services:
       NODE_ENV: production
       PORT: ${FRONTEND_PORT:-3000}
       NEXT_PUBLIC_DEMO_TEST_DATA_MODE: api
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:${API_PORT:-4000}}
       NEXT_PUBLIC_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
-      NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-}
+      NEXT_PUBLIC_DEMO_TEST_API_BASE_URL: ${NEXT_PUBLIC_DEMO_TEST_API_BASE_URL:-http://localhost:${API_PORT:-4000}}
       NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG: ${BUSINESS_SLUG:-turagua}
       NEXT_BACKEND_INTERNAL_URL: http://api:${API_PORT:-4000}
       NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
       NEXT_PUBLIC_APP_BUILD_SHA: ${APP_BUILD_SHA:-local}
     ports:
       - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
-    volumes:
-      - landing_uploads:/app/public/uploads
     depends_on:
       api:
         condition: service_healthy
@@ -245,4 +249,3 @@ volumes:
   temporal_postgresql_data:
   ollama_data:
   business_uploads:
-  landing_uploads:

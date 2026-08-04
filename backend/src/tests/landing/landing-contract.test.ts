@@ -72,4 +72,17 @@ assert.deepEqual(turaguaCatalogBlock?.data.featuredOfferingIds, [
   'off_turagua_sandblasting_undercoating',
 ]);
 
+const clone = (value: any) => JSON.parse(JSON.stringify(value));
+for (const avatarUrl of ['blob:http://localhost/avatar', 'data:image/png;base64,abc', 'file:///tmp/avatar.png', 'C:\\fakepath\\avatar.png', 'avatar.png', '/tmp/avatar.png']) {
+  const invalid = clone(turaguaLandingSeed);
+  invalid.agent.avatarUrl = avatarUrl;
+  assert.throws(() => assertLandingContent(invalid), /Asset URL must be https:\/\/, \/uploads\/\.\.\. or \/upload_utils\/\.\.\./, `avatarUrl should reject ${avatarUrl}`);
+}
+
+for (const avatarUrl of ['https://example.com/avatar.png', '/uploads/landing/avatar.png', '/upload_utils/avatar.png']) {
+  const valid = clone(turaguaLandingSeed);
+  valid.agent.avatarUrl = avatarUrl;
+  assert.equal(assertLandingContent(valid).agent?.avatarUrl, avatarUrl, `avatarUrl should accept ${avatarUrl}`);
+}
+
 console.log('Landing contract acceptance passed.');
