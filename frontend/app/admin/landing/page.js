@@ -1,5 +1,5 @@
-import { LandingAdminPage } from '@/components/landing/LandingAdminPage';
+import { GalloLandingBuilderPage } from '@/components/landing/GalloLandingBuilderPage';
 
 export default function AdminLandingRoute() {
-  return <LandingAdminPage businessSlug="gallo" pageSlug="home" />;
+  return <GalloLandingBuilderPage />;
 }
