@@ -3,7 +3,7 @@
 **Date:** 2026-08-17  
 **Branch:** `develop`  
 **PR:** `#1 — Gallo Workshop Iteration 1 — B0 acceptance gate`  
-**Gate status:** `OPEN — ACTIONS EXECUTION BLOCKED / RUNTIME + VISUAL PROOF OPEN`
+**Gate status:** `OPEN — SOURCE HARDENED / ACTIONS EXECUTION BLOCKED / RUNTIME + VISUAL PROOF OPEN`
 
 ## Scope under acceptance
 
@@ -27,6 +27,7 @@ production adoption
 ```text
 IMPLEMENTED
 STATICALLY AUDITED
+TEST CONTRACT AUTHORED
 CI VERIFIED
 RUNTIME VERIFIED
 VISUALLY VERIFIED
@@ -35,6 +36,43 @@ PRODUCTION ADOPTED
 ```
 
 No earlier state implies a later one.
+
+## B0 source-hardening round
+
+A dedicated source audit is recorded at:
+
+```text
+docs/audits/GALLO_B0_SOURCE_HARDENING_2026-08-17.md
+```
+
+The round corrected these source-level defects:
+
+```text
+mock-read → API-write mismatch in Gallo admin
+Builder controls not fully projected in public renderer
+image-only rendering despite allowed video uploads
+Evidence omitted from derived public navigation
+active scene fragility across hide/reorder
+stale landing seed-count contract test
+missing Gallo draft/publish/reconnect persistence coverage
+non-monotonic published-version risk for seeded v3 content
+fragile partner/insurance mark selectors
+```
+
+Current source now includes:
+
+```text
+GalloWorkshopExperienceV4
+Gallo wrapper → V4
+Gallo admin authoritative API read/write seam
+V4 preview marker
+Gallo contract assertions
+Gallo persistence integration scenario
+monotonic landing version reconciliation
+stabilized partner/insurer mark projection
+```
+
+These changes are **not** runtime acceptance by themselves.
 
 ## Repository-native CI investigation
 
@@ -103,11 +141,11 @@ workflow runs     0
 check-suites      0
 ```
 
+Subsequent B0 source commits also continue to expose no PR workflow run/status through the connected GitHub integration.
+
 The connected integration can list the active workflow, but GitHub returns `403 Resource not accessible by integration` for the repository Actions-permissions endpoint.
 
 ## CI diagnosis
-
-The evidence now rules out a missing PR synchronize and a branch-filter-only explanation.
 
 Correct classification:
 
@@ -117,13 +155,29 @@ CI FAIL      NOT CLAIMED
 CI BLOCKED   YES
 ```
 
-More specifically:
+> **The acceptance workflow is defined and active, but GitHub does not instantiate an observable workflow run/check suite for the tested PR/develop paths. The remaining boundary is Actions execution/configuration/permission at repository or organization/platform level, which this integration cannot inspect through the permissions endpoint.**
 
-> **The acceptance workflow is defined and active, but GitHub does not instantiate a workflow run/check suite for either the PR synchronization path or a direct `develop` push that explicitly matches the workflow trigger. The remaining likely boundary is Actions execution/configuration/permission at repository or organization/platform level, which this connected integration cannot inspect because the permissions endpoint returns 403.**
-
-Do not create additional no-op commits merely to provoke Actions. The next technical proof must come from an executable authenticated runner/environment or repaired GitHub Actions configuration/permissions.
+Do not create additional no-op commits merely to provoke Actions.
 
 A missing run is never converted into a passing or failing test result.
+
+## Strengthened technical acceptance contract
+
+Once an executable environment is available, B0 must now execute the strengthened landing gate, including:
+
+```text
+landing contract accepts demo_test + turagua + gallo
+Gallo seed keeps 8 semantic scenes
+Gallo seed variants/order remain deterministic
+Gallo B0 does not silently enable Agent/Hermes
+Gallo contact presentation does not imply automatic appointment confirmation
+Gallo draft edits do not leak before publish
+Gallo reorder/hide/media edits persist through publish
+Gallo published state survives Mongo reconnect
+Landing version history progresses monotonically
+```
+
+The tests are authored in source, not yet claimed executed.
 
 ## Landing Builder runtime acceptance gate
 
@@ -139,6 +193,8 @@ edit text
 → public navigation follows visible scene order
 → upload image
 → image persists
+→ upload supported video
+→ video renders where claimed
 → publish
 → public landing matches published projection
 ```
@@ -151,12 +207,9 @@ tablet
 mobile
 ```
 
-Additional capability-specific verification:
+Partner/insurer review must confirm that visual marks appear and the insurance lane is not cut below the scene viewport.
 
-```text
-video rendering where video support is claimed
-curated/local brand + insurer assets before production polish sign-off
-```
+Production polish still requires curated/local managed partner assets rather than external favicon identity.
 
 ## Domain-authority guardrail
 
@@ -177,24 +230,25 @@ Operational contact identity remains governed by BusinessProfile/domain authorit
 ## Current gate matrix
 
 ```text
-IMPLEMENTED                         ✅
-STATIC AUDIT                        ✅
-DRAFT PR                            ✅
-CI WORKFLOW DEFINED / ACTIVE        ✅
-PR TRIGGER PROBE                    ⛔ NO RUN INSTANTIATED
-DEVELOP PUSH TRIGGER PROBE          ⛔ NO RUN INSTANTIATED
-FRONTEND LINT / BUILD PROOF         ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
-BACKEND ACCEPTANCE PROOF            ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
-BUILDER END-TO-END RUNTIME LOOP     ◉ OPEN
-DESKTOP / TABLET / MOBILE QA        ◉ OPEN
-ACCEPTANCE                          ⛔ NOT YET CLAIMED
-MERGE / PROMOTION                   ⛔ BLOCKED
-PRODUCTION ADOPTION                 ⛔ NOT CLAIMED
+LANDING / BUILDER IMPLEMENTED            ✅
+B0 SOURCE HARDENING                      ✅ CHECK
+STATIC AUDIT                             ✅
+DRAFT PR                                 ✅
+TECHNICAL TEST CONTRACT STRENGTHENED     ✅
+CI WORKFLOW DEFINED / ACTIVE             ✅
+PR TRIGGER PROBE                         ⛔ NO RUN INSTANTIATED
+DEVELOP PUSH TRIGGER PROBE               ⛔ NO RUN INSTANTIATED
+FRONTEND LINT / BUILD PROOF              ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
+BACKEND ACCEPTANCE EXECUTION             ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
+BUILDER END-TO-END RUNTIME LOOP          ◉ OPEN
+DESKTOP / TABLET / MOBILE QA             ◉ OPEN
+PARTNER / INSURER VISUAL QA              ◉ OPEN
+ACCEPTANCE                               ⛔ NOT YET CLAIMED
+MERGE / PROMOTION                        ⛔ BLOCKED
+PRODUCTION ADOPTION                      ⛔ NOT CLAIMED
 ```
 
 ## Environment-level decision
-
-The Gallo Environment documentation consolidation is frozen as:
 
 ```text
 RIGHT-TO-BUILD / CONTINUE-BUILD  PASS
@@ -209,4 +263,4 @@ Meaning:
 
 ## Next acceptance action
 
-Establish an executable proof environment for the existing acceptance chain, then run the GLB runtime/visual pack and update this record from actual evidence only.
+Establish an executable proof environment for the strengthened acceptance chain, then run the GLB runtime/visual pack and update this record from actual evidence only.
