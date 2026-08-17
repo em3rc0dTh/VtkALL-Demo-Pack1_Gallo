@@ -1,13 +1,14 @@
 export const galloLandingContent = {
   theme: {
-    primary: '#3217F6',
-    accent: '#FFD500',
+    primary: '#1741FF',
+    accent: '#FFD400',
     surface: '#F7F8FC',
-    text: '#101322',
+    text: '#080B19',
   },
   navigation: [
     { label: 'Inicio', href: '#inicio' },
     { label: 'Marcas', href: '#marcas' },
+    { label: 'Aseguradoras', href: '#aseguradoras' },
     { label: 'Servicios', href: '#servicios' },
     { label: 'Proceso', href: '#proceso' },
     { label: 'Nosotros', href: '#nosotros' },
@@ -54,13 +55,29 @@ export const galloLandingContent = {
         subtitle: 'Una atención de taller pensada para vehículos de distintas marcas y generaciones.',
         brands: ['Toyota', 'Volkswagen', 'Ford', 'Hyundai', 'Audi', 'Nissan', 'Chevrolet', 'Mercedes-Benz'],
         imageUrl: '/images/sobre_nosotros.png',
+        verificationState: 'prototype-list-requires-business-confirmation',
+      },
+    },
+    {
+      id: 'gallo-insurers',
+      type: 'structured_content',
+      enabled: true,
+      order: 30,
+      frameHeight: 'viewport',
+      layout: { variant: 'gallo_insurance_scene', align: 'center' },
+      data: {
+        eyebrow: 'Alianzas con aseguradoras',
+        title: 'Un taller preparado para acompañarte también cuando interviene tu seguro.',
+        subtitle: 'Gallo Autos ha construido alianzas con aseguradoras para facilitar soluciones de taller. La lista vigente de compañías debe ser confirmada antes de publicar sus logos.',
+        partners: [],
+        verificationState: 'current-partner-list-pending-business-confirmation',
       },
     },
     {
       id: 'gallo-services',
       type: 'catalog',
       enabled: true,
-      order: 30,
+      order: 40,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_services_scene', density: 'comfortable' },
       data: {
@@ -90,7 +107,7 @@ export const galloLandingContent = {
       id: 'gallo-diagnostic',
       type: 'structured_content',
       enabled: true,
-      order: 40,
+      order: 50,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_diagnostic_scene', media: 'side', align: 'left' },
       data: {
@@ -105,7 +122,7 @@ export const galloLandingContent = {
       id: 'gallo-process',
       type: 'structured_content',
       enabled: true,
-      order: 50,
+      order: 60,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_process_scene', align: 'center' },
       data: {
@@ -125,7 +142,7 @@ export const galloLandingContent = {
       id: 'gallo-about',
       type: 'about',
       enabled: true,
-      order: 60,
+      order: 70,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_experience_scene', media: 'background', align: 'left' },
       data: {
@@ -144,7 +161,7 @@ export const galloLandingContent = {
       id: 'gallo-evidence',
       type: 'testimonials',
       enabled: true,
-      order: 70,
+      order: 80,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_evidence_scene', align: 'left' },
       data: {
@@ -158,7 +175,7 @@ export const galloLandingContent = {
       id: 'gallo-contact',
       type: 'contact',
       enabled: true,
-      order: 80,
+      order: 90,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_contact_scene', align: 'left' },
       data: {
@@ -178,7 +195,7 @@ export const galloLandingContent = {
       id: 'gallo-footer',
       type: 'footer',
       enabled: true,
-      order: 90,
+      order: 100,
       frameHeight: 'viewport',
       layout: { variant: 'gallo_final_scene', align: 'center' },
       data: {
@@ -199,7 +216,7 @@ export const galloMockLandingPayload = {
     status: 'published',
     draft: galloLandingContent,
     published: galloLandingContent,
-    publishedVersion: 1,
+    publishedVersion: 2,
   },
   content: galloLandingContent,
   businessProfile: {
