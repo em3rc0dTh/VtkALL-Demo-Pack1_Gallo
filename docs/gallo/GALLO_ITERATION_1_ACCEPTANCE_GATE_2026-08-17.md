@@ -3,7 +3,7 @@
 **Date:** 2026-08-17  
 **Branch:** `develop`  
 **PR:** `#1 — Gallo Workshop Iteration 1 — acceptance gate`  
-**Purpose:** produce repository-native evidence before any merge to `main`.
+**Gate status:** `OPEN — CI MECHANISM BLOCKED / RUNTIME + VISUAL PROOF OPEN`
 
 ## Scope under acceptance
 
@@ -24,8 +24,6 @@ production adoption
 
 ## Evidence classes
 
-A gate may be closed only with explicit evidence. The following states are distinct:
-
 ```text
 IMPLEMENTED
 STATICALLY AUDITED
@@ -38,9 +36,16 @@ PRODUCTION ADOPTED
 
 No earlier state implies a later one.
 
-## CI gate
+## Repository-native CI attempt
 
-The repository workflow `.github/workflows/acceptance.yml` is expected to execute on pull requests and includes:
+The repository workflow `.github/workflows/acceptance.yml` exists, is active and declares:
+
+```text
+pull_request
+push → main
+```
+
+Its acceptance chain includes:
 
 ```text
 backend build
@@ -52,11 +57,35 @@ frontend lint
 frontend build
 ```
 
-The draft PR exists to obtain that evidence without merging `develop` into `main`.
+To obtain proof without merging to `main`:
 
-## Landing Builder acceptance gate
+1. draft PR `develop → main` was opened;
+2. this acceptance record was committed to `develop`, synchronizing the PR head;
+3. GitHub Actions/check endpoints were inspected.
 
-The Builder slice is accepted only when evidence proves the complete loop:
+Observed after PR open + synchronize:
+
+```text
+pull_request workflow runs     0
+check-runs                     0
+check-suites                   0
+```
+
+The connected integration can list the active workflow, but GitHub returns `403 Resource not accessible by integration` for the repository Actions-permissions endpoint.
+
+Therefore the correct classification is:
+
+```text
+CI PASS      NOT CLAIMED
+CI FAIL      NOT CLAIMED
+CI BLOCKED   YES — no runner/check suite instantiated
+```
+
+A missing run is not converted into a passing or failing test result.
+
+## Landing Builder runtime acceptance gate
+
+The Builder slice becomes accepted only when evidence proves:
 
 ```text
 edit text
@@ -80,6 +109,13 @@ tablet
 mobile
 ```
 
+Additional capability-specific verification:
+
+```text
+video rendering where video support is claimed
+curated/local brand + insurer assets before production polish sign-off
+```
+
 ## Domain-authority guardrail
 
 The Builder controls public presentation only.
@@ -91,22 +127,43 @@ CRM identity / relationship
 Workshop operational state
 appointment confirmation
 business-domain execution
+orchestration state
 ```
 
 Operational contact identity remains governed by BusinessProfile/domain authority boundaries.
 
-## Current gate state at record creation
+## Current gate matrix
 
 ```text
 IMPLEMENTED                         ✅
 STATIC AUDIT                        ✅
 DRAFT PR                            ✅
-CI RUN                              ◉ NOT YET OBSERVED
-FRONTEND LINT / BUILD PROOF         ◉ NOT YET OBSERVED
-BUILDER END-TO-END RUNTIME LOOP     ◉ NOT YET OBSERVED
-DESKTOP / TABLET / MOBILE QA        ◉ NOT YET OBSERVED
+CI WORKFLOW DEFINED / ACTIVE        ✅
+CI RUN / CHECK SUITE                ⛔ BLOCKED — NOT INSTANTIATED
+FRONTEND LINT / BUILD PROOF         ◉ OPEN
+BACKEND ACCEPTANCE PROOF            ◉ OPEN
+BUILDER END-TO-END RUNTIME LOOP     ◉ OPEN
+DESKTOP / TABLET / MOBILE QA        ◉ OPEN
 ACCEPTANCE                          ⛔ NOT YET CLAIMED
+MERGE / PROMOTION                   ⛔ BLOCKED
 PRODUCTION ADOPTION                 ⛔ NOT CLAIMED
 ```
 
-This record must be updated only from actual evidence; no gate is closed by intention.
+## Environment-level decision
+
+The separate Gallo Environment documentation consolidation has now reached:
+
+```text
+RIGHT-TO-BUILD / CONTINUE-BUILD  PASS
+CURRENT PILOT PROMOTION          BLOCKED BY THIS ACCEPTANCE GATE
+```
+
+Meaning:
+
+- defects/testability inside this Landing/Builder slice may continue to be fixed on development branches;
+- this open gate is not permission to call the slice accepted or production-ready;
+- future scope must follow the consolidated Environment Build sequence and its own evidence gates.
+
+## Next acceptance action
+
+Restore or provide an executable proof mechanism for the existing acceptance chain, then run the GLB runtime/visual pack and update this record from actual evidence only.
