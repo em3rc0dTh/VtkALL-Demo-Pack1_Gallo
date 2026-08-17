@@ -1,6 +1,7 @@
 import { apiRequest } from '@/lib/api/apiClient';
 import { requireDemoTestDataMode } from '@/lib/config/demoTestDataMode';
 import { cloneLandingContent, mockLandingPayload } from './landingContract';
+import { galloMockLandingPayload } from './galloLandingContract';
 
 const adminHeaders = () => ({
   'X-Demo-Test-Admin-Token': process.env.NEXT_PUBLIC_DEMO_TEST_ADMIN_WRITE_TOKEN || 'local-dev-admin',
@@ -8,12 +9,15 @@ const adminHeaders = () => ({
 
 const unwrap = (response) => response?.data || response;
 
+const mockPayloadFor = (businessSlug) => businessSlug === 'gallo' ? galloMockLandingPayload : mockLandingPayload;
+
 export const landingRepository = {
   async getPublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' } = {}) {
     if (requireDemoTestDataMode() !== 'api') {
+      const mockPayload = mockPayloadFor(businessSlug);
       return {
-        ...mockLandingPayload,
-        content: cloneLandingContent(mockLandingPayload.content),
+        ...mockPayload,
+        content: cloneLandingContent(mockPayload.content),
       };
     }
 
@@ -23,12 +27,14 @@ export const landingRepository = {
 
   async getAdminLandingPage({ businessSlug = 'turagua', pageSlug = 'home' } = {}) {
     if (requireDemoTestDataMode() !== 'api') {
+      const mockPayload = mockPayloadFor(businessSlug);
       return {
         landingPage: {
-          ...mockLandingPayload.landingPage,
-          draft: cloneLandingContent(mockLandingPayload.content),
+          ...mockPayload.landingPage,
+          draft: cloneLandingContent(mockPayload.content),
         },
-        versions: [{ _id: 'mock_v1', version: 1, action: 'seed', title: 'Mock seed' }],
+        businessProfile: mockPayload.businessProfile,
+        versions: [{ _id: `mock_${businessSlug}_v1`, version: 1, action: 'seed', title: 'Mock seed' }],
       };
     }
 
