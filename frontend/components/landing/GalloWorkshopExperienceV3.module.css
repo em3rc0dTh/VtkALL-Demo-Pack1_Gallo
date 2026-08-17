@@ -71,14 +71,18 @@
 .marqueeReverse > div:nth-child(10n + 9)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.chevrolet.com'); }
 .marqueeReverse > div:nth-child(10n + 10)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.bmw.com'); }
 
-/* Insurance lane overrides the reverse brand lane mapping. */
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeTrack > div {
+/*
+ * Insurance is the third semantic group inside the Partners scene in the V4
+ * projection. Keep this selector attached to the Gallo scene contract instead
+ * of a historical wrapper depth so the marks survive renderer refactors.
+ */
+section#confianza > div > div > div:nth-child(3) .marqueeTrack > div {
   height: 4rem !important;
   min-width: 10.75rem !important;
   color: rgba(255, 255, 255, 0.92);
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeTrack > div::before {
+section#confianza > div > div > div:nth-child(3) .marqueeTrack > div::before {
   width: 2.15rem;
   height: 2.15rem;
   border-radius: 0.5rem;
@@ -86,35 +90,35 @@ section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeTrack > di
   background-size: 1.8rem 1.8rem;
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 1)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.pacifico.com.pe'); }
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 2)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.rimac.com'); }
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 3)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.mapfre.com.pe'); }
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 4)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.lapositiva.com.pe'); }
-section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 5)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.interseguro.pe'); }
+section#confianza > div > div > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 1)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.pacifico.com.pe'); }
+section#confianza > div > div > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 2)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.rimac.com'); }
+section#confianza > div > div > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 3)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.mapfre.com.pe'); }
+section#confianza > div > div > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 4)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.lapositiva.com.pe'); }
+section#confianza > div > div > div:nth-child(3) .marqueeReverse > div:nth-child(5n + 5)::before { background-image: url('https://www.google.com/s2/favicons?sz=128&domain_url=https://www.interseguro.pe'); }
 
-/* Partner scene fit: preserve one-screen semantics even on shorter laptop viewports. */
-section#confianza > div > div:nth-child(2) {
+/* Partner scene fit: preserve one-screen semantics without cutting the lower insurance lane. */
+section#confianza > div > div {
   justify-content: flex-start !important;
   padding-top: 0.7rem !important;
   padding-bottom: 0.65rem !important;
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(1) h2 {
-  max-width: 46rem !important;
+section#confianza > div > div > div:nth-child(1) h2 {
+  max-width: 58rem !important;
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(2) {
+section#confianza > div > div > div:nth-child(2) {
   margin-top: 1rem !important;
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(3) {
+section#confianza > div > div > div:nth-child(3) {
   margin-top: 0.9rem !important;
   padding-top: 0.72rem !important;
   padding-bottom: 0.72rem !important;
   border-radius: 1.45rem !important;
 }
 
-section#confianza > div > div:nth-child(2) > div:nth-child(3) > div:first-child {
+section#confianza > div > div > div:nth-child(3) > div:first-child {
   margin-bottom: 0.45rem !important;
 }
 
@@ -123,32 +127,27 @@ section#confianza > div > div:nth-child(2) > div:nth-child(3) > div:first-child 
     padding-top: 5.15rem !important;
   }
 
-  section#confianza > div > div:nth-child(2) {
+  section#confianza > div > div {
     padding-top: 0.25rem !important;
     padding-bottom: 0.35rem !important;
   }
 
-  section#confianza > div > div:nth-child(2) > div:nth-child(1) {
-    grid-template-columns: minmax(0, 1.03fr) minmax(0, 0.97fr) !important;
-    align-items: center !important;
-  }
-
-  section#confianza > div > div:nth-child(2) > div:nth-child(1) h2 {
-    max-width: 48rem !important;
+  section#confianza > div > div > div:nth-child(1) h2 {
+    max-width: 58rem !important;
     font-size: clamp(2.05rem, 3.35vw, 3.45rem) !important;
     line-height: 0.9 !important;
   }
 
-  section#confianza > div > div:nth-child(2) > div:nth-child(1) p {
+  section#confianza > div > div > div:nth-child(1) p {
     font-size: 0.8rem !important;
     line-height: 1.35rem !important;
   }
 
-  section#confianza > div > div:nth-child(2) > div:nth-child(2) {
+  section#confianza > div > div > div:nth-child(2) {
     margin-top: 0.65rem !important;
   }
 
-  section#confianza > div > div:nth-child(2) > div:nth-child(3) {
+  section#confianza > div > div > div:nth-child(3) {
     margin-top: 0.62rem !important;
     padding-top: 0.55rem !important;
     padding-bottom: 0.55rem !important;
@@ -167,7 +166,7 @@ section#confianza > div > div:nth-child(2) > div:nth-child(3) > div:first-child 
     height: 1.95rem;
   }
 
-  section#confianza > div > div:nth-child(2) > div:nth-child(3) .marqueeTrack > div {
+  section#confianza > div > div > div:nth-child(3) .marqueeTrack > div {
     height: 3.5rem !important;
   }
 }
