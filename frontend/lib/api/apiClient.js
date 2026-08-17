@@ -2,11 +2,16 @@ import { ApiError } from './apiError';
 
 const publicApiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_DEMO_TEST_API_BASE_URL || '').replace(/\/$/, '');
 const serverApiBaseUrl = (process.env.NEXT_BACKEND_INTERNAL_URL || publicApiBaseUrl || 'http://localhost:4000').replace(/\/$/, '');
-const apiBaseUrl = typeof window !== 'undefined' ? publicApiBaseUrl : serverApiBaseUrl;
 
-const absoluteUrl = (path) => {
+const primaryUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${apiBaseUrl}${path}`;
+
+  // Browser traffic should prefer the application origin. In Docker/VPS deployments,
+  // Next.js rewrites /api/* to NEXT_BACKEND_INTERNAL_URL (for example http://api:4000).
+  // This avoids baking a localhost API URL into the browser bundle.
+  if (typeof window !== 'undefined') return path;
+
+  return `${serverApiBaseUrl}${path}`;
 };
 
 const fallbackBrowserUrl = (path) => {
@@ -68,15 +73,24 @@ export async function apiRequest(path, options = {}) {
   };
 
   try {
-    return await request(absoluteUrl(path));
+    return await request(primaryUrl(path));
   } catch (error) {
     const fallbackUrl = fallbackBrowserUrl(path);
     const canRetryDirectly = error instanceof ApiError
-      ? error.code === 'INVALID_API_RESPONSE'
+      ? error.code === 'INVALID_API_RESPONSE' || error.status === 404
       : true;
+
     if (fallbackUrl && canRetryDirectly) {
-      return request(fallbackUrl);
+      try {
+        return await request(fallbackUrl);
+      } catch (fallbackError) {
+        if (fallbackError instanceof ApiError) {
+          throw fallbackError;
+        }
+        throw ApiError.fromNetworkError(fallbackError);
+      }
     }
+
     if (error instanceof ApiError) {
       throw error;
     }
