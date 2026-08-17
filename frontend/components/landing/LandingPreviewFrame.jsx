@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { LandingPageRenderer } from './LandingPageRenderer';
-import { GalloWorkshopLanding } from './GalloWorkshopLanding';
+import { GalloWorkshopExperience } from './GalloWorkshopExperience';
 
 export function LandingPreviewFrame() {
   const [payload, setPayload] = useState(null);
@@ -56,7 +56,7 @@ export function LandingPreviewFrame() {
       >
         {payload ? (
           businessSlug === 'gallo' ? (
-            <GalloWorkshopLanding payload={payload} />
+            <GalloWorkshopExperience payload={payload} />
           ) : (
             <LandingPageRenderer
               payload={payload}
