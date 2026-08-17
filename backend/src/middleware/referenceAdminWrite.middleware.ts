@@ -7,7 +7,8 @@ export const referenceAdminWriteMiddleware = (req: Request, res: Response, next:
     return next();
   }
 
-  const expectedToken = process.env.DEMO_TEST_ADMIN_WRITE_TOKEN;
+  const expectedToken = process.env.DEMO_TEST_ADMIN_WRITE_TOKEN
+    || (process.env.NODE_ENV === 'development' ? 'local-dev-admin' : '');
   const providedToken = req.header('X-Demo-Test-Admin-Token');
 
   if (!expectedToken || providedToken !== expectedToken) {
