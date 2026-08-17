@@ -81,6 +81,9 @@ const assertEndpointMiddleware = async () => {
     const publicResponse = await fetch(urlFor(server, '/api/v1/public/landing-pages/turagua/home'));
     assert.equal(publicResponse.status, 200);
 
+    const galloPublicResponse = await fetch(urlFor(server, '/api/v1/public/landing-pages/gallo/home'));
+    assert.equal(galloPublicResponse.status, 200);
+
     const blockedResponse = await fetch(urlFor(server, '/api/v1/admin/landing-pages/turagua/home'), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -102,14 +105,69 @@ const assertEndpointMiddleware = async () => {
   }
 };
 
+const assertGalloBuilderPersistence = async () => {
+  const initialGallo = await getPublicLandingPage('gallo', 'home');
+  assert.ok(initialGallo?.content, 'Gallo public seed must exist');
+
+  const initialHeroTitle = findBlock(initialGallo.content, 'gallo-hero').data.title;
+  const initialEvidence = findBlock(initialGallo.content, 'gallo-evidence');
+  assert.notEqual(initialEvidence.enabled, false);
+
+  const draft = clone(initialGallo.content);
+  const hero = findBlock(draft, 'gallo-hero');
+  const partners = findBlock(draft, 'gallo-partners');
+  const evidence = findBlock(draft, 'gallo-evidence');
+
+  hero.data.title = 'B0 persistence title';
+  hero.data.heroMediaUrl = '/uploads/landing/b0-contract-video.mp4';
+  hero.order = 20;
+  partners.order = 10;
+  evidence.enabled = false;
+
+  const updated = await updateDraftLandingPage({
+    businessSlug: 'gallo',
+    pageSlug: 'home',
+    patch: { draft },
+  });
+
+  assert.equal(findBlock(updated.draft, 'gallo-hero').data.title, 'B0 persistence title');
+  assert.equal(findBlock(updated.draft, 'gallo-hero').data.heroMediaUrl, '/uploads/landing/b0-contract-video.mp4');
+  assert.equal(findBlock(updated.draft, 'gallo-partners').order, 10);
+  assert.equal(findBlock(updated.draft, 'gallo-hero').order, 20);
+  assert.equal(findBlock(updated.draft, 'gallo-evidence').enabled, false);
+
+  const publicBeforePublish = await getPublicLandingPage('gallo', 'home');
+  assert.equal(findBlock(publicBeforePublish?.content, 'gallo-hero').data.title, initialHeroTitle, 'Draft edits must not leak into public Gallo content before publish');
+  assert.notEqual(findBlock(publicBeforePublish?.content, 'gallo-evidence').enabled, false, 'Draft visibility edits must not leak before publish');
+
+  const published = await publishLandingPage({ businessSlug: 'gallo', pageSlug: 'home', actor: 'b0-integration-test' });
+  assert.equal(published.publishedVersion, 4, 'Gallo seed v3 should publish the B0 edit as v4');
+
+  const publicAfterPublish = await getPublicLandingPage('gallo', 'home');
+  assert.equal(findBlock(publicAfterPublish?.content, 'gallo-hero').data.title, 'B0 persistence title');
+  assert.equal(findBlock(publicAfterPublish?.content, 'gallo-hero').data.heroMediaUrl, '/uploads/landing/b0-contract-video.mp4');
+  assert.equal(findBlock(publicAfterPublish?.content, 'gallo-partners').order, 10);
+  assert.equal(findBlock(publicAfterPublish?.content, 'gallo-hero').order, 20);
+  assert.equal(findBlock(publicAfterPublish?.content, 'gallo-evidence').enabled, false);
+
+  await mongoose.disconnect();
+  await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+
+  const persisted = await getPublicLandingPage('gallo', 'home');
+  assert.equal(findBlock(persisted?.content, 'gallo-hero').data.title, 'B0 persistence title', 'Published Gallo content must survive Mongo reconnect');
+  assert.equal(findBlock(persisted?.content, 'gallo-evidence').enabled, false, 'Published Gallo visibility must survive Mongo reconnect');
+};
+
 const run = async () => {
   await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
   try {
-    await LandingPage.deleteMany({ businessSlug: { $in: ['demo_test', 'turagua'] } });
-    await LandingPageVersion.deleteMany({ businessSlug: { $in: ['demo_test', 'turagua'] } });
+    const businesses = ['demo_test', 'turagua', 'gallo'];
+    await LandingPage.deleteMany({ businessSlug: { $in: businesses } });
+    await LandingPageVersion.deleteMany({ businessSlug: { $in: businesses } });
 
     await seedLandingPages(landingSeeds.filter((seed) => seed.businessSlug === 'demo_test'), false);
     await seedLandingPages(landingSeeds.filter((seed) => seed.businessSlug === 'turagua'), false);
+    await seedLandingPages(landingSeeds.filter((seed) => seed.businessSlug === 'gallo'), false);
 
     const initialTuragua = await getPublicLandingPage('turagua', 'home');
     const initialDemo = await getPublicLandingPage('demo_test', 'home');
@@ -204,6 +262,7 @@ const run = async () => {
       'published landing should persist across reconnect'
     );
 
+    await assertGalloBuilderPersistence();
     await assertRejectsUnsafeContent();
     await assertEndpointMiddleware();
 
