@@ -162,3 +162,6 @@ Invoke-WebRequest -UseBasicParsing http://localhost:8642/healthz
 - Project docs index: `docs/README.md`
 - Hermes operational runbook: `docs/hermes/HERMES_RUNBOOK.md`
 - Frontend/backend boundary: `docs/architecture/FRONTEND_BACKEND_BOUNDARY_MK1.md`
+```powershell
+1st version
+```
