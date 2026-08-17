@@ -28,21 +28,41 @@ const encodeGalloPresentationSnapshots = (content) => mapGalloContent(content, (
   displayHours: Array.isArray(data.hours) ? data.hours : (Array.isArray(data.displayHours) ? data.displayHours : []),
 }));
 
-const decodeGalloPresentationSnapshots = (content) => mapGalloContent(content, (data) => ({
+const contactFallbackFromBusinessProfile = (profile) => {
+  const settings = profile?.settings || {};
+  const locations = Array.isArray(settings.locations)
+    ? settings.locations
+    : (Array.isArray(profile?.locations) ? profile.locations : []);
+  const location = locations[0] || {};
+  const commercialHours = { ...(profile?.commercialHours || {}), ...(settings.commercialHours || {}) };
+  const hours = [];
+  if (commercialHours.weekdays) hours.push(`Lunes a viernes · ${commercialHours.weekdays}`);
+  if (commercialHours.saturday) hours.push(`Sábado · ${commercialHours.saturday}`);
+  if (!hours.length && commercialHours.summary) hours.push(commercialHours.summary);
+  return {
+    address: [location.addressLine, location.district, location.city].filter(Boolean).join(', '),
+    hours,
+  };
+};
+
+const decodeGalloPresentationSnapshots = (content, fallback = {}) => mapGalloContent(content, (data) => ({
   ...data,
-  address: data.address || data.displayAddress || '',
-  hours: Array.isArray(data.hours) && data.hours.length ? data.hours : (Array.isArray(data.displayHours) ? data.displayHours : []),
+  address: data.address || data.displayAddress || fallback.address || '',
+  hours: Array.isArray(data.hours) && data.hours.length
+    ? data.hours
+    : (Array.isArray(data.displayHours) && data.displayHours.length ? data.displayHours : (fallback.hours || [])),
 }));
 
 const hydrateGalloPayload = (payload, businessSlug) => {
   if (businessSlug !== 'gallo' || !payload) return payload;
+  const fallback = contactFallbackFromBusinessProfile(payload.businessProfile);
   return {
     ...payload,
-    content: decodeGalloPresentationSnapshots(payload.content),
+    content: decodeGalloPresentationSnapshots(payload.content, fallback),
     landingPage: payload.landingPage ? {
       ...payload.landingPage,
-      draft: decodeGalloPresentationSnapshots(payload.landingPage.draft),
-      published: decodeGalloPresentationSnapshots(payload.landingPage.published),
+      draft: decodeGalloPresentationSnapshots(payload.landingPage.draft, fallback),
+      published: decodeGalloPresentationSnapshots(payload.landingPage.published, fallback),
     } : payload.landingPage,
   };
 };
