@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { landingRepository } from '@/lib/landing/landingRepository';
 import { LandingPageRenderer } from './LandingPageRenderer';
+import { GalloWorkshopLanding } from './GalloWorkshopLanding';
 
 export function PublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' }) {
   const { data, isLoading, error } = useQuery({
@@ -16,6 +17,10 @@ export function PublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' 
 
   if (error) {
     return <div className="flex min-h-screen items-center justify-center bg-surface-app p-6 text-center text-text-secondary">No se pudo cargar la landing publica.</div>;
+  }
+
+  if (businessSlug === 'gallo') {
+    return <GalloWorkshopLanding payload={data} />;
   }
 
   return <LandingPageRenderer payload={data} />;
