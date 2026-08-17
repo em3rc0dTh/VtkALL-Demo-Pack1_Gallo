@@ -1,0 +1,117 @@
+import { LandingContent } from './landing.contracts';
+
+export const galloLandingV3Seed: LandingContent = {
+  theme: { primary: '#1741FF', accent: '#FFD400', surface: '#F7F8FC', text: '#080B19' },
+  navigation: [
+    { label: 'Inicio', href: '#inicio' },
+    { label: 'Confianza', href: '#confianza' },
+    { label: 'Servicios', href: '#servicios' },
+    { label: 'Diagnóstico', href: '#diagnostico' },
+    { label: 'Proceso', href: '#proceso' },
+    { label: 'Nosotros', href: '#nosotros' },
+    { label: 'Contacto', href: '#contacto' },
+  ],
+  motion: 'signature',
+  blocks: [
+    {
+      id: 'gallo-hero', type: 'hero', enabled: true, order: 10, frameHeight: 'viewport',
+      layout: { variant: 'gallo_workshop_hero', media: 'background', align: 'left' },
+      data: {
+        variant: 'gallo_workshop_hero', brandMode: 'custom', brandName: 'Gallo Autos', eyebrow: 'Taller automotriz · La Molina',
+        title: 'Tu auto merece un taller que entienda lo que pasa antes de tocarlo.',
+        titleHighlight: 'Diagnóstico. Transparencia. Trabajo bien hecho.',
+        subtitle: 'Mecánica, mantenimiento, frenos, suspensión, scanner, pintura y detailing con una atención clara desde el primer contacto.',
+        supportingText: 'Más de 25 años cuidando vehículos en Lima.', primaryCta: 'Solicitar una cita', secondaryCta: 'Explorar servicios',
+        heroMediaUrl: '/images/galeria_taller.png',
+        stats: [
+          { label: 'Experiencia', value: '+25 años' },
+          { label: 'Primero', value: 'Diagnóstico' },
+          { label: 'Compromiso', value: 'Transparencia' },
+        ],
+      },
+    },
+    {
+      id: 'gallo-partners', type: 'structured_content', enabled: true, order: 20, frameHeight: 'viewport',
+      layout: { variant: 'gallo_partners_scene', align: 'center' },
+      data: {
+        eyebrow: 'Confianza que nos respalda',
+        title: 'Trabajamos con marcas y aseguradoras que forman parte de la realidad de tu auto.',
+        subtitle: 'La experiencia multimarca y la coordinación con aseguradoras viven en una sola escena porque responden a la misma pregunta del cliente: ¿este taller puede acompañar mi caso?',
+        brands: ['Nissan','Volkswagen','Ford','Hyundai','Audi','Mercedes-Benz','Fiat','MINI Cooper','Kia','Volvo','Ferrari','Opel','Toyota','Honda','Porsche','Lexus','Land Rover','Mazda','Subaru','Chevrolet','BMW'],
+        insurers: ['Pacífico','Rimac','Mapfre','La Positiva','Interseguro'],
+        interaction: 'continuous-marquee', verificationState: 'confirmed-by-gallo-input-2026-08-17',
+      },
+    },
+    {
+      id: 'gallo-services', type: 'catalog', enabled: true, order: 30, frameHeight: 'viewport',
+      layout: { variant: 'gallo_services_scene', density: 'comfortable' },
+      data: {
+        eyebrow: 'Workshop', title: 'Todo lo que tu vehículo necesita, con una sola conversación clara.',
+        subtitle: 'Organizamos los servicios por la necesidad real del vehículo, no por una lista interminable de tarjetas.',
+        serviceGroups: [
+          { title: 'Mecánica & mantenimiento', description: 'Mecánica general, mantenimiento preventivo, afinamiento y cambio de aceite.', imageUrl: '/images/galeria_taller.png' },
+          { title: 'Diagnóstico & seguridad', description: 'Scanner, sistema eléctrico, frenos, suspensión, refrigeración, alineación y balanceo.', imageUrl: '/images/galeria_detailing.png' },
+          { title: 'Carrocería & cuidado', description: 'Planchado, pintura, detailing y autolavado.', imageUrl: '/images/galeria_pintura.png' },
+        ],
+      },
+    },
+    {
+      id: 'gallo-diagnostic', type: 'structured_content', enabled: true, order: 40, frameHeight: 'viewport',
+      layout: { variant: 'gallo_diagnostic_scene', media: 'side', align: 'left' },
+      data: {
+        eyebrow: 'Diagnóstico antes que suposición', title: 'No adivinamos. Entendemos qué le pasa a tu auto.',
+        subtitle: 'La conversación correcta comienza con evidencia: síntomas, revisión y diagnóstico antes de recomendar trabajo.',
+        imageUrl: '/images/galeria_taller.png', steps: ['Escuchamos','Revisamos','Diagnosticamos','Te explicamos'],
+      },
+    },
+    {
+      id: 'gallo-process', type: 'structured_content', enabled: true, order: 50, frameHeight: 'viewport',
+      layout: { variant: 'gallo_process_scene', align: 'center' },
+      data: {
+        eyebrow: 'Así trabaja Gallo', title: 'Un proceso que puedes entender de principio a fin.',
+        steps: [
+          { number: '01', title: 'Recibimos', body: 'Nos cuentas qué ocurre y preservamos el contexto.' },
+          { number: '02', title: 'Diagnosticamos', body: 'Revisamos el vehículo antes de definir la solución.' },
+          { number: '03', title: 'Proponemos', body: 'Te explicamos el trabajo y la cotización.' },
+          { number: '04', title: 'Tú autorizas', body: 'Nada avanza sin una decisión clara.' },
+          { number: '05', title: 'Trabajamos', body: 'Ejecutamos el servicio acordado.' },
+          { number: '06', title: 'Validamos', body: 'Verificamos el resultado antes de la entrega.' },
+        ],
+      },
+    },
+    {
+      id: 'gallo-about', type: 'about', enabled: true, order: 60, frameHeight: 'viewport',
+      layout: { variant: 'gallo_experience_scene', media: 'background', align: 'left' },
+      data: {
+        eyebrow: 'Gallo Autos', title: 'Más de 25 años de taller. Una experiencia que sigue evolucionando.',
+        body: 'La tecnología cambia, los autos cambian y el taller evoluciona con ellos. Lo que no cambia es la responsabilidad de explicar, cuidar y entregar un trabajo en el que puedas confiar.',
+        imageUrl: '/images/sobre_nosotros.png',
+        features: [
+          { title: 'Experiencia real', body: 'Trayectoria construida atendiendo vehículos y clientes reales.' },
+          { title: 'Transparencia', body: 'Diagnóstico y explicación antes de intervenir.' },
+          { title: 'Cuidado integral', body: 'Mecánica, seguridad, pintura y detailing en una misma operación.' },
+        ],
+      },
+    },
+    {
+      id: 'gallo-evidence', type: 'testimonials', enabled: true, order: 70, frameHeight: 'viewport',
+      layout: { variant: 'gallo_evidence_scene', align: 'left' },
+      data: {
+        eyebrow: 'Resultados que hablan', title: 'El mejor argumento es un auto que vuelve a la calle como debe.',
+        subtitle: 'Este frame queda preparado para evidencia real de Gallo: vehículo, problema, trabajo realizado y resultado. No publicaremos testimonios inventados.',
+        imageUrl: '/images/galeria_planchado.png',
+      },
+    },
+    {
+      id: 'gallo-contact', type: 'contact', enabled: true, order: 80, frameHeight: 'viewport',
+      layout: { variant: 'gallo_contact_scene', align: 'left' },
+      data: {
+        eyebrow: 'Tu próximo paso', title: 'Cuéntanos qué está pasando con tu auto.',
+        subtitle: 'En esta primera iteración registramos tu intención de contacto sin prometer una cita confirmada automáticamente.',
+        primaryCta: 'Contactar a Gallo', address: 'Av. La Molina 724, La Molina, Lima',
+        hours: ['Lunes a viernes · 08:30–18:00','Sábado · 08:30–15:00'],
+        note: 'Solicitud enviada ≠ cita confirmada. La confirmación operacional será parte de la evolución de Controlled Intake.',
+      },
+    },
+  ],
+};
