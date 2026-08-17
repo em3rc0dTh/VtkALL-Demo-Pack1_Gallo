@@ -1,122 +1,164 @@
-# VtkALL Demo_Pack_1
+# VTKALL Demo Pack 1
 
-VtkALL Demo_Pack_1 is the Turagua vertical demo built on top of the reusable Demo_Pack_0 foundation.
+VTKALL Demo Pack 1 is the Turagua vehicle-service vertical built on top of the reusable Demo Pack 0 foundation. It includes a Next.js frontend, an Express/Mongo backend, Temporal scheduling workflows, and the Hermes conversational agent layer.
 
-Vertical: Turagua / vehicle_service
+Pack 0 remains visible in some internal names as `demo_test`; Pack 1 is the Turagua product identity and normally runs with the `turagua` business slug.
 
-Architectural foundation: Demo_Pack_0
+## What Is Included
 
-Current branch scope: public landing and landing builder
+- Public Turagua landing page with agent chat and landing-builder preview flows.
+- Direct reservation console at `/agendar`.
+- REST API with OpenAPI docs, Mongo persistence, seed data, and admin health checks.
+- Temporal Server, UI, and TypeScript worker for consultation scheduling.
+- Hermes orchestration, routing, scheduling, and conversational model support.
+- Pack 0 regression, Pack 1 landing, backend guardrail, and Hermes verification suites.
 
-The neutral Pack 0 namespace remains `demo_test` for integration and regression verification. Turagua is the Pack 1 product vertical and should be presented as the final demo identity.
+## Quick Start
 
-Current promotion status: `Demo_Pack_1 Landing Integration`.
-
-The default Docker/frontend path may still use `DEMO_TEST_BUSINESS_SLUG=demo_test` for Pack0 regression workflows; use `turagua` when exercising the Pack1 vertical landing.
-
-## Full Docker Stack
-
-From the repository root:
+Copy the environment template, then start the full Docker stack:
 
 ```powershell
+Copy-Item .env.example .env
 docker compose up --build
 ```
 
-Services:
+Useful URLs:
 
-- Frontend landing with agent chat: http://localhost:3000
-- Frontend direct reservation console: http://localhost:3000/agendar
-- Backend health: http://localhost:4000/api/v1/admin/health
-- OpenAPI: http://localhost:4000/api-docs
-- Temporal UI: http://localhost:8080
-- Mongo Express: http://localhost:8081
-- Ollama: http://localhost:11434
-- Temporal gRPC: localhost:7233
+| Service | URL |
+| --- | --- |
+| Frontend landing | http://localhost:3000 |
+| Direct reservation flow | http://localhost:3000/agendar |
+| Backend health | http://localhost:4000/api/v1/admin/health |
+| OpenAPI docs | http://localhost:4000/api-docs |
+| Temporal UI | http://localhost:8080 |
+| Mongo Express | http://localhost:8081 |
+| Ollama | http://localhost:11434 |
+| Temporal gRPC | localhost:7233 |
 
-The root compose starts:
+The root compose file starts MongoDB, Mongo Express, Temporal, Temporal UI, Ollama, the backend API, the Temporal worker, and the frontend in API mode.
 
-```text
-MongoDB
-Backend API
-Temporal Server
-Temporal UI
-Temporal TypeScript Worker
-Frontend in API mode
-Ollama local AI fallback
+## Environment
+
+Use `.env.example` as the local template. Do not commit real secrets.
+
+Important defaults:
+
+- `BUSINESS_SLUG=turagua` is the Pack 1 vertical slug used by the Docker frontend and API seed path.
+- `DEMO_TEST_BUSINESS_SLUG=demo_test` is still useful for Pack 0 regression workflows.
+- `DEMO_TEST_ADMIN_WRITE_TOKEN` protects admin write endpoints.
+- `GEMINI_API_KEY` or `GCP_API_KEY` enables the Gemini-compatible response layer.
+- `OLLAMA_URL`, `OLLAMA_MODEL`, and `HERMES_CONVERSATIONAL_OLLAMA_MODEL` configure local model fallback.
+
+If you use Ollama directly, pull the configured model once:
+
+```powershell
+docker compose exec ollama ollama pull qwen2.5:0.5b
 ```
 
-## Verify Worker Startup
+## Common Commands
+
+Seed or reset demo data:
+
+```powershell
+docker compose exec api npm run seed:reset
+```
+
+Run the API verification pack:
+
+```powershell
+docker compose exec api npm run test:demo-test:api-pack
+```
+
+Follow the Temporal worker:
 
 ```powershell
 docker compose logs -f temporal-worker
 ```
 
-Expected worker log:
+Expected worker startup includes:
 
 ```text
 Temporal worker listening on vtkall-demo-test-schedule-consultation via temporal:7233
 ```
 
-## Seed And Smoke
-
-```powershell
-docker compose exec api npm run seed:reset
-docker compose exec api npm run test:demo-test:api-pack
-```
-
-## Pack 0 Acceptance Gate
-
-From the repository root:
-
-```powershell
-npm run test:pack-0:acceptance
-```
-
-The extension contract for vertical packs is documented in `docs/architecture/DEMO_PACK_0_EXTENSION_CONTRACT.md`.
-
-## Manual Agent Workflow
+Run the manual agent workflow:
 
 ```powershell
 docker compose exec api npm run agent:demo
 ```
 
-The workflow runs through Temporal. The worker calls the same backend domain services used by `/api/demo-test`, so Temporal orchestrates without redefining the domain model.
-
-## Frontend Agent Flow
-
-Open the Dockerized frontend in your browser:
-
-```text
-http://localhost:3000
-```
-
-The landing includes a floating agent chat and CTA buttons that start the real `/api/v1/agent-sim` Temporal workflow. The chat can load catalog, collect customer data, request slots, and reserve a slot through Temporal while preserving the current v3 data model.
-
-## Agent AI Layers
-
-The conversational agent endpoint uses three response layers:
-
-```text
-1. Gemini OpenAI-compatible API, when GEMINI_API_KEY or GCP_API_KEY is configured.
-2. Ollama at OLLAMA_URL, defaulting to http://ollama:11434 inside Docker.
-3. Deterministic default messages generated from the Temporal workflow state.
-```
-
-Real secrets belong in your local `.env`, not in `.env.example`.
-
-If you use the default Ollama model, pull it once:
+Run the full acceptance gate from the repository root:
 
 ```powershell
-docker compose exec ollama ollama pull llama3.2:1b
+npm run test:pack-0:acceptance
 ```
 
-Then ask the agent to draft the next customer message for a workflow:
+The acceptance gate builds the backend, runs Pack 1 landing checks, guardrails, core/idempotency/API verification, seed inspection, Temporal readiness, Hermes runtime invariants, Hermes Temporal E2E, frontend lint, and frontend build.
+
+## Local Development
+
+For Docker-first development, keep the full stack running and edit source files in `backend` and `frontend`.
+
+For separate local processes:
 
 ```powershell
-curl -X POST http://localhost:4000/api/v1/agent-sim/workflows/<workflowId>/message `
-  -H "Content-Type: application/json" `
-  -d "{\"message\":\"Que le digo al cliente ahora?\"}"
+npm install --prefix backend
+npm install --prefix frontend
 ```
+
+Backend:
+
+```powershell
+cd backend
+npm run dev
 ```
-1st version
+
+Frontend:
+
+```powershell
+cd frontend
+$env:NEXT_PUBLIC_DEMO_TEST_DATA_MODE='api'
+$env:NEXT_PUBLIC_DEMO_TEST_API_BASE_URL='http://localhost:4000'
+$env:NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG='turagua'
+npm run dev
 ```
+
+Hermes standalone runtime:
+
+```powershell
+$env:HERMES_API_KEY='local-hermes-dev-key'
+node hermes/runtime/server.js
+```
+
+Health check:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://localhost:8642/healthz
+```
+
+## Repository Map
+
+| Path | Purpose |
+| --- | --- |
+| `backend/` | Express API, Mongo models, domain services, Temporal worker, Hermes backend integration, and verification scripts. |
+| `frontend/` | Next.js app, Turagua landing, admin screens, direct reservation flow, and mock/API repositories. |
+| `hermes/` | Standalone Hermes profile, workspace knowledge, skills, runtime, and smoke tests. |
+| `docs/` | Architecture notes, contracts, reviews, audits, runbooks, and use-case documentation. |
+| `docker-compose.yml` | Full local stack for the Pack 1 demo. |
+| `datamodel.json` and `DATA_MODEL_*.md` | Source data model references for the demo pack. |
+| `VTKALL_Demo_Pack_1.postman_collection.json` | Postman collection for API exploration. |
+
+## Architecture Notes
+
+- Temporal owns scheduling workflow state, while backend domain services remain the authority for customers, cases, availability, reservations, and appointments.
+- Availability is calculated from team capacity, schedule rules, overrides, and existing reservations instead of treating legacy slots as the source of truth.
+- Hermes visible runtime can answer customer-facing turns, route scheduling requests, present availability, and book slots while preserving backend invariants.
+- The Demo Pack 0 extension contract is documented in `docs/architecture/DEMO_PACK_0_EXTENSION_CONTRACT.md`.
+
+## More Documentation
+
+- Backend run notes: `backend/README.md`
+- Hermes run notes: `hermes/README.md`
+- Project docs index: `docs/README.md`
+- Hermes operational runbook: `docs/hermes/HERMES_RUNBOOK.md`
+- Frontend/backend boundary: `docs/architecture/FRONTEND_BACKEND_BOUNDARY_MK1.md`
