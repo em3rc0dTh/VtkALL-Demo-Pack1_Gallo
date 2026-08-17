@@ -52,7 +52,7 @@ export function LandingPreviewFrame() {
       `}</style>
       <div
         data-landing-preview-mode="draft"
-        data-landing-renderer-version={businessSlug === 'gallo' ? 'gallo-workshop-scenes-v1' : 'turagua-frames-v2'}
+        data-landing-renderer-version={businessSlug === 'gallo' ? 'gallo-workshop-scenes-v4' : 'turagua-frames-v2'}
       >
         {payload ? (
           businessSlug === 'gallo' ? (
