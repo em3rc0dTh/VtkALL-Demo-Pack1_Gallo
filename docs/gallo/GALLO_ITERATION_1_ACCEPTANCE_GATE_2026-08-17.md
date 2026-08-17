@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-17  
 **Branch:** `develop`  
-**PR:** `#1 — Gallo Workshop Iteration 1 — acceptance gate`  
-**Gate status:** `OPEN — CI MECHANISM BLOCKED / RUNTIME + VISUAL PROOF OPEN`
+**PR:** `#1 — Gallo Workshop Iteration 1 — B0 acceptance gate`  
+**Gate status:** `OPEN — ACTIONS EXECUTION BLOCKED / RUNTIME + VISUAL PROOF OPEN`
 
 ## Scope under acceptance
 
@@ -36,9 +36,9 @@ PRODUCTION ADOPTED
 
 No earlier state implies a later one.
 
-## Repository-native CI attempt
+## Repository-native CI investigation
 
-The repository workflow `.github/workflows/acceptance.yml` exists, is active and declares:
+The repository workflow `.github/workflows/acceptance.yml` is active. The original workflow declared:
 
 ```text
 pull_request
@@ -57,13 +57,15 @@ frontend lint
 frontend build
 ```
 
+### Probe A — pull request
+
 To obtain proof without merging to `main`:
 
 1. draft PR `develop → main` was opened;
-2. this acceptance record was committed to `develop`, synchronizing the PR head;
+2. the PR head was synchronized repeatedly;
 3. GitHub Actions/check endpoints were inspected.
 
-Observed after PR open + synchronize:
+Observed:
 
 ```text
 pull_request workflow runs     0
@@ -71,17 +73,57 @@ check-runs                     0
 check-suites                   0
 ```
 
+### Probe B — direct `develop` push
+
+B0 permits repair of the acceptance mechanism, so the workflow was minimally changed on `develop` to:
+
+```yaml
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+```
+
+The change was committed as:
+
+```text
+068eaf51f103eb0ea96fcc8feeb43e0e4b8a8784
+ci: run acceptance on develop
+```
+
+This should create a `push` run when GitHub Actions execution is available.
+
+Observed for that exact SHA:
+
+```text
+workflow runs     0
+check-suites      0
+```
+
 The connected integration can list the active workflow, but GitHub returns `403 Resource not accessible by integration` for the repository Actions-permissions endpoint.
 
-Therefore the correct classification is:
+## CI diagnosis
+
+The evidence now rules out a missing PR synchronize and a branch-filter-only explanation.
+
+Correct classification:
 
 ```text
 CI PASS      NOT CLAIMED
 CI FAIL      NOT CLAIMED
-CI BLOCKED   YES — no runner/check suite instantiated
+CI BLOCKED   YES
 ```
 
-A missing run is not converted into a passing or failing test result.
+More specifically:
+
+> **The acceptance workflow is defined and active, but GitHub does not instantiate a workflow run/check suite for either the PR synchronization path or a direct `develop` push that explicitly matches the workflow trigger. The remaining likely boundary is Actions execution/configuration/permission at repository or organization/platform level, which this connected integration cannot inspect because the permissions endpoint returns 403.**
+
+Do not create additional no-op commits merely to provoke Actions. The next technical proof must come from an executable authenticated runner/environment or repaired GitHub Actions configuration/permissions.
+
+A missing run is never converted into a passing or failing test result.
 
 ## Landing Builder runtime acceptance gate
 
@@ -139,9 +181,10 @@ IMPLEMENTED                         ✅
 STATIC AUDIT                        ✅
 DRAFT PR                            ✅
 CI WORKFLOW DEFINED / ACTIVE        ✅
-CI RUN / CHECK SUITE                ⛔ BLOCKED — NOT INSTANTIATED
-FRONTEND LINT / BUILD PROOF         ◉ OPEN
-BACKEND ACCEPTANCE PROOF            ◉ OPEN
+PR TRIGGER PROBE                    ⛔ NO RUN INSTANTIATED
+DEVELOP PUSH TRIGGER PROBE          ⛔ NO RUN INSTANTIATED
+FRONTEND LINT / BUILD PROOF         ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
+BACKEND ACCEPTANCE PROOF            ◉ OPEN / BLOCKED BY EXECUTION ENVIRONMENT
 BUILDER END-TO-END RUNTIME LOOP     ◉ OPEN
 DESKTOP / TABLET / MOBILE QA        ◉ OPEN
 ACCEPTANCE                          ⛔ NOT YET CLAIMED
@@ -151,11 +194,11 @@ PRODUCTION ADOPTION                 ⛔ NOT CLAIMED
 
 ## Environment-level decision
 
-The separate Gallo Environment documentation consolidation has now reached:
+The Gallo Environment documentation consolidation is frozen as:
 
 ```text
 RIGHT-TO-BUILD / CONTINUE-BUILD  PASS
-CURRENT PILOT PROMOTION          BLOCKED BY THIS ACCEPTANCE GATE
+CURRENT PILOT PROMOTION          BLOCKED BY THIS B0 ACCEPTANCE GATE
 ```
 
 Meaning:
@@ -166,4 +209,4 @@ Meaning:
 
 ## Next acceptance action
 
-Restore or provide an executable proof mechanism for the existing acceptance chain, then run the GLB runtime/visual pack and update this record from actual evidence only.
+Establish an executable proof environment for the existing acceptance chain, then run the GLB runtime/visual pack and update this record from actual evidence only.
