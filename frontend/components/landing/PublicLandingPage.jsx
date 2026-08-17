@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { landingRepository } from '@/lib/landing/landingRepository';
 import { LandingPageRenderer } from './LandingPageRenderer';
-import { GalloWorkshopLanding } from './GalloWorkshopLanding';
+import { GalloWorkshopExperience } from './GalloWorkshopExperience';
 
 export function PublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' }) {
   const { data, isLoading, error } = useQuery({
@@ -20,7 +20,7 @@ export function PublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' 
   }
 
   if (businessSlug === 'gallo') {
-    return <GalloWorkshopLanding payload={data} />;
+    return <GalloWorkshopExperience payload={data} />;
   }
 
   return <LandingPageRenderer payload={data} />;
