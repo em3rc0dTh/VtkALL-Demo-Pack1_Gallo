@@ -72,7 +72,9 @@ pageSlug = home
 
 ### Dedicated renderer
 
-`frontend/components/landing/GalloWorkshopLanding.jsx` isolates Gallo's scene experience from the historical Turagua renderer.
+`frontend/components/landing/GalloWorkshopExperience.jsx` isolates Gallo's scene experience from the historical Turagua renderer.
+
+The initial `GalloWorkshopLanding.jsx` implementation was superseded during the same build pass and removed after static cleanup. The replacement removes the unused scene map and uses explicit Tailwind opacity utilities to reduce lint/build risk.
 
 The existing `LandingPageRenderer` remains available for previous projections.
 
@@ -138,7 +140,7 @@ Real Gallo evidence can replace the temporary media without changing the informa
 
 ```text
 gallo
-  → GalloWorkshopLanding
+  → GalloWorkshopExperience
 
 other / legacy
   → LandingPageRenderer
@@ -199,13 +201,14 @@ new external photo dependency               NOT ADDED
 - Gallo frontend mock projection exists.
 - Gallo backend landing seed exists and is registered.
 - Root page metadata is Gallo-specific.
+- The initial Gallo renderer was replaced by the hardened `GalloWorkshopExperience` implementation.
 - No changes were made to `main` during this build pass.
 
 ### Still pending
 
 A real `npm run build` / `npm run lint` execution has not been observed from this connector session.
 
-GitHub Actions workflow/commit endpoints are currently not accessible through the connected GitHub integration for this repository, and no Gallo project exists in the connected Vercel team to provide an independent preview build.
+GitHub Actions workflow/commit endpoints are currently not accessible through the connected GitHub integration for this repository. The connected Vercel account was also inspected and currently has no Gallo/VtkALL Demo Pack project available for an independent preview build.
 
 Therefore this audit does **not** claim runtime proof yet.
 
@@ -225,6 +228,7 @@ IMPLEMENTATION FOUNDATION     ✅
 GALLO PUBLIC PROJECTION       ✅
 ONE-SCREEN SCENE MODEL        ✅
 BUILDER PREVIEW PARITY        ✅
+STATIC RENDERER CLEANUP       ✅
 AGENT DEFERRED                ✅
 PINTA TU COCHE DEFERRED       ✅
 RUNTIME BUILD PROOF           ◉ PENDING
