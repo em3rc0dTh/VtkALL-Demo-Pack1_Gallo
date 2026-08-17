@@ -82,7 +82,9 @@ export const landingRepository = {
   },
 
   async getAdminLandingPage({ businessSlug = 'turagua', pageSlug = 'home' } = {}) {
-    if (requireDemoTestDataMode() !== 'api') {
+    const dataMode = requireDemoTestDataMode();
+    const mustUseAuthoritativeApi = businessSlug === 'gallo';
+    if (!mustUseAuthoritativeApi && dataMode !== 'api') {
       const mockPayload = mockPayloadFor(businessSlug);
       return hydrateGalloPayload({
         landingPage: {
