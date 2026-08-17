@@ -117,3 +117,6 @@ curl -X POST http://localhost:4000/api/v1/agent-sim/workflows/<workflowId>/messa
   -H "Content-Type: application/json" `
   -d "{\"message\":\"Que le digo al cliente ahora?\"}"
 ```
+```
+1st version
+```
