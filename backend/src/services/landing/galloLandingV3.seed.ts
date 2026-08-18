@@ -17,7 +17,7 @@ export const galloLandingV3Seed: LandingContent = {
       id: 'gallo-hero', type: 'hero', enabled: true, order: 10, frameHeight: 'viewport',
       layout: { variant: 'gallo_workshop_hero', media: 'background', align: 'left' },
       data: {
-        variant: 'gallo_workshop_hero', brandMode: 'custom', brandName: 'Gallo Autos', eyebrow: 'Taller automotriz · La Molina',
+        variant: 'gallo_workshop_hero', brandMode: 'business', eyebrow: 'Taller automotriz · La Molina',
         title: 'Tu auto merece un taller que entienda lo que pasa antes de tocarlo.',
         titleHighlight: 'Diagnóstico. Transparencia. Trabajo bien hecho.',
         subtitle: 'Mecánica, mantenimiento, frenos, suspensión, scanner, pintura y detailing con una atención clara desde el primer contacto.',
@@ -47,11 +47,11 @@ export const galloLandingV3Seed: LandingContent = {
       layout: { variant: 'gallo_services_scene', density: 'comfortable' },
       data: {
         eyebrow: 'Workshop', title: 'Todo lo que tu vehículo necesita, con una sola conversación clara.',
-        subtitle: 'Organizamos los servicios por la necesidad real del vehículo, no por una lista interminable de tarjetas.',
+        subtitle: 'La oferta visible viene del Catálogo de Servicios de Gallo; aquí solo definimos cómo se presenta.',
         serviceGroups: [
-          { title: 'Mecánica & mantenimiento', description: 'Mecánica general, mantenimiento preventivo, afinamiento y cambio de aceite.', imageUrl: '/images/galeria_taller.png' },
-          { title: 'Diagnóstico & seguridad', description: 'Scanner, sistema eléctrico, frenos, suspensión, refrigeración, alineación y balanceo.', imageUrl: '/images/galeria_detailing.png' },
-          { title: 'Carrocería & cuidado', description: 'Planchado, pintura, detailing y autolavado.', imageUrl: '/images/galeria_pintura.png' },
+          { title: 'Mecánica & mantenimiento', description: '', category: 'mecanica_mantenimiento', imageUrl: '/images/galeria_taller.png' },
+          { title: 'Diagnóstico & seguridad', description: '', category: 'diagnostico_seguridad', imageUrl: '/images/galeria_detailing.png' },
+          { title: 'Carrocería & cuidado', description: '', category: 'carroceria_cuidado', imageUrl: '/images/galeria_pintura.png' },
         ],
       },
     },
@@ -108,8 +108,7 @@ export const galloLandingV3Seed: LandingContent = {
       data: {
         eyebrow: 'Tu próximo paso', title: 'Cuéntanos qué está pasando con tu auto.',
         subtitle: 'En esta primera iteración registramos tu intención de contacto sin prometer una cita confirmada automáticamente.',
-        primaryCta: 'Contactar a Gallo', address: 'Av. La Molina 724, La Molina, Lima',
-        hours: ['Lunes a viernes · 08:30–18:00','Sábado · 08:30–15:00'],
+        primaryCta: 'Contactar a Gallo',
         note: 'Solicitud enviada ≠ cita confirmada. La confirmación operacional será parte de la evolución de Controlled Intake.',
       },
     },
