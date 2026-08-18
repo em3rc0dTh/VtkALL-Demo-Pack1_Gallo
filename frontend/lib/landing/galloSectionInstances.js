@@ -24,7 +24,7 @@ const slugify = (value = '') => String(value || '')
 
 const token = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-const safeMotion = (value) => MOTION_PRESETS.some((item) => item.value === value) ? value : 'rise';
+const safeMotion = (value, fallback = 'rise') => MOTION_PRESETS.some((item) => item.value === value) ? value : fallback;
 const safeDepth = (value) => DEPTH_PRESETS.some((item) => item.value === value) ? value : 'none';
 const sceneMetaFor = (block = {}) => LEGACY_SCENE_META[block?.layout?.variant || block?.data?.variant || ''] || null;
 
@@ -130,7 +130,7 @@ export const sectionInstanceFor = (block = {}, index = 0) => {
     navLabel: explicit.navLabel || legacy.navLabel || block?.data?.title || `Sección ${index + 1}`,
     showInNavigation: explicit.showInNavigation ?? Boolean(legacy.navLabel),
     repeatable: explicit.repeatable ?? !legacy.singleton,
-    motion: safeMotion(explicit.motion),
+    motion: safeMotion(explicit.motion, legacy.singleton ? 'none' : 'rise'),
     depth: safeDepth(explicit.depth),
   };
 };
@@ -151,7 +151,7 @@ export const withSectionInstance = (block, patch = {}, index = 0) => {
         schemaVersion: 1,
         anchor,
         repeatable: legacy?.singleton ? false : (patch.repeatable ?? current.repeatable),
-        motion: safeMotion(patch.motion ?? current.motion),
+        motion: safeMotion(patch.motion ?? current.motion, legacy?.singleton ? 'none' : 'rise'),
         depth: safeDepth(patch.depth ?? current.depth),
       },
     },
