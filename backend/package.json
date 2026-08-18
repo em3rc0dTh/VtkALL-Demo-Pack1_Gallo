@@ -19,7 +19,8 @@
     "test:demo-test:seed": "tsx src/tests/demoTest/seed-inspection.ts",
     "test:demo-test:smoke": "tsx src/tests/demoTest/write-smoke.ts",
     "test:pack-0:landing": "npm run test:pack-1:landing:contract",
-    "test:pack-1:landing:contract": "tsx src/tests/landing/landing-contract.test.ts && tsx src/tests/landing/landing-asset-upload.test.ts",
+    "test:pack-1:landing:authority": "tsx src/tests/landing/gallo-data-authority.test.ts && tsx src/tests/landing/landing-public-view-model.test.ts",
+    "test:pack-1:landing:contract": "tsx src/tests/landing/landing-contract.test.ts && tsx src/tests/landing/landing-asset-upload.test.ts && npm run test:pack-1:landing:authority",
     "test:pack-1:landing:integration": "tsx src/tests/landing/landing-persistence.integration.ts",
     "test:pack-1:landing:public-frames": "tsx src/tests/landing/landing-public-frames.integration.ts",
     "test:pack-1:landing": "npm run test:pack-1:landing:contract && npm run test:pack-1:landing:integration && npm run test:pack-1:landing:public-frames",
@@ -111,7 +112,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/morgan": "^1.9.10",
+    "@types/morgan": "^2.8.19",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "openapi-types": "^12.1.3",
