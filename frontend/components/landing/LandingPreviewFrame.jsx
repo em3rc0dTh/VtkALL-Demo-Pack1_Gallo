@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { LandingPageRenderer } from './LandingPageRenderer';
-import { GalloWorkshopExperience } from './GalloWorkshopExperience';
+import { GalloWorkshopExperience as GalloWorkshopExperienceV7 } from './GalloWorkshopExperienceV7';
 
 export function LandingPreviewFrame() {
   const [payload, setPayload] = useState(null);
@@ -52,11 +52,11 @@ export function LandingPreviewFrame() {
       `}</style>
       <div
         data-landing-preview-mode="draft"
-        data-landing-renderer-version={businessSlug === 'gallo' ? 'gallo-workshop-scenes-v4' : 'turagua-frames-v2'}
+        data-landing-renderer-version={businessSlug === 'gallo' ? 'gallo-section-instance-v7' : 'turagua-frames-v2'}
       >
         {payload ? (
           businessSlug === 'gallo' ? (
-            <GalloWorkshopExperience payload={payload} />
+            <GalloWorkshopExperienceV7 payload={payload} />
           ) : (
             <LandingPageRenderer
               payload={payload}
