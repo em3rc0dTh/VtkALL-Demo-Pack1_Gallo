@@ -48,6 +48,16 @@ export const galloLandingV3Seed: LandingContent = {
       data: {
         eyebrow: 'Workshop', title: 'Todo lo que tu vehículo necesita, con una sola conversación clara.',
         subtitle: 'La oferta visible viene del Catálogo de Servicios de Gallo; aquí solo definimos cómo se presenta.',
+        presentation: {
+          displayMode: 'cards',
+          columns: 3,
+          showImage: true,
+          showDescription: true,
+          showPrice: true,
+          showDuration: false,
+          motion: 'rise',
+          depth: 'subtle',
+        },
         serviceGroups: [
           { title: 'Mecánica & mantenimiento', description: '', category: 'mecanica_mantenimiento', imageUrl: '/images/galeria_taller.png' },
           { title: 'Diagnóstico & seguridad', description: '', category: 'diagnostico_seguridad', imageUrl: '/images/galeria_detailing.png' },
