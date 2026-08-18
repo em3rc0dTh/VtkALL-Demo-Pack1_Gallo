@@ -5,9 +5,7 @@ import { GalloWorkshopExperience as GalloWorkshopExperienceV5 } from './GalloWor
 import { normalizeServicePresentation } from '@/lib/landing/galloPresentationRegistry';
 
 const variantFor = (block) => block?.layout?.variant || block?.data?.variant || '';
-
 const clone = (value) => JSON.parse(JSON.stringify(value || {}));
-
 const findContent = (payload) => payload?.content || payload?.landingPage?.published || payload?.landingPage?.draft;
 
 const servicePresentationFor = (payload) => {
@@ -18,11 +16,20 @@ const servicePresentationFor = (payload) => {
 
 const projectPayloadForPresentation = (payload, presentation) => {
   const next = clone(payload);
-  if (!presentation.showPrice && Array.isArray(next.catalogOfferings)) {
-    next.catalogOfferings = next.catalogOfferings.map((offering) => ({ ...offering, priceLabel: '', price: undefined }));
-  }
-  if (!presentation.showDuration && Array.isArray(next.catalogOfferings)) {
-    next.catalogOfferings = next.catalogOfferings.map((offering) => ({ ...offering, durationMinutes: undefined }));
+  if (Array.isArray(next.catalogOfferings)) {
+    next.catalogOfferings = next.catalogOfferings.map((offering) => {
+      const baseName = offering.displayName || offering.name || offering.title || '';
+      const durationSuffix = presentation.showDuration && Number(offering.durationMinutes) > 0
+        ? ` · ${Number(offering.durationMinutes)} min`
+        : '';
+      return {
+        ...offering,
+        displayName: `${baseName}${durationSuffix}`,
+        priceLabel: presentation.showPrice ? (offering.priceLabel || offering?.price?.display || '') : '',
+        price: presentation.showPrice ? offering.price : undefined,
+        durationMinutes: presentation.showDuration ? offering.durationMinutes : undefined,
+      };
+    });
   }
 
   const updateContent = (content) => {
@@ -140,14 +147,8 @@ export function GalloWorkshopExperience({ payload }) {
           display: none !important;
         }
 
-        [data-gallo-service-display='text'] section[data-gallo-scene='servicios'] article h3 {
-          color: #080b19 !important;
-        }
-
-        [data-gallo-service-display='text'] section[data-gallo-scene='servicios'] article p {
-          color: #64748b !important;
-        }
-
+        [data-gallo-service-display='text'] section[data-gallo-scene='servicios'] article h3 { color: #080b19 !important; }
+        [data-gallo-service-display='text'] section[data-gallo-scene='servicios'] article p { color: #64748b !important; }
         [data-gallo-service-display='text'] section[data-gallo-scene='servicios'] article div.relative > div:last-child span {
           border-color: rgba(23, 65, 255, 0.12) !important;
           background: rgba(23, 65, 255, 0.05) !important;
@@ -161,15 +162,12 @@ export function GalloWorkshopExperience({ payload }) {
           }
         }
 
-        [data-gallo-service-description='hide'] section[data-gallo-scene='servicios'] article p {
-          display: none !important;
-        }
+        [data-gallo-service-description='hide'] section[data-gallo-scene='servicios'] article p { display: none !important; }
 
         [data-gallo-service-depth='subtle'] section[data-gallo-scene='servicios'] article {
           box-shadow: 0 28px 70px rgba(10, 25, 80, 0.14) !important;
           transition: transform 320ms ease, box-shadow 320ms ease;
         }
-
         [data-gallo-service-depth='subtle'] section[data-gallo-scene='servicios'] article:hover {
           transform: translateY(-5px);
           box-shadow: 0 34px 88px rgba(10, 25, 80, 0.2) !important;
@@ -179,7 +177,6 @@ export function GalloWorkshopExperience({ payload }) {
           transform-style: preserve-3d;
           transition: transform 360ms cubic-bezier(.22,1,.36,1), box-shadow 360ms ease;
         }
-
         [data-gallo-service-depth='tilt'] section[data-gallo-scene='servicios'] article:hover {
           transform: perspective(900px) rotateX(2deg) rotateY(-3deg) translateY(-6px);
           box-shadow: 0 38px 100px rgba(10, 25, 80, 0.22) !important;
@@ -190,30 +187,25 @@ export function GalloWorkshopExperience({ payload }) {
           box-shadow: 0 14px 0 rgba(23, 65, 255, 0.08), 0 28px 70px rgba(10, 25, 80, 0.14) !important;
           transition: transform 320ms ease, box-shadow 320ms ease;
         }
-
         [data-gallo-service-depth='layered'] section[data-gallo-scene='servicios'] article:hover {
           transform: translate(-3px, -6px);
           box-shadow: 6px 14px 0 rgba(23, 65, 255, 0.12), 0 36px 90px rgba(10, 25, 80, 0.2) !important;
         }
 
-        [data-scene-state='active'] [data-gallo-service-motion='fade'] section[data-gallo-scene='servicios'] article {
+        [data-gallo-service-motion='fade'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article {
           animation: gallo-service-fade 560ms ease both;
         }
-
-        [data-scene-state='active'] [data-gallo-service-motion='rise'] section[data-gallo-scene='servicios'] article,
-        [data-scene-state='active'] [data-gallo-service-motion='stagger'] section[data-gallo-scene='servicios'] article {
+        [data-gallo-service-motion='rise'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article,
+        [data-gallo-service-motion='stagger'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article {
           animation: gallo-service-rise 620ms cubic-bezier(.22,1,.36,1) both;
         }
-
-        [data-scene-state='active'] [data-gallo-service-motion='slide'] section[data-gallo-scene='servicios'] article {
+        [data-gallo-service-motion='slide'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article {
           animation: gallo-service-slide 620ms cubic-bezier(.22,1,.36,1) both;
         }
-
-        [data-scene-state='active'] [data-gallo-service-motion='scale'] section[data-gallo-scene='servicios'] article {
+        [data-gallo-service-motion='scale'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article {
           animation: gallo-service-scale 560ms cubic-bezier(.22,1,.36,1) both;
         }
-
-        [data-scene-state='active'] [data-gallo-service-motion='blur-reveal'] section[data-gallo-scene='servicios'] article {
+        [data-gallo-service-motion='blur-reveal'] [data-scene-state='active'] section[data-gallo-scene='servicios'] article {
           animation: gallo-service-blur 650ms cubic-bezier(.22,1,.36,1) both;
         }
 
