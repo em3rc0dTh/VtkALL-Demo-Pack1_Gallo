@@ -26,6 +26,7 @@ const token = () => `${Date.now().toString(36)}-${Math.random().toString(36).sli
 
 const safeMotion = (value) => MOTION_PRESETS.some((item) => item.value === value) ? value : 'rise';
 const safeDepth = (value) => DEPTH_PRESETS.some((item) => item.value === value) ? value : 'none';
+const sceneMetaFor = (block = {}) => LEGACY_SCENE_META[block?.layout?.variant || block?.data?.variant || ''] || null;
 
 export const REPEATABLE_SECTION_TEMPLATES = [
   {
@@ -118,11 +119,14 @@ export const sectionInstanceFor = (block = {}, index = 0) => {
   const legacy = LEGACY_SCENE_META[variant] || {};
   const explicit = block?.data?.instance || {};
   const fallbackAnchor = legacy.anchor || slugify(block.id || explicit.navLabel || block?.data?.title || `seccion-${index + 1}`) || `seccion-${index + 1}`;
+  const anchor = legacy.singleton
+    ? legacy.anchor
+    : (slugify(explicit.anchor || fallbackAnchor) || `seccion-${index + 1}`);
   return {
     schemaVersion: 1,
     templateKey: explicit.templateKey || legacy.family || variant || 'custom',
     semanticFamily: explicit.semanticFamily || legacy.family || 'custom',
-    anchor: slugify(explicit.anchor || fallbackAnchor) || `seccion-${index + 1}`,
+    anchor,
     navLabel: explicit.navLabel || legacy.navLabel || block?.data?.title || `Sección ${index + 1}`,
     showInNavigation: explicit.showInNavigation ?? Boolean(legacy.navLabel),
     repeatable: explicit.repeatable ?? !legacy.singleton,
@@ -133,6 +137,10 @@ export const sectionInstanceFor = (block = {}, index = 0) => {
 
 export const withSectionInstance = (block, patch = {}, index = 0) => {
   const current = sectionInstanceFor(block, index);
+  const legacy = sceneMetaFor(block);
+  const anchor = legacy?.singleton
+    ? legacy.anchor
+    : (slugify(patch.anchor ?? current.anchor) || current.anchor);
   return {
     ...block,
     data: {
@@ -141,7 +149,8 @@ export const withSectionInstance = (block, patch = {}, index = 0) => {
         ...current,
         ...patch,
         schemaVersion: 1,
-        anchor: slugify(patch.anchor ?? current.anchor) || current.anchor,
+        anchor,
+        repeatable: legacy?.singleton ? false : (patch.repeatable ?? current.repeatable),
         motion: safeMotion(patch.motion ?? current.motion),
         depth: safeDepth(patch.depth ?? current.depth),
       },
