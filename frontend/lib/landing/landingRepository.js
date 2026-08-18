@@ -11,6 +11,14 @@ const unwrap = (response) => response?.data || response;
 
 const mockPayloadFor = (businessSlug) => businessSlug === 'gallo' ? galloMockLandingPayload : mockLandingPayload;
 
+// Gallo is a real mutable product surface in this repository, not a demo-data
+// projection. Its Builder and public Landing must always share the same API /
+// persistence authority so a published Builder draft is what the public page
+// renders. Legacy/demo contexts may still opt into mock mode.
+const usesAuthoritativeLandingApi = (businessSlug) => (
+  businessSlug === 'gallo' || requireDemoTestDataMode() === 'api'
+);
+
 const mapGalloContent = (content, mapper) => {
   if (!content?.blocks) return content;
   const next = cloneLandingContent(content);
@@ -69,7 +77,7 @@ const hydrateGalloPayload = (payload, businessSlug) => {
 
 export const landingRepository = {
   async getPublicLandingPage({ businessSlug = 'turagua', pageSlug = 'home' } = {}) {
-    if (requireDemoTestDataMode() !== 'api') {
+    if (!usesAuthoritativeLandingApi(businessSlug)) {
       const mockPayload = mockPayloadFor(businessSlug);
       return hydrateGalloPayload({
         ...mockPayload,
@@ -82,9 +90,7 @@ export const landingRepository = {
   },
 
   async getAdminLandingPage({ businessSlug = 'turagua', pageSlug = 'home' } = {}) {
-    const dataMode = requireDemoTestDataMode();
-    const mustUseAuthoritativeApi = businessSlug === 'gallo';
-    if (!mustUseAuthoritativeApi && dataMode !== 'api') {
+    if (!usesAuthoritativeLandingApi(businessSlug)) {
       const mockPayload = mockPayloadFor(businessSlug);
       return hydrateGalloPayload({
         landingPage: {
