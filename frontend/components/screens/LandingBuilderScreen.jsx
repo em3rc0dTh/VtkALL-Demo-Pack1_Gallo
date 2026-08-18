@@ -1,7 +1,11 @@
 'use client';
 
-import { LandingAdminPage } from '@/components/landing/LandingAdminPage';
+import { GalloLandingBuilderPage } from '@/components/landing/GalloLandingBuilderPage';
 
 export function LandingBuilderScreen() {
-  return <LandingAdminPage businessSlug="turagua" pageSlug="home" embedded />;
+  return (
+    <div className="h-full min-h-0 overflow-hidden rounded-xl [&>main]:!h-full [&>main]:!min-h-0">
+      <GalloLandingBuilderPage />
+    </div>
+  );
 }
