@@ -1,5 +1,5 @@
-import { GalloLandingBuilderPage } from '@/components/landing/GalloLandingBuilderPage';
+import { AdminWireframes } from '@/components/wireframes/WireframeScreens';
 
 export default function AdminLandingRoute() {
-  return <GalloLandingBuilderPage />;
+  return <AdminWireframes initialScreen="builder" />;
 }
