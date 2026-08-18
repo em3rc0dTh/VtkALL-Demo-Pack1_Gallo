@@ -1,21 +1,40 @@
 import { ApiError } from './apiError';
+import { withBasePath } from '@/lib/config/basePath';
 
 const publicApiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_DEMO_TEST_API_BASE_URL || '').replace(/\/$/, '');
 const serverApiBaseUrl = (process.env.NEXT_BACKEND_INTERNAL_URL || publicApiBaseUrl || 'http://localhost:4000').replace(/\/$/, '');
 
+const isLoopbackUrl = (value) => {
+  try {
+    const parsed = new URL(value);
+    return ['localhost', '127.0.0.1', '::1'].includes(parsed.hostname);
+  } catch (error) {
+    return false;
+  }
+};
+
+const browserIsLoopback = () => {
+  if (typeof window === 'undefined') return false;
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+};
+
 const primaryUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
 
-  // Browser traffic should prefer the application origin. In Docker/VPS deployments,
-  // Next.js rewrites /api/* to NEXT_BACKEND_INTERNAL_URL (for example http://api:4000).
-  // This avoids baking a localhost API URL into the browser bundle.
-  if (typeof window !== 'undefined') return path;
+  // Browser traffic must stay inside the deployed Next.js basePath so its rewrite
+  // can proxy /api/* to the Docker-internal backend service.
+  if (typeof window !== 'undefined') return withBasePath(path);
 
   return `${serverApiBaseUrl}${path}`;
 };
 
 const fallbackBrowserUrl = (path) => {
   if (typeof window === 'undefined' || !publicApiBaseUrl || /^https?:\/\//i.test(path)) return null;
+
+  // A localhost API URL embedded at build time is valid only when the browser itself
+  // is local. Never make a remote VPS visitor retry against their own machine.
+  if (isLoopbackUrl(publicApiBaseUrl) && !browserIsLoopback()) return null;
+
   const currentOrigin = window.location.origin.replace(/\/$/, '');
   if (publicApiBaseUrl === currentOrigin) return null;
   return `${publicApiBaseUrl}${path}`;

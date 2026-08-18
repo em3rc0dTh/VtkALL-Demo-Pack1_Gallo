@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useBusinessProfileQuery } from '@/hooks/server-state/useBusinessProfileQuery';
 import { getDemoTestDataModeStatus } from '@/lib/config/demoTestDataMode';
 import { DEFAULT_PUBLIC_BUSINESS_SLUG } from '@/lib/config/businessSlug';
+import { PUBLIC_BASE_PATH } from '@/lib/config/basePath';
 
 const BusinessProfileContext = createContext(null);
 
@@ -35,8 +36,12 @@ function BusinessProfileLoading() {
 export function BusinessProfileProvider({ profile: fallbackProfile, children }) {
   const modeStatus = getDemoTestDataModeStatus();
   const pathname = usePathname();
+  const galloDeployment = PUBLIC_BASE_PATH === '/gallo';
+  const configuredBusinessSlug = process.env.NEXT_PUBLIC_ADMIN_BUSINESS_SLUG
+    || (galloDeployment ? 'gallo' : DEFAULT_PUBLIC_BUSINESS_SLUG)
+    || 'turagua';
   const routeBusinessSlug = pathname?.startsWith('/admin') || pathname === '/' || pathname?.startsWith('/agendar')
-    ? (process.env.NEXT_PUBLIC_ADMIN_BUSINESS_SLUG || 'turagua')
+    ? configuredBusinessSlug
     : '';
   const businessSlug = routeBusinessSlug || DEFAULT_PUBLIC_BUSINESS_SLUG || fallbackProfile?.businessSlug;
   const profileQuery = useBusinessProfileQuery({ businessSlug });
