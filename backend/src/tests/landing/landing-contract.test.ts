@@ -186,6 +186,17 @@ const invalidAnchor = clone(repeatableContent);
 invalidAnchor.blocks[9].data.instance.anchor = 'No valid anchor';
 assert.throws(() => assertLandingContent(invalidAnchor), /URL-safe kebab-case/i, 'Section anchors must remain URL-safe');
 
+const duplicateSingleton = clone(galloRecord.draft);
+const duplicateService = clone(duplicateSingleton.blocks.find((block: any) => block.layout?.variant === 'gallo_services_scene'));
+duplicateService.id = 'gallo-services-duplicate';
+duplicateService.order = 90;
+duplicateSingleton.blocks.push(duplicateService);
+assert.throws(
+  () => assertLandingContent(duplicateSingleton),
+  /singleton scene variant gallo_services_scene must be unique/i,
+  'Gallo singleton semantic scenes must not be duplicated through raw API payloads'
+);
+
 for (const avatarUrl of ['blob:http://localhost/avatar', 'data:image/png;base64,abc', 'file:///tmp/avatar.png', 'C:\\fakepath\\avatar.png', 'avatar.png', '/tmp/avatar.png']) {
   const invalid = clone(turaguaLandingSeed);
   invalid.agent.avatarUrl = avatarUrl;
