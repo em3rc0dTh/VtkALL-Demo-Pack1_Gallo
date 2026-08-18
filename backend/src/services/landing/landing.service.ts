@@ -240,15 +240,17 @@ export const getPublicLandingPage = async (businessSlug: string, pageSlug: strin
 };
 
 export const getAdminLandingPage = async (businessSlug: string, pageSlug: string) => {
-  const [page, businessProfile] = await Promise.all([
+  const [page, businessProfile, catalogOfferings] = await Promise.all([
     LandingPage.findOne({ businessSlug, pageSlug }),
     BusinessProfile.findOne({ businessSlug, active: true }),
+    CatalogOffering.find({ businessSlug, active: true, publicVisible: true }).sort({ displayOrder: 1, name: 1 }).limit(100),
   ]);
   if (!page) return null;
   const versions = await LandingPageVersion.find({ landingPageId: page._id }).sort({ version: -1 }).limit(20);
   return {
     landingPage: toPublicLandingPageView(page),
-    businessProfile: serializePage(businessProfile),
+    businessProfile: toPublicBusinessProfile(businessProfile),
+    catalogOfferings: catalogOfferings.map(serializePage),
     versions: versions.map(serializePage),
   };
 };
