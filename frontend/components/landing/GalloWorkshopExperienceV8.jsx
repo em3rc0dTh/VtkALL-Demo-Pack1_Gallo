@@ -16,6 +16,16 @@ const servicePresentationFor = (payload) => {
   return normalizeServicePresentation(serviceBlock?.data?.presentation || {});
 };
 
+const themeFor = (payload) => {
+  const theme = findContent(payload)?.theme || {};
+  return {
+    primary: theme.primary || '#1741FF',
+    accent: theme.accent || '#FFD400',
+    surface: theme.surface || '#F7F8FC',
+    text: theme.text || '#080B19',
+  };
+};
+
 const contactTargetFor = (payload) => {
   const business = projectGalloBusinessProfile(payload?.businessProfile || {});
   const phone = business.contact?.primaryPhone || business.contact?.phone || '';
@@ -33,6 +43,7 @@ const contactTargetFor = (payload) => {
 
 export function GalloWorkshopExperience({ payload }) {
   const presentation = useMemo(() => servicePresentationFor(payload), [payload]);
+  const theme = useMemo(() => themeFor(payload), [payload]);
   const contactTarget = useMemo(() => contactTargetFor(payload), [payload]);
 
   const preserveContactAction = (event) => {
@@ -54,12 +65,28 @@ export function GalloWorkshopExperience({ payload }) {
   return (
     <div
       className="contents"
+      data-gallo-theme="builder"
       data-gallo-service-motion={presentation.motion}
       data-gallo-service-depth={presentation.depth}
       onClickCapture={preserveContactAction}
+      style={{
+        '--gallo-primary': theme.primary,
+        '--gallo-accent': theme.accent,
+        '--gallo-surface': theme.surface,
+        '--gallo-text': theme.text,
+      }}
     >
       <GalloWorkshopExperienceV7 payload={payload} />
       <style jsx global>{`
+        [data-gallo-theme='builder'] [class~="text-[#1741ff]"] { color: var(--gallo-primary) !important; }
+        [data-gallo-theme='builder'] [class~="bg-[#1741ff]"] { background-color: var(--gallo-primary) !important; }
+        [data-gallo-theme='builder'] [class~="text-[#ffd400]"] { color: var(--gallo-accent) !important; }
+        [data-gallo-theme='builder'] [class~="bg-[#ffd400]"] { background-color: var(--gallo-accent) !important; }
+        [data-gallo-theme='builder'] [class~="bg-[#f7f8fc]"],
+        [data-gallo-theme='builder'] [class~="bg-[#f3f6ff]"] { background-color: var(--gallo-surface) !important; }
+        [data-gallo-theme='builder'] [class~="text-[#080b19]"],
+        [data-gallo-theme='builder'] [class~="text-[#08133b]"] { color: var(--gallo-text) !important; }
+
         [data-semantic-family='editorial'] > div,
         [data-semantic-family='features'] > div,
         [data-semantic-family='gallery'] > div,
