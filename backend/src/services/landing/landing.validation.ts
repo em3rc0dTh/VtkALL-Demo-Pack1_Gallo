@@ -6,6 +6,9 @@ const unsafeValuePattern = /<\s*\/?\s*(script|iframe|object|embed|style|link|met
 const allowedManagedAssetPathPattern = /^\/(?:uploads|upload_utils)\//i;
 const forbiddenAssetValuePattern = /^(blob|data|file):|c:\\fakepath|^[a-z]:[\\/]|^\\\\/i;
 const bareFileNamePattern = /^[^/\\]+\.(?:png|jpe?g|webp|gif|mp4|webm|ogg)$/i;
+const sectionAnchorPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SECTION_MOTIONS = ['none', 'fade', 'rise', 'slide', 'stagger', 'scale', 'blur-reveal'] as const;
+const SECTION_DEPTHS = ['none', 'subtle', 'tilt', 'layered'] as const;
 
 const isAllowedPublicAssetUrl = (value = '') => {
   const path = String(value || '').trim();
@@ -37,6 +40,18 @@ const assertNoUnsafeContent = (value: unknown, path: string[] = []) => {
     assertNoUnsafeContent(nested, [...path, key]);
   }
 };
+
+const sectionInstanceSchema = z.object({
+  schemaVersion: z.literal(1),
+  templateKey: z.string().trim().min(1),
+  semanticFamily: z.string().trim().min(1),
+  anchor: z.string().trim().min(1).regex(sectionAnchorPattern, 'Section anchor must be URL-safe kebab-case'),
+  navLabel: z.string().trim().min(1),
+  showInNavigation: z.boolean(),
+  repeatable: z.boolean(),
+  motion: z.enum(SECTION_MOTIONS),
+  depth: z.enum(SECTION_DEPTHS),
+}).strict();
 
 const landingBlockSchema = z.object({
   id: z.string().min(1),
@@ -83,6 +98,48 @@ export const landingContentSchema = z.object({
       message: error instanceof Error ? error.message : 'Unsafe landing content',
     });
   }
+
+  const seenIds = new Map<string, number>();
+  const seenAnchors = new Map<string, number>();
+
+  content.blocks.forEach((block, index) => {
+    const previousIdIndex = seenIds.get(block.id);
+    if (previousIdIndex !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['blocks', index, 'id'],
+        message: `Landing block id must be unique; duplicates blocks.${previousIdIndex}.id`,
+      });
+    } else {
+      seenIds.set(block.id, index);
+    }
+
+    const instance = block.data?.instance;
+    if (instance === undefined) return;
+
+    const parsed = sectionInstanceSchema.safeParse(instance);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', ...issue.path],
+          message: issue.message,
+        });
+      }
+      return;
+    }
+
+    const previousAnchorIndex = seenAnchors.get(parsed.data.anchor);
+    if (previousAnchorIndex !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['blocks', index, 'data', 'instance', 'anchor'],
+        message: `Section anchor must be unique; duplicates blocks.${previousAnchorIndex}.data.instance.anchor`,
+      });
+    } else {
+      seenAnchors.set(parsed.data.anchor, index);
+    }
+  });
 });
 
 export const landingPagePatchSchema = z.object({
