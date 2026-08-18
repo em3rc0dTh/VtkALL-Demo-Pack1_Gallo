@@ -3,9 +3,12 @@
 import { useMemo } from 'react';
 import { GalloWorkshopExperience as GalloWorkshopExperienceV7 } from './GalloWorkshopExperienceV7';
 import { normalizeServicePresentation } from '@/lib/landing/galloPresentationRegistry';
+import { formatGalloAddress, projectGalloBusinessProfile } from '@/lib/landing/galloAuthorityProjection';
 
 const variantFor = (block) => block?.layout?.variant || block?.data?.variant || '';
 const findContent = (payload) => payload?.content || payload?.landingPage?.published || payload?.landingPage?.draft;
+const compactPhone = (value = '') => String(value || '').replace(/[^0-9+]/g, '');
+const whatsappDigits = (value = '') => String(value || '').replace(/\D/g, '');
 
 const servicePresentationFor = (payload) => {
   const content = findContent(payload);
@@ -13,14 +16,47 @@ const servicePresentationFor = (payload) => {
   return normalizeServicePresentation(serviceBlock?.data?.presentation || {});
 };
 
+const contactTargetFor = (payload) => {
+  const business = projectGalloBusinessProfile(payload?.businessProfile || {});
+  const phone = business.contact?.primaryPhone || business.contact?.phone || '';
+  const whatsapp = business.contact?.whatsapp || '';
+  const email = business.contact?.email || '';
+  const address = formatGalloAddress(business.primaryLocation) || '';
+  const directionsUrl = business.primaryLocation?.directionsUrl || (address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : '');
+
+  if (whatsapp) return { href: `https://wa.me/${whatsappDigits(whatsapp)}`, external: true };
+  if (phone) return { href: `tel:${compactPhone(phone)}`, external: false };
+  if (email) return { href: `mailto:${email}`, external: false };
+  if (directionsUrl) return { href: directionsUrl, external: true };
+  return null;
+};
+
 export function GalloWorkshopExperience({ payload }) {
   const presentation = useMemo(() => servicePresentationFor(payload), [payload]);
+  const contactTarget = useMemo(() => contactTargetFor(payload), [payload]);
+
+  const preserveContactAction = (event) => {
+    if (!contactTarget || typeof window === 'undefined') return;
+    const button = event.target?.closest?.("section[data-semantic-family='contact'] button");
+    if (!button) return;
+    const section = button.closest("section[data-semantic-family='contact']");
+    const primaryButton = section?.querySelector('button');
+    if (!primaryButton || primaryButton !== button) return;
+
+    event.preventDefault();
+    if (contactTarget.external) {
+      window.open(contactTarget.href, '_blank', 'noopener,noreferrer');
+    } else {
+      window.location.href = contactTarget.href;
+    }
+  };
 
   return (
     <div
       className="contents"
       data-gallo-service-motion={presentation.motion}
       data-gallo-service-depth={presentation.depth}
+      onClickCapture={preserveContactAction}
     >
       <GalloWorkshopExperienceV7 payload={payload} />
       <style jsx global>{`
