@@ -9,6 +9,16 @@ const bareFileNamePattern = /^[^/\\]+\.(?:png|jpe?g|webp|gif|mp4|webm|ogg)$/i;
 const sectionAnchorPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SECTION_MOTIONS = ['none', 'fade', 'rise', 'slide', 'stagger', 'scale', 'blur-reveal'] as const;
 const SECTION_DEPTHS = ['none', 'subtle', 'tilt', 'layered'] as const;
+const GALLO_SINGLETON_VARIANTS = new Set([
+  'gallo_workshop_hero',
+  'gallo_partners_scene',
+  'gallo_services_scene',
+  'gallo_diagnostic_scene',
+  'gallo_process_scene',
+  'gallo_experience_scene',
+  'gallo_evidence_scene',
+  'gallo_contact_scene',
+]);
 
 const isAllowedPublicAssetUrl = (value = '') => {
   const path = String(value || '').trim();
@@ -101,6 +111,7 @@ export const landingContentSchema = z.object({
 
   const seenIds = new Map<string, number>();
   const seenAnchors = new Map<string, number>();
+  const seenSingletonVariants = new Map<string, number>();
 
   content.blocks.forEach((block, index) => {
     const previousIdIndex = seenIds.get(block.id);
@@ -112,6 +123,20 @@ export const landingContentSchema = z.object({
       });
     } else {
       seenIds.set(block.id, index);
+    }
+
+    const variant = block.layout?.variant || block.data?.variant;
+    if (variant && GALLO_SINGLETON_VARIANTS.has(variant)) {
+      const previousVariantIndex = seenSingletonVariants.get(variant);
+      if (previousVariantIndex !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'layout', 'variant'],
+          message: `Gallo singleton scene variant ${variant} must be unique; duplicates blocks.${previousVariantIndex}`,
+        });
+      } else {
+        seenSingletonVariants.set(variant, index);
+      }
     }
 
     const instance = block.data?.instance;
