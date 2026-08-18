@@ -60,6 +60,14 @@ export function GalloWorkshopExperience({ payload }) {
     >
       <GalloWorkshopExperienceV7 payload={payload} />
       <style jsx global>{`
+        [data-semantic-family='editorial'] > div,
+        [data-semantic-family='features'] > div,
+        [data-semantic-family='gallery'] > div,
+        [data-semantic-family='cta'] > div {
+          overflow-y: auto !important;
+          overscroll-behavior-y: contain;
+        }
+
         [data-gallo-service-depth='subtle'] [data-semantic-family='catalog'] .gallo-depth-card {
           box-shadow: 0 28px 70px rgba(10,25,80,.14) !important;
           transition: transform 320ms ease, box-shadow 320ms ease;
