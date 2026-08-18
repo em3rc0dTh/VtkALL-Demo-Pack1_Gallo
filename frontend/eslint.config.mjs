@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/static-components": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
       "react/no-unescaped-entities": "warn",
     },
   },
