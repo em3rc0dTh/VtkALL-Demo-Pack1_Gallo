@@ -1,7 +1,7 @@
 'use client';
 
-import { GalloWorkshopExperience as GalloWorkshopExperienceV4 } from './GalloWorkshopExperienceV4';
+import { GalloWorkshopExperience as GalloWorkshopExperienceV5 } from './GalloWorkshopExperienceV5';
 
 export function GalloWorkshopExperience({ payload }) {
-  return <GalloWorkshopExperienceV4 payload={payload} />;
+  return <GalloWorkshopExperienceV5 payload={payload} />;
 }
