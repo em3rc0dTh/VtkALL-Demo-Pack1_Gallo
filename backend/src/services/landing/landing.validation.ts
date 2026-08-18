@@ -9,15 +9,15 @@ const bareFileNamePattern = /^[^/\\]+\.(?:png|jpe?g|webp|gif|mp4|webm|ogg)$/i;
 const sectionAnchorPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SECTION_MOTIONS = ['none', 'fade', 'rise', 'slide', 'stagger', 'scale', 'blur-reveal'] as const;
 const SECTION_DEPTHS = ['none', 'subtle', 'tilt', 'layered'] as const;
-const GALLO_SINGLETON_VARIANTS = new Set([
-  'gallo_workshop_hero',
-  'gallo_partners_scene',
-  'gallo_services_scene',
-  'gallo_diagnostic_scene',
-  'gallo_process_scene',
-  'gallo_experience_scene',
-  'gallo_evidence_scene',
-  'gallo_contact_scene',
+const GALLO_SINGLETON_VARIANT_ANCHORS = new Map<string, string>([
+  ['gallo_workshop_hero', 'inicio'],
+  ['gallo_partners_scene', 'confianza'],
+  ['gallo_services_scene', 'servicios'],
+  ['gallo_diagnostic_scene', 'diagnostico'],
+  ['gallo_process_scene', 'proceso'],
+  ['gallo_experience_scene', 'nosotros'],
+  ['gallo_evidence_scene', 'evidencia'],
+  ['gallo_contact_scene', 'contacto'],
 ]);
 
 const isAllowedPublicAssetUrl = (value = '') => {
@@ -126,7 +126,9 @@ export const landingContentSchema = z.object({
     }
 
     const variant = block.layout?.variant || block.data?.variant;
-    if (variant && GALLO_SINGLETON_VARIANTS.has(variant)) {
+    const canonicalAnchor = variant ? GALLO_SINGLETON_VARIANT_ANCHORS.get(variant) : undefined;
+
+    if (variant && canonicalAnchor) {
       const previousVariantIndex = seenSingletonVariants.get(variant);
       if (previousVariantIndex !== undefined) {
         ctx.addIssue({
@@ -136,6 +138,17 @@ export const landingContentSchema = z.object({
         });
       } else {
         seenSingletonVariants.set(variant, index);
+      }
+
+      const previousCanonicalAnchorIndex = seenAnchors.get(canonicalAnchor);
+      if (previousCanonicalAnchorIndex !== undefined && previousCanonicalAnchorIndex !== index) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'layout', 'variant'],
+          message: `Canonical Gallo anchor ${canonicalAnchor} is already owned by blocks.${previousCanonicalAnchorIndex}`,
+        });
+      } else {
+        seenAnchors.set(canonicalAnchor, index);
       }
     }
 
@@ -149,6 +162,24 @@ export const landingContentSchema = z.object({
           code: 'custom',
           path: ['blocks', index, 'data', 'instance', ...issue.path],
           message: issue.message,
+        });
+      }
+      return;
+    }
+
+    if (canonicalAnchor) {
+      if (parsed.data.anchor !== canonicalAnchor) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', 'anchor'],
+          message: `Gallo singleton scene ${variant} must keep canonical anchor ${canonicalAnchor}`,
+        });
+      }
+      if (parsed.data.repeatable) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', 'repeatable'],
+          message: `Gallo singleton scene ${variant} cannot be marked repeatable`,
         });
       }
       return;
