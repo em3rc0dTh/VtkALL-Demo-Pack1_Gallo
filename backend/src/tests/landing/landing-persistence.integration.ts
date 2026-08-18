@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import mongoose from 'mongoose';
 import app from '../../app';
-import { env } from '../../config/env';
 import { LandingPage } from '../../models/LandingPage.model';
 import { LandingPageVersion } from '../../models/LandingPageVersion.model';
 import { landingSeeds } from '../../services/landing/landing.seed';
@@ -13,6 +12,7 @@ import {
   seedLandingPages,
   updateDraftLandingPage,
 } from '../../services/landing/landing.service';
+import { assertDedicatedLandingTestDatabase, landingTestMongoUri } from './landingTestMongo';
 
 const adminToken = 'landing-integration-admin';
 process.env.DEMO_TEST_ADMIN_WRITE_TOKEN = adminToken;
@@ -151,7 +151,7 @@ const assertGalloBuilderPersistence = async () => {
   assert.equal(findBlock(publicAfterPublish?.content, 'gallo-evidence').enabled, false);
 
   await mongoose.disconnect();
-  await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(landingTestMongoUri, { serverSelectionTimeoutMS: 5000 });
 
   const persisted = await getPublicLandingPage('gallo', 'home');
   assert.equal(findBlock(persisted?.content, 'gallo-hero').data.title, 'B0 persistence title', 'Published Gallo content must survive Mongo reconnect');
@@ -159,8 +159,11 @@ const assertGalloBuilderPersistence = async () => {
 };
 
 const run = async () => {
-  await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+  const testDatabase = assertDedicatedLandingTestDatabase();
+  await mongoose.connect(landingTestMongoUri, { serverSelectionTimeoutMS: 5000 });
   try {
+    console.log(`Landing persistence integration database: ${testDatabase}`);
+
     const businesses = ['demo_test', 'turagua', 'gallo'];
     await LandingPage.deleteMany({ businessSlug: { $in: businesses } });
     await LandingPageVersion.deleteMany({ businessSlug: { $in: businesses } });
@@ -254,7 +257,7 @@ const run = async () => {
     );
 
     await mongoose.disconnect();
-    await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(landingTestMongoUri, { serverSelectionTimeoutMS: 5000 });
     const persisted = await getPublicLandingPage('turagua', 'home');
     assert.equal(
       findBlock(persisted?.content, 'turagua-hero').data.title,
