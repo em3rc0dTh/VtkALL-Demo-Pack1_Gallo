@@ -120,6 +120,72 @@ assert.match(
 assert.equal(galloRecord.draft.agent, undefined, 'Gallo B0 must not silently enable the deferred Agent/Hermes surface');
 
 const clone = (value: any) => JSON.parse(JSON.stringify(value));
+
+const repeatableContent = clone(galloRecord.draft);
+repeatableContent.blocks.push(
+  {
+    id: 'gallo-section-editorial-alpha',
+    type: 'structured_content',
+    enabled: true,
+    order: 90,
+    frameHeight: 'content',
+    layout: { variant: 'gallo_repeatable_editorial', align: 'left', media: 'none', density: 'comfortable' },
+    data: {
+      eyebrow: 'Editorial',
+      title: 'Sección repetible A',
+      body: 'Contenido A',
+      instance: {
+        schemaVersion: 1,
+        templateKey: 'repeatable-editorial',
+        semanticFamily: 'editorial',
+        anchor: 'editorial-alpha',
+        navLabel: 'Editorial A',
+        showInNavigation: true,
+        repeatable: true,
+        motion: 'rise',
+        depth: 'none',
+      },
+    },
+  },
+  {
+    id: 'gallo-section-editorial-beta',
+    type: 'structured_content',
+    enabled: true,
+    order: 100,
+    frameHeight: 'content',
+    layout: { variant: 'gallo_repeatable_editorial', align: 'right', media: 'none', density: 'comfortable' },
+    data: {
+      eyebrow: 'Editorial',
+      title: 'Sección repetible B',
+      body: 'Contenido B',
+      instance: {
+        schemaVersion: 1,
+        templateKey: 'repeatable-editorial',
+        semanticFamily: 'editorial',
+        anchor: 'editorial-beta',
+        navLabel: 'Editorial B',
+        showInNavigation: false,
+        repeatable: true,
+        motion: 'fade',
+        depth: 'none',
+      },
+    },
+  }
+);
+assert.equal(assertLandingContent(repeatableContent).blocks.length, 10, 'Repeatable section instances with unique identity must validate');
+
+const duplicateId = clone(repeatableContent);
+duplicateId.blocks[9].id = duplicateId.blocks[8].id;
+assert.throws(() => assertLandingContent(duplicateId), /block id must be unique/i, 'Duplicate section IDs must be rejected');
+
+const duplicateAnchor = clone(repeatableContent);
+duplicateAnchor.blocks[9].data.instance.anchor = duplicateAnchor.blocks[8].data.instance.anchor;
+assert.throws(() => assertLandingContent(duplicateAnchor), /anchor must be unique/i, 'Duplicate section anchors must be rejected');
+
+const invalidAnchor = clone(repeatableContent);
+invalidAnchor.blocks[9].data.instance.anchor = 'No valid anchor';
+assert.throws(() => assertLandingContent(invalidAnchor), /URL-safe kebab-case/i, 'Section anchors must remain URL-safe');
+
 for (const avatarUrl of ['blob:http://localhost/avatar', 'data:image/png;base64,abc', 'file:///tmp/avatar.png', 'C:\\fakepath\\avatar.png', 'avatar.png', '/tmp/avatar.png']) {
   const invalid = clone(turaguaLandingSeed);
   invalid.agent.avatarUrl = avatarUrl;
