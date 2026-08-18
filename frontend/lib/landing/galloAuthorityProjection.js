@@ -38,6 +38,22 @@ export const galloHoursLines = (commercialHours = {}) => {
 };
 
 const offeringName = (offering = {}) => offering.displayName || offering.name || offering.title || offering._id || '';
+const normalizedText = (value = '') => String(value || '')
+  .trim()
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '');
+
+export const inferGalloCatalogCategory = (group = {}) => {
+  const explicit = String(group?.category || '').trim();
+  if (explicit) return explicit;
+
+  const title = normalizedText(group?.title);
+  if (title.includes('mecanica') || title.includes('mantenimiento')) return 'mecanica_mantenimiento';
+  if (title.includes('diagnostico') || title.includes('seguridad')) return 'diagnostico_seguridad';
+  if (title.includes('carroceria') || title.includes('cuidado')) return 'carroceria_cuidado';
+  return '';
+};
 
 export const projectGalloCatalogGroups = ({ groups = [], catalogOfferings = [] } = {}) => {
   const activePublicOfferings = (Array.isArray(catalogOfferings) ? catalogOfferings : [])
@@ -45,8 +61,10 @@ export const projectGalloCatalogGroups = ({ groups = [], catalogOfferings = [] }
     .sort((left, right) => Number(left?.displayOrder || 0) - Number(right?.displayOrder || 0));
 
   return (Array.isArray(groups) ? groups : []).map((group) => {
-    const category = String(group?.category || '').trim();
-    const offerings = activePublicOfferings.filter((offering) => !category || String(offering?.category || '') === category);
+    const category = inferGalloCatalogCategory(group);
+    const offerings = category
+      ? activePublicOfferings.filter((offering) => String(offering?.category || '') === category)
+      : [];
     return {
       ...group,
       category,
