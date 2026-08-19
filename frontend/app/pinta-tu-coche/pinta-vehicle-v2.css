@@ -2,6 +2,7 @@
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
+  overflow: visible;
 }
 
 .pinta-module-v2 svg[aria-label*="auto sedán"] {
@@ -13,10 +14,9 @@
 }
 
 /*
- * V1 drew a provisional vehicle using primitive SVG rectangles/circles.
- * V2 keeps only the semantic interactive zone rectangles and projects a
- * dedicated automotive visual underneath them. This preserves the selector
- * contract while allowing the vehicle renderer to evolve independently.
+ * The component still owns the semantic hit map. The provisional primitive
+ * vehicle is hidden and replaced by dedicated premium body-family artwork.
+ * This keeps body-part IDs stable while the visual renderer evolves.
  */
 .pinta-module-v2 svg[aria-label^="Vista superior de"] > rect:nth-of-type(-n + 5),
 .pinta-module-v2 svg[aria-label^="Vista superior de"] > path,
@@ -25,12 +25,150 @@
   pointer-events: none;
 }
 
-/* Unselected masks should remain discoverable without obscuring the car. */
+/* Neutral / discoverable masks. */
 .pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"] {
-  fill-opacity: 0.035;
+  fill-opacity: 0.018;
+  stroke-opacity: 0.34;
+  stroke-width: 1.5;
+  transition:
+    fill-opacity 160ms ease,
+    stroke-opacity 160ms ease,
+    filter 160ms ease,
+    transform 180ms cubic-bezier(.2,.8,.2,1);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"]:hover,
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"]:hover {
+  fill-opacity: 0.20;
+  stroke-opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(23, 65, 255, 0.26));
+}
+
 .pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"]:focus {
-  fill-opacity: 0.22;
+  fill-opacity: 0.18;
+  stroke: #FFD400;
+  stroke-opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(255, 212, 0, 0.48));
+}
+
+/* React emits stroke-width=4 for selected zones. Make them feel painted,
+ * without hiding the underlying body surfacing. */
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"][stroke-width="4"] {
+  fill-opacity: 0.48;
+  stroke-opacity: 1;
+  stroke-width: 2.4;
+  filter: drop-shadow(0 4px 8px rgba(23, 65, 255, 0.22));
+}
+
+/* -------------------------------------------------------------------------
+ * SEDAN — lower, tapered and more sculpted panel language.
+ * nth-of-type starts at 6 because the original component has five hidden
+ * vehicle rectangles before the semantic PAINT_ZONES rectangles.
+ * ---------------------------------------------------------------------- */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(6) {
+  clip-path: polygon(12% 18%, 30% 3%, 70% 3%, 88% 18%, 100% 100%, 0 100%);
+}
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(7) {
+  clip-path: polygon(10% 2%, 90% 2%, 98% 18%, 94% 88%, 78% 100%, 22% 100%, 6% 88%, 2% 18%);
+}
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(8) {
+  clip-path: polygon(0 0, 100% 0, 88% 76%, 70% 100%, 30% 100%, 12% 76%);
+}
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(9) {
+  clip-path: polygon(10% 24%, 28% 0, 72% 0, 90% 24%, 100% 72%, 78% 100%, 22% 100%, 0 72%);
+}
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(10) {
+  clip-path: polygon(4% 20%, 24% 0, 76% 0, 96% 20%, 88% 92%, 68% 100%, 32% 100%, 12% 92%);
+}
+
+/* front doors */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(11),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(12) {
+  clip-path: polygon(12% 4%, 100% 12%, 92% 94%, 18% 100%, 0 82%, 2% 18%);
+}
+/* rear doors */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(13),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(14) {
+  clip-path: polygon(18% 0, 92% 6%, 100% 80%, 82% 100%, 8% 94%, 0 18%);
+}
+/* front fenders */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(15),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(16) {
+  clip-path: polygon(20% 0, 80% 8%, 100% 45%, 76% 100%, 16% 86%, 0 42%);
+}
+/* rear quarters */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(17),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(18) {
+  clip-path: polygon(10% 18%, 34% 0, 92% 12%, 100% 62%, 76% 100%, 18% 88%, 0 54%);
+}
+/* rocker panels */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(19),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(20) {
+  clip-path: inset(1% 14% 1% 14% round 46%);
+}
+/* mirrors */
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(21),
+.pinta-module-v2 svg[aria-label*="auto sedán"] > rect[role="button"]:nth-of-type(22) {
+  clip-path: ellipse(47% 39% at 50% 50%);
+}
+
+/* -------------------------------------------------------------------------
+ * SUV — wider, more upright, squared panel language. Side areas are given a
+ * slightly broader stance so the hit map reads like a genuinely different
+ * body family rather than a scaled sedan.
+ * ---------------------------------------------------------------------- */
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(6) {
+  transform: scaleX(1.08);
+  clip-path: polygon(5% 8%, 20% 0, 80% 0, 95% 8%, 100% 100%, 0 100%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(7) {
+  transform: scaleX(1.08);
+  clip-path: inset(0 2% round 18%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(8) {
+  transform: scaleX(1.08);
+  clip-path: polygon(0 0, 100% 0, 96% 82%, 84% 100%, 16% 100%, 4% 82%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(9),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(10) {
+  transform: scaleX(1.12);
+  clip-path: polygon(3% 10%, 16% 0, 84% 0, 97% 10%, 100% 85%, 88% 100%, 12% 100%, 0 85%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(11),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(12),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(13),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(14) {
+  transform: scaleX(1.10);
+  clip-path: polygon(6% 2%, 94% 2%, 100% 12%, 96% 90%, 88% 100%, 12% 100%, 4% 90%, 0 12%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(15),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(16),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(17),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(18) {
+  transform: scaleX(1.12);
+  clip-path: polygon(8% 4%, 88% 4%, 100% 20%, 96% 82%, 78% 100%, 18% 94%, 0 76%, 0 22%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(19),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(20) {
+  transform: scaleX(1.14);
+  clip-path: inset(0 8% round 34%);
+}
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(21),
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] > rect[role="button"]:nth-of-type(22) {
+  transform: scale(1.12);
+  clip-path: ellipse(48% 42% at 50% 50%);
+}
+
+/* Whole-car selection: keep the base asset readable beneath the state. */
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect:not([role="button"])[stroke="#1741FF"] {
+  fill-opacity: 0.12;
+  stroke-width: 3;
+  filter: drop-shadow(0 6px 10px rgba(23, 65, 255, 0.20));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"] {
+    transition: none;
+  }
 }
