@@ -1,4 +1,5 @@
 import { PintaTuCocheScreen } from '@/components/pinta/PintaTuCocheScreen';
+import './pinta-vehicle-v2.css';
 
 export const metadata = {
   title: 'Pinta tu coche | Gallo Autos',
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function PintaTuCochePage() {
-  return <PintaTuCocheScreen />;
+  return (
+    <div className="pinta-module-v2">
+      <PintaTuCocheScreen />
+    </div>
+  );
 }
