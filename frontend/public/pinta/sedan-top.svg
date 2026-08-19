@@ -1,90 +1,87 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 490" role="img" aria-labelledby="title desc">
-  <title id="title">Auto sedán visto desde arriba</title>
-  <desc id="desc">Ilustración automotriz blanca, vista superior, preparada como base visual del selector Pinta tu coche.</desc>
+  <title id="title">Sedán premium visto desde arriba</title>
+  <desc id="desc">Sedán ejecutivo blanco de perfil bajo y alargado, vista superior, para el selector Pinta tu coche.</desc>
   <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="paint" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="0.46" stop-color="#f5f7fb"/>
-      <stop offset="0.78" stop-color="#dce2eb"/>
-      <stop offset="1" stop-color="#b8c2d0"/>
+      <stop offset=".34" stop-color="#f8fafc"/>
+      <stop offset=".7" stop-color="#e7ebf2"/>
+      <stop offset="1" stop-color="#bcc6d3"/>
     </linearGradient>
     <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0b1326"/>
-      <stop offset="0.55" stop-color="#17233b"/>
-      <stop offset="1" stop-color="#06101f"/>
+      <stop offset="0" stop-color="#0a1020"/>
+      <stop offset=".48" stop-color="#17243b"/>
+      <stop offset="1" stop-color="#050a13"/>
     </linearGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#c5ccd7"/>
-      <stop offset="0.45" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#aeb8c6"/>
+    <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d8998"/>
+      <stop offset=".45" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#7d8998"/>
     </linearGradient>
-    <filter id="shadow" x="-30%" y="-20%" width="160%" height="150%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0f172a" flood-opacity=".22"/>
-    </filter>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3"/>
+    <radialGradient id="highlight" cx="35%" cy="20%" r="75%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-35%" y="-25%" width="170%" height="165%">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0f172a" flood-opacity=".24"/>
     </filter>
   </defs>
 
-  <ellipse cx="200" cy="250" rx="151" ry="222" fill="#64748b" opacity=".10" filter="url(#soft)"/>
+  <ellipse cx="200" cy="257" rx="143" ry="216" fill="#0f172a" opacity=".08"/>
 
-  <!-- tyres -->
+  <!-- low profile tyres -->
   <g fill="#111827">
-    <rect x="58" y="85" width="28" height="72" rx="13"/>
-    <rect x="314" y="85" width="28" height="72" rx="13"/>
-    <rect x="58" y="335" width="28" height="72" rx="13"/>
-    <rect x="314" y="335" width="28" height="72" rx="13"/>
+    <rect x="64" y="94" width="22" height="70" rx="10"/>
+    <rect x="314" y="94" width="22" height="70" rx="10"/>
+    <rect x="64" y="332" width="22" height="70" rx="10"/>
+    <rect x="314" y="332" width="22" height="70" rx="10"/>
   </g>
-  <g fill="#475569">
-    <rect x="64" y="94" width="16" height="54" rx="8"/>
-    <rect x="320" y="94" width="16" height="54" rx="8"/>
-    <rect x="64" y="344" width="16" height="54" rx="8"/>
-    <rect x="320" y="344" width="16" height="54" rx="8"/>
+  <g fill="#64748b">
+    <rect x="69" y="102" width="12" height="54" rx="6"/>
+    <rect x="319" y="102" width="12" height="54" rx="6"/>
+    <rect x="69" y="340" width="12" height="54" rx="6"/>
+    <rect x="319" y="340" width="12" height="54" rx="6"/>
   </g>
 
   <!-- mirrors -->
-  <path d="M76 146c-19-2-30-11-36-25 14-5 29-4 42 4l8 14z" fill="url(#metal)" stroke="#9aa5b4" stroke-width="2"/>
-  <path d="M324 146c19-2 30-11 36-25-14-5-29-4-42 4l-8 14z" fill="url(#metal)" stroke="#9aa5b4" stroke-width="2"/>
+  <path d="M85 151c-20-2-32-10-39-22 14-7 30-6 45 2l10 11z" fill="url(#chrome)" stroke="#8995a5" stroke-width="1.8"/>
+  <path d="M315 151c20-2 32-10 39-22-14-7-30-6-45 2l-10 11z" fill="url(#chrome)" stroke="#8995a5" stroke-width="1.8"/>
 
-  <!-- body -->
-  <path d="M200 17C136 17 97 42 87 88L72 167c-5 28-6 60-6 83s1 55 6 83l15 79c10 46 49 61 113 61s103-15 113-61l15-79c5-28 6-60 6-83s-1-55-6-83l-15-79C303 42 264 17 200 17z" fill="url(#body)" stroke="#aeb8c6" stroke-width="3" filter="url(#shadow)"/>
+  <!-- long executive body -->
+  <path d="M200 18c-59 0-95 19-109 57L74 143c-7 28-10 68-10 108 0 44 3 80 10 108l17 65c14 38 50 48 109 48s95-10 109-48l17-65c7-28 10-64 10-108 0-40-3-80-10-108l-17-68C295 37 259 18 200 18z" fill="url(#paint)" stroke="#9da9b8" stroke-width="3" filter="url(#shadow)"/>
+  <path d="M200 26c-50 0-82 15-95 47l-13 49c31-10 67-15 108-15s77 5 108 15l-13-49c-13-32-45-47-95-47z" fill="url(#highlight)"/>
 
-  <!-- bonnet/trunk sculpting -->
-  <path d="M116 55c24-17 51-24 84-24s60 7 84 24l10 61c-28-10-59-15-94-15s-66 5-94 15z" fill="#f7f9fc" stroke="#cbd5e1" stroke-width="2"/>
-  <path d="M106 376c28 10 59 15 94 15s66-5 94-15l-10 59c-24 17-51 24-84 24s-60-7-84-24z" fill="#e7ebf2" stroke="#b8c2cf" stroke-width="2"/>
+  <!-- sculpted hood -->
+  <path d="M107 65c24-22 54-31 93-31s69 9 93 31l12 58c-29-11-64-16-105-16s-76 5-105 16z" fill="#f8fafc" stroke="#c4ccd7" stroke-width="2"/>
+  <path d="M130 55c20-10 43-15 70-15s50 5 70 15" fill="none" stroke="#d8dee7" stroke-width="2"/>
+  <path d="M147 64c15-7 32-10 53-10s38 3 53 10" fill="none" stroke="#eef2f7" stroke-width="4"/>
 
-  <!-- cabin/glass -->
-  <path d="M127 123c16-12 43-19 73-19s57 7 73 19l12 48c-18-7-49-11-85-11s-67 4-85 11z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
-  <path d="M115 176c23-8 52-12 85-12s62 4 85 12l-9 115c-21 7-47 10-76 10s-55-3-76-10z" fill="#edf1f6" stroke="#cbd5e1" stroke-width="2"/>
-  <path d="M124 296c21 7 47 10 76 10s55-3 76-10l9 27c-18 11-48 17-85 17s-67-6-85-17z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
+  <!-- glasshouse: narrower, longer, sedan proportions -->
+  <path d="M126 126c17-13 44-20 74-20s57 7 74 20l11 43c-20-8-49-12-85-12s-65 4-85 12z" fill="url(#glass)" stroke="#26364d" stroke-width="3"/>
+  <path d="M115 176c24-9 52-13 85-13s61 4 85 13l-6 121c-22 8-48 12-79 12s-57-4-79-12z" fill="#f0f3f7" stroke="#c7cfda" stroke-width="2"/>
+  <path d="M127 190c19-5 43-8 73-8s54 3 73 8l-4 89c-18 5-41 8-69 8s-51-3-69-8z" fill="#ffffff" opacity=".92" stroke="#d7dde6" stroke-width="2"/>
+  <path d="M121 304c22 8 48 12 79 12s57-4 79-12l7 28c-19 11-48 17-86 17s-67-6-86-17z" fill="url(#glass)" stroke="#26364d" stroke-width="3"/>
 
-  <!-- panoramic roof accent -->
-  <path d="M145 187c14-5 33-7 55-7s41 2 55 7l-5 85c-13 4-30 6-50 6s-37-2-50-6z" fill="#ffffff" opacity=".88" stroke="#d6dde7" stroke-width="2"/>
+  <!-- sedan trunk deck, clearly separate from SUV tail -->
+  <path d="M103 374c30 11 62 16 97 16s67-5 97-16l-9 52c-22 21-51 30-88 30s-66-9-88-30z" fill="#e9edf3" stroke="#b6c0cd" stroke-width="2"/>
+  <path d="M128 398c21 7 45 10 72 10s51-3 72-10" fill="none" stroke="#c1cad5" stroke-width="2"/>
 
-  <!-- panel seams -->
-  <g fill="none" stroke="#9aa6b5" stroke-width="1.6" opacity=".88">
-    <path d="M88 165c20 10 30 14 39 16"/>
-    <path d="M312 165c-20 10-30 14-39 16"/>
-    <path d="M82 245h35"/>
-    <path d="M318 245h-35"/>
-    <path d="M84 337c19-9 30-13 40-16"/>
-    <path d="M316 337c-19-9-30-13-40-16"/>
-    <path d="M116 118c-9 42-15 84-16 127"/>
-    <path d="M284 118c9 42 15 84 16 127"/>
-    <path d="M100 248c1 42 7 84 16 127"/>
-    <path d="M300 248c-1 42-7 84-16 127"/>
+  <!-- shoulder / door seams -->
+  <g fill="none" stroke="#8e9bab" stroke-width="1.5" opacity=".85">
+    <path d="M93 151c13 9 24 14 35 18"/><path d="M307 151c-13 9-24 14-35 18"/>
+    <path d="M83 247h37"/><path d="M317 247h-37"/>
+    <path d="M92 350c14-9 26-14 38-18"/><path d="M308 350c-14-9-26-14-38-18"/>
+    <path d="M116 118c-11 43-16 86-17 130"/><path d="M284 118c11 43 16 86 17 130"/>
+    <path d="M99 250c1 41 7 82 17 124"/><path d="M301 250c-1 41-7 82-17 124"/>
   </g>
 
   <!-- lights -->
-  <g>
-    <path d="M102 72c17-18 37-29 56-33l-8 24c-16 4-30 12-43 24z" fill="#e8f5ff" stroke="#8aa4bd" stroke-width="2"/>
-    <path d="M298 72c-17-18-37-29-56-33l8 24c16 4 30 12 43 24z" fill="#e8f5ff" stroke="#8aa4bd" stroke-width="2"/>
-    <path d="M105 420c16 11 34 19 53 22l-9-20c-15-3-28-8-40-16z" fill="#ef4444" opacity=".9"/>
-    <path d="M295 420c-16 11-34 19-53 22l9-20c15-3 28-8 40-16z" fill="#ef4444" opacity=".9"/>
-  </g>
+  <path d="M100 77c17-18 36-29 58-34l-10 24c-16 4-30 12-43 25z" fill="#d9ecff" stroke="#7790aa" stroke-width="2"/>
+  <path d="M300 77c-17-18-36-29-58-34l10 24c16 4 30 12 43 25z" fill="#d9ecff" stroke="#7790aa" stroke-width="2"/>
+  <path d="M108 421c16 11 34 18 53 21l-10-21c-15-3-28-8-40-15z" fill="#ef4444"/>
+  <path d="M292 421c-16 11-34 18-53 21l10-21c15-3 28-8 40-15z" fill="#ef4444"/>
 
-  <!-- centerline details -->
-  <path d="M200 38v54M200 399v40" stroke="#c2cad5" stroke-width="2" opacity=".75"/>
-  <rect x="174" y="83" width="52" height="5" rx="2.5" fill="#94a3b8" opacity=".55"/>
-  <rect x="177" y="407" width="46" height="4" rx="2" fill="#94a3b8" opacity=".45"/>
+  <!-- premium center details -->
+  <rect x="174" y="85" width="52" height="4" rx="2" fill="#8d99a8" opacity=".5"/>
+  <path d="M200 35v55M200 398v42" stroke="#c2cad5" stroke-width="1.7" opacity=".65"/>
 </svg>
