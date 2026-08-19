@@ -1,78 +1,91 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 490" role="img" aria-labelledby="title desc">
-  <title id="title">Camioneta SUV vista desde arriba</title>
-  <desc id="desc">Ilustración automotriz blanca de una SUV, vista superior, preparada como base visual del selector Pinta tu coche.</desc>
+  <title id="title">SUV premium vista desde arriba</title>
+  <desc id="desc">SUV premium blanca de cuerpo ancho, techo alto y proporciones robustas, vista superior, para el selector Pinta tu coche.</desc>
   <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="paint" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="0.48" stop-color="#f4f6fa"/>
-      <stop offset="0.82" stop-color="#d6dde7"/>
-      <stop offset="1" stop-color="#aeb9c8"/>
+      <stop offset=".3" stop-color="#f7f9fc"/>
+      <stop offset=".72" stop-color="#dde4ed"/>
+      <stop offset="1" stop-color="#aeb9c7"/>
     </linearGradient>
     <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111827"/>
-      <stop offset="0.55" stop-color="#24324a"/>
-      <stop offset="1" stop-color="#07111f"/>
+      <stop offset="0" stop-color="#0b1324"/>
+      <stop offset=".5" stop-color="#23324a"/>
+      <stop offset="1" stop-color="#070d17"/>
     </linearGradient>
-    <filter id="shadow" x="-30%" y="-20%" width="160%" height="150%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0f172a" flood-opacity=".22"/>
+    <linearGradient id="rail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4b5563"/>
+      <stop offset=".48" stop-color="#dbe3ec"/>
+      <stop offset="1" stop-color="#4b5563"/>
+    </linearGradient>
+    <filter id="shadow" x="-35%" y="-25%" width="170%" height="165%">
+      <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#0f172a" flood-opacity=".25"/>
     </filter>
   </defs>
 
-  <ellipse cx="200" cy="250" rx="164" ry="225" fill="#64748b" opacity=".10"/>
+  <ellipse cx="200" cy="254" rx="166" ry="220" fill="#0f172a" opacity=".085"/>
 
+  <!-- larger tyres + arch stance -->
   <g fill="#111827">
-    <rect x="45" y="82" width="34" height="82" rx="14"/>
-    <rect x="321" y="82" width="34" height="82" rx="14"/>
-    <rect x="45" y="326" width="34" height="82" rx="14"/>
-    <rect x="321" y="326" width="34" height="82" rx="14"/>
+    <rect x="42" y="89" width="35" height="88" rx="14"/>
+    <rect x="323" y="89" width="35" height="88" rx="14"/>
+    <rect x="42" y="318" width="35" height="88" rx="14"/>
+    <rect x="323" y="318" width="35" height="88" rx="14"/>
   </g>
-  <g fill="#475569">
-    <rect x="52" y="92" width="20" height="62" rx="9"/>
-    <rect x="328" y="92" width="20" height="62" rx="9"/>
-    <rect x="52" y="336" width="20" height="62" rx="9"/>
-    <rect x="328" y="336" width="20" height="62" rx="9"/>
-  </g>
-
-  <path d="M72 144c-20-2-32-10-39-24 17-6 34-4 48 4l9 15z" fill="#d7dde6" stroke="#9aa5b4" stroke-width="2"/>
-  <path d="M328 144c20-2 32-10 39-24-17-6-34-4-48 4l-9 15z" fill="#d7dde6" stroke="#9aa5b4" stroke-width="2"/>
-
-  <path d="M200 15C128 15 87 38 75 83L59 167c-6 30-7 59-7 83s1 53 7 83l16 84c12 45 53 58 125 58s113-13 125-58l16-84c6-30 7-59 7-83s-1-53-7-83l-16-84C313 38 272 15 200 15z" fill="url(#body)" stroke="#a9b3c0" stroke-width="3" filter="url(#shadow)"/>
-
-  <path d="M105 53c28-16 59-22 95-22s67 6 95 22l11 64c-31-10-66-15-106-15s-75 5-106 15z" fill="#f9fafb" stroke="#c8d0dc" stroke-width="2"/>
-  <path d="M95 376c31 10 66 15 105 15s74-5 105-15l-10 61c-28 16-59 22-95 22s-67-6-95-22z" fill="#e5e9f0" stroke="#b7c0cd" stroke-width="2"/>
-
-  <path d="M118 121c18-11 47-17 82-17s64 6 82 17l13 53c-22-7-55-11-95-11s-73 4-95 11z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
-  <path d="M104 178c26-8 58-12 96-12s70 4 96 12l-7 112c-24 7-54 10-89 10s-65-3-89-10z" fill="#edf1f6" stroke="#cbd5e1" stroke-width="2"/>
-  <path d="M111 294c24 7 54 10 89 10s65-3 89-10l9 31c-22 10-55 15-98 15s-76-5-98-15z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
-
-  <!-- roof rails -->
-  <rect x="99" y="150" width="8" height="199" rx="4" fill="#7b8796"/>
-  <rect x="293" y="150" width="8" height="199" rx="4" fill="#7b8796"/>
-  <rect x="103" y="154" width="3" height="191" rx="1.5" fill="#e2e8f0" opacity=".8"/>
-  <rect x="294" y="154" width="3" height="191" rx="1.5" fill="#e2e8f0" opacity=".8"/>
-
-  <path d="M137 186c16-5 37-7 63-7s47 2 63 7l-4 86c-15 4-35 6-59 6s-44-2-59-6z" fill="#ffffff" opacity=".88" stroke="#d4dbe5" stroke-width="2"/>
-
-  <g fill="none" stroke="#97a3b3" stroke-width="1.7" opacity=".9">
-    <path d="M80 165c22 10 34 14 45 18"/>
-    <path d="M320 165c-22 10-34 14-45 18"/>
-    <path d="M72 245h38"/>
-    <path d="M328 245h-38"/>
-    <path d="M78 338c22-9 34-13 46-17"/>
-    <path d="M322 338c-22-9-34-13-46-17"/>
-    <path d="M113 116c-11 43-17 86-18 129"/>
-    <path d="M287 116c11 43 17 86 18 129"/>
-    <path d="M95 250c1 42 7 83 18 126"/>
-    <path d="M305 250c-1 42-7 83-18 126"/>
+  <g fill="#586474">
+    <rect x="50" y="100" width="19" height="66" rx="9"/>
+    <rect x="331" y="100" width="19" height="66" rx="9"/>
+    <rect x="50" y="329" width="19" height="66" rx="9"/>
+    <rect x="331" y="329" width="19" height="66" rx="9"/>
   </g>
 
-  <g>
-    <path d="M92 70c19-19 41-29 62-33l-9 24c-17 4-33 12-47 24z" fill="#e7f4ff" stroke="#839bb4" stroke-width="2"/>
-    <path d="M308 70c-19-19-41-29-62-33l9 24c17 4 33 12 47 24z" fill="#e7f4ff" stroke="#839bb4" stroke-width="2"/>
-    <path d="M96 421c18 12 38 19 60 22l-10-21c-17-3-31-9-45-17z" fill="#ef4444" opacity=".9"/>
-    <path d="M304 421c-18 12-38 19-60 22l10-21c17-3 31-9 45-17z" fill="#ef4444" opacity=".9"/>
-  </g>
+  <!-- wider mirrors -->
+  <path d="M74 148c-22-2-37-11-45-25 18-7 36-5 52 4l12 15z" fill="#d2d9e2" stroke="#8b97a6" stroke-width="2"/>
+  <path d="M326 148c22-2 37-11 45-25-18-7-36-5-52 4l-12 15z" fill="#d2d9e2" stroke="#8b97a6" stroke-width="2"/>
 
-  <path d="M200 37v53M200 399v42" stroke="#c2cad5" stroke-width="2" opacity=".72"/>
-  <rect x="170" y="82" width="60" height="5" rx="2.5" fill="#94a3b8" opacity=".58"/>
+  <!-- broad, squared SUV shell -->
+  <path d="M200 15c-73 0-116 21-128 64L55 164c-6 29-8 59-8 87 0 31 2 63 8 92l17 78c12 41 55 54 128 54s116-13 128-54l17-78c6-29 8-61 8-92 0-28-2-58-8-87l-17-85C316 36 273 15 200 15z" fill="url(#paint)" stroke="#99a5b5" stroke-width="3" filter="url(#shadow)"/>
+
+  <!-- upright hood and shoulder surfacing -->
+  <path d="M96 56c30-17 64-24 104-24s74 7 104 24l12 68c-35-11-73-16-116-16s-81 5-116 16z" fill="#f8fafc" stroke="#c4ccd7" stroke-width="2"/>
+  <path d="M113 62c24-12 53-18 87-18s63 6 87 18" fill="none" stroke="#d7dee8" stroke-width="2"/>
+  <path d="M86 126c18 7 34 11 48 13M314 126c-18 7-34 11-48 13" stroke="#c6cfda" stroke-width="2" fill="none"/>
+
+  <!-- taller/wider glasshouse -->
+  <path d="M112 126c20-13 50-20 88-20s68 7 88 20l14 52c-25-9-59-13-102-13s-77 4-102 13z" fill="url(#glass)" stroke="#29384e" stroke-width="3"/>
+  <path d="M99 184c27-10 61-14 101-14s74 4 101 14l-5 109c-26 9-58 13-96 13s-70-4-96-13z" fill="#edf1f6" stroke="#c8d0da" stroke-width="2"/>
+
+  <!-- panoramic roof framed by rails -->
+  <path d="M129 194c20-6 44-9 71-9s51 3 71 9l-3 83c-19 6-42 9-68 9s-49-3-68-9z" fill="#dce4ee" stroke="#b9c5d1" stroke-width="2"/>
+  <path d="M142 201c17-5 36-7 58-7s41 2 58 7l-3 68c-16 5-34 7-55 7s-39-2-55-7z" fill="#111827" opacity=".87"/>
+  <rect x="91" y="145" width="9" height="216" rx="4.5" fill="url(#rail)"/>
+  <rect x="300" y="145" width="9" height="216" rx="4.5" fill="url(#rail)"/>
+  <rect x="94" y="154" width="3" height="198" rx="1.5" fill="#f8fafc" opacity=".7"/>
+  <rect x="303" y="154" width="3" height="198" rx="1.5" fill="#f8fafc" opacity=".7"/>
+
+  <!-- upright rear glass and squared tailgate -->
+  <path d="M104 301c26 9 58 13 96 13s70-4 96-13l9 35c-24 12-59 18-105 18s-81-6-105-18z" fill="url(#glass)" stroke="#29384e" stroke-width="3"/>
+  <path d="M91 377c35 11 71 16 109 16s74-5 109-16l-10 58c-27 17-60 24-99 24s-72-7-99-24z" fill="#e4e9f0" stroke="#b4beca" stroke-width="2"/>
+  <path d="M126 407c22 6 47 9 74 9s52-3 74-9" stroke="#bdc7d2" stroke-width="2" fill="none"/>
+
+  <!-- SUV cladding + stronger panel language -->
+  <g fill="none" stroke="#8492a4" stroke-width="1.7" opacity=".9">
+    <path d="M78 165c24 11 38 15 51 18"/><path d="M322 165c-24 11-38 15-51 18"/>
+    <path d="M66 247h43"/><path d="M334 247h-43"/>
+    <path d="M75 343c25-9 40-13 54-17"/><path d="M325 343c-25-9-40-13-54-17"/>
+    <path d="M108 119c-12 43-19 86-20 129"/><path d="M292 119c12 43 19 86 20 129"/>
+    <path d="M88 252c1 42 8 83 20 125"/><path d="M312 252c-1 42-8 83-20 125"/>
+  </g>
+  <path d="M69 180v141M331 180v141" stroke="#64748b" stroke-width="4" opacity=".33"/>
+
+  <!-- lighting signature -->
+  <path d="M86 76c21-20 45-31 69-36l-10 27c-19 4-36 13-50 27z" fill="#d8ecff" stroke="#728ca7" stroke-width="2"/>
+  <path d="M314 76c-21-20-45-31-69-36l10 27c19 4 36 13 50 27z" fill="#d8ecff" stroke="#728ca7" stroke-width="2"/>
+  <path d="M93 422c20 12 41 20 64 23l-11-23c-18-3-33-9-48-18z" fill="#ef4444"/>
+  <path d="M307 422c-20 12-41 20-64 23l11-23c18-3 33-9 48-18z" fill="#ef4444"/>
+
+  <!-- rugged center details -->
+  <rect x="168" y="83" width="64" height="6" rx="3" fill="#8794a4" opacity=".58"/>
+  <rect x="168" y="427" width="64" height="5" rx="2.5" fill="#8794a4" opacity=".45"/>
+  <path d="M200 34v58M200 399v43" stroke="#c0c9d4" stroke-width="1.8" opacity=".68"/>
 </svg>
