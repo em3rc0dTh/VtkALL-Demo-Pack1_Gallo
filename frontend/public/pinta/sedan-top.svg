@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 490" role="img" aria-labelledby="title desc">
+  <title id="title">Auto sedán visto desde arriba</title>
+  <desc id="desc">Ilustración automotriz blanca, vista superior, preparada como base visual del selector Pinta tu coche.</desc>
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.46" stop-color="#f5f7fb"/>
+      <stop offset="0.78" stop-color="#dce2eb"/>
+      <stop offset="1" stop-color="#b8c2d0"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1326"/>
+      <stop offset="0.55" stop-color="#17233b"/>
+      <stop offset="1" stop-color="#06101f"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c5ccd7"/>
+      <stop offset="0.45" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#aeb8c6"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0f172a" flood-opacity=".22"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="200" cy="250" rx="151" ry="222" fill="#64748b" opacity=".10" filter="url(#soft)"/>
+
+  <!-- tyres -->
+  <g fill="#111827">
+    <rect x="58" y="85" width="28" height="72" rx="13"/>
+    <rect x="314" y="85" width="28" height="72" rx="13"/>
+    <rect x="58" y="335" width="28" height="72" rx="13"/>
+    <rect x="314" y="335" width="28" height="72" rx="13"/>
+  </g>
+  <g fill="#475569">
+    <rect x="64" y="94" width="16" height="54" rx="8"/>
+    <rect x="320" y="94" width="16" height="54" rx="8"/>
+    <rect x="64" y="344" width="16" height="54" rx="8"/>
+    <rect x="320" y="344" width="16" height="54" rx="8"/>
+  </g>
+
+  <!-- mirrors -->
+  <path d="M76 146c-19-2-30-11-36-25 14-5 29-4 42 4l8 14z" fill="url(#metal)" stroke="#9aa5b4" stroke-width="2"/>
+  <path d="M324 146c19-2 30-11 36-25-14-5-29-4-42 4l-8 14z" fill="url(#metal)" stroke="#9aa5b4" stroke-width="2"/>
+
+  <!-- body -->
+  <path d="M200 17C136 17 97 42 87 88L72 167c-5 28-6 60-6 83s1 55 6 83l15 79c10 46 49 61 113 61s103-15 113-61l15-79c5-28 6-60 6-83s-1-55-6-83l-15-79C303 42 264 17 200 17z" fill="url(#body)" stroke="#aeb8c6" stroke-width="3" filter="url(#shadow)"/>
+
+  <!-- bonnet/trunk sculpting -->
+  <path d="M116 55c24-17 51-24 84-24s60 7 84 24l10 61c-28-10-59-15-94-15s-66 5-94 15z" fill="#f7f9fc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M106 376c28 10 59 15 94 15s66-5 94-15l-10 59c-24 17-51 24-84 24s-60-7-84-24z" fill="#e7ebf2" stroke="#b8c2cf" stroke-width="2"/>
+
+  <!-- cabin/glass -->
+  <path d="M127 123c16-12 43-19 73-19s57 7 73 19l12 48c-18-7-49-11-85-11s-67 4-85 11z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
+  <path d="M115 176c23-8 52-12 85-12s62 4 85 12l-9 115c-21 7-47 10-76 10s-55-3-76-10z" fill="#edf1f6" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M124 296c21 7 47 10 76 10s55-3 76-10l9 27c-18 11-48 17-85 17s-67-6-85-17z" fill="url(#glass)" stroke="#334155" stroke-width="3"/>
+
+  <!-- panoramic roof accent -->
+  <path d="M145 187c14-5 33-7 55-7s41 2 55 7l-5 85c-13 4-30 6-50 6s-37-2-50-6z" fill="#ffffff" opacity=".88" stroke="#d6dde7" stroke-width="2"/>
+
+  <!-- panel seams -->
+  <g fill="none" stroke="#9aa6b5" stroke-width="1.6" opacity=".88">
+    <path d="M88 165c20 10 30 14 39 16"/>
+    <path d="M312 165c-20 10-30 14-39 16"/>
+    <path d="M82 245h35"/>
+    <path d="M318 245h-35"/>
+    <path d="M84 337c19-9 30-13 40-16"/>
+    <path d="M316 337c-19-9-30-13-40-16"/>
+    <path d="M116 118c-9 42-15 84-16 127"/>
+    <path d="M284 118c9 42 15 84 16 127"/>
+    <path d="M100 248c1 42 7 84 16 127"/>
+    <path d="M300 248c-1 42-7 84-16 127"/>
+  </g>
+
+  <!-- lights -->
+  <g>
+    <path d="M102 72c17-18 37-29 56-33l-8 24c-16 4-30 12-43 24z" fill="#e8f5ff" stroke="#8aa4bd" stroke-width="2"/>
+    <path d="M298 72c-17-18-37-29-56-33l8 24c16 4 30 12 43 24z" fill="#e8f5ff" stroke="#8aa4bd" stroke-width="2"/>
+    <path d="M105 420c16 11 34 19 53 22l-9-20c-15-3-28-8-40-16z" fill="#ef4444" opacity=".9"/>
+    <path d="M295 420c-16 11-34 19-53 22l9-20c15-3 28-8 40-16z" fill="#ef4444" opacity=".9"/>
+  </g>
+
+  <!-- centerline details -->
+  <path d="M200 38v54M200 399v40" stroke="#c2cad5" stroke-width="2" opacity=".75"/>
+  <rect x="174" y="83" width="52" height="5" rx="2.5" fill="#94a3b8" opacity=".55"/>
+  <rect x="177" y="407" width="46" height="4" rx="2" fill="#94a3b8" opacity=".45"/>
+</svg>
