@@ -1,0 +1,36 @@
+.pinta-module-v2 svg[aria-label^="Vista superior de"] {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.pinta-module-v2 svg[aria-label*="auto sedán"] {
+  background-image: url('/pinta/sedan-top.svg');
+}
+
+.pinta-module-v2 svg[aria-label*="camioneta SUV"] {
+  background-image: url('/pinta/suv-top.svg');
+}
+
+/*
+ * V1 drew a provisional vehicle using primitive SVG rectangles/circles.
+ * V2 keeps only the semantic interactive zone rectangles and projects a
+ * dedicated automotive visual underneath them. This preserves the selector
+ * contract while allowing the vehicle renderer to evolve independently.
+ */
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect:nth-of-type(-n + 5),
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > path,
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > circle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Unselected masks should remain discoverable without obscuring the car. */
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"] {
+  fill-opacity: 0.035;
+}
+
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"]:hover,
+.pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"]:focus {
+  fill-opacity: 0.22;
+}
