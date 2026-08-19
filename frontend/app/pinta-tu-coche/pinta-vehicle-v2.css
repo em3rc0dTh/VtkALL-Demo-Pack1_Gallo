@@ -167,6 +167,23 @@
   filter: drop-shadow(0 6px 10px rgba(23, 65, 255, 0.20));
 }
 
+/* The repository logo asset is a light variant. Give it a Gallo navy cradle
+ * so the real mark is readable instead of disappearing on the white header. */
+.pinta-module-v2 header a[aria-label="Volver a Gallo Autos"] {
+  min-width: 116px;
+  min-height: 52px;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0B1E63 0%, #1741FF 100%);
+  box-shadow: 0 10px 26px rgba(23, 65, 255, 0.16);
+}
+
+.pinta-module-v2 header a[aria-label="Volver a Gallo Autos"] img {
+  max-height: 42px;
+  width: auto;
+  object-fit: contain;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pinta-module-v2 svg[aria-label^="Vista superior de"] > rect[role="button"] {
     transition: none;
