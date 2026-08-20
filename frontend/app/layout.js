@@ -2,8 +2,8 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata = {
-  title: 'Demo Test Laboratory',
-  description: 'Experiencia publica neutral conectada al backend operativo y al runtime conversacional.',
+  title: 'Gallo Autos | Taller Automotriz en La Molina',
+  description: 'Gallo Autos Workshop: diagnóstico, mantenimiento, mecánica, frenos, suspensión, pintura y cuidado automotriz en La Molina.',
 };
 
 export default function RootLayout({ children }) {

@@ -35,10 +35,12 @@ function BusinessProfileLoading() {
 export function BusinessProfileProvider({ profile: fallbackProfile, children }) {
   const modeStatus = getDemoTestDataModeStatus();
   const pathname = usePathname();
-  const routeBusinessSlug = pathname?.startsWith('/admin') || pathname === '/' || pathname?.startsWith('/agendar')
-    ? (process.env.NEXT_PUBLIC_ADMIN_BUSINESS_SLUG || 'turagua')
-    : '';
-  const businessSlug = routeBusinessSlug || DEFAULT_PUBLIC_BUSINESS_SLUG || fallbackProfile?.businessSlug;
+  const isGalloAppRoute = pathname?.startsWith('/admin') || pathname === '/' || pathname?.startsWith('/agendar');
+  const configuredBusinessSlug = process.env.NEXT_PUBLIC_ADMIN_BUSINESS_SLUG
+    || (isGalloAppRoute ? 'gallo' : DEFAULT_PUBLIC_BUSINESS_SLUG)
+    || 'gallo';
+  const routeBusinessSlug = isGalloAppRoute ? configuredBusinessSlug : '';
+  const businessSlug = routeBusinessSlug || DEFAULT_PUBLIC_BUSINESS_SLUG || fallbackProfile?.businessSlug || 'gallo';
   const profileQuery = useBusinessProfileQuery({ businessSlug });
 
   if (!modeStatus.valid) {

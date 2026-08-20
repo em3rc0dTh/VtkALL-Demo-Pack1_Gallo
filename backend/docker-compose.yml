@@ -34,8 +34,14 @@ services:
       - NODE_ENV=development
       - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME:-vtkall}:${MONGO_INITDB_ROOT_PASSWORD:-vtkall_password}@mongo:27017/${MONGO_DATABASE:-vtkall_demo_pack_1}?authSource=admin
       - TEMPORAL_ADDRESS=temporal:7233
+      - AUTO_SEED_ON_START=${AUTO_SEED_ON_START:-true}
+      - SEED_BUSINESS_SLUG=${SEED_BUSINESS_SLUG:-all}
+      - DEMO_TEST_ADMIN_WRITE_TOKEN=${DEMO_TEST_ADMIN_WRITE_TOKEN:-local-dev-admin}
+      - BUSINESS_UPLOADS_DIR=/app/uploads
     ports:
       - "${API_PORT:-4000}:${API_PORT:-4000}"
+    volumes:
+      - business_uploads:/app/uploads
     depends_on:
       - mongo
       - temporal
@@ -107,3 +113,4 @@ services:
 volumes:
   mongo_data:
   temporal_postgresql_data:
+  business_uploads:

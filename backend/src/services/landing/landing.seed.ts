@@ -1,4 +1,5 @@
 import { LandingContent } from './landing.contracts';
+import { galloLandingSeedRecord } from './galloLanding.seed';
 
 const catalogIds = [
   'off_turagua_general_diagnostic',
@@ -281,4 +282,5 @@ export const landingSeeds = [
     published: turaguaLandingSeed,
     publishedVersion: 1,
   },
+  galloLandingSeedRecord,
 ];

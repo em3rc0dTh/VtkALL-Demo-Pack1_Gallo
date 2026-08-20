@@ -27,9 +27,9 @@ import { LandingBuilderScreen } from './LandingBuilderScreen';
 import { SettingsScreen } from './SettingsScreen';
 import { useBusinessProfile } from '@/contexts/BusinessProfileContext';
 
-export function AdminWireframes() {
+export function AdminWireframes({ initialScreen = 'dashboard' }) {
   const { profile } = useBusinessProfile();
-  const [active, setActive] = useState('dashboard');
+  const [active, setActive] = useState(initialScreen);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const screenMeta = {
@@ -41,11 +41,11 @@ export function AdminWireframes() {
     services: [profile.labels.catalog || 'Catalogo de Servicios', 'Oferta comercial-operativa y riesgos publicos', <ServicesScreen key="services" />],
     messages: ['Centro de Mensajes', 'Bandeja de atencion y fallos operativos', <MessagesScreen key="messages" />],
     team: ['Personal y Equipos', 'Capacidad humana y operativa del taller', <TeamScreen key="team" />],
-    builder: ['Landing Builder', 'Draft, publicacion y versiones sobre contratos Pack0', <LandingBuilderScreen key="builder" />],
+    builder: ['Landing Builder', 'Draft, publicacion y versiones de la Landing Gallo Autos', <LandingBuilderScreen key="builder" />],
     settings: ['Ajustes Generales', 'BusinessProfile activo y reglas de integracion', <SettingsScreen key="settings" />],
   };
 
-  const [title, description, content] = screenMeta[active];
+  const [title, description, content] = screenMeta[active] || screenMeta.dashboard;
   const selectTab = (id) => {
     setActive(id);
     setMobileNavOpen(false);
@@ -84,8 +84,8 @@ export function AdminWireframes() {
             </div>
           </div>
         </header>
-        <section className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4 lg:p-6">
-          <div className="min-h-0 h-full">{content}</div>
+        <section className={`min-h-0 flex-1 overflow-hidden ${active === 'builder' ? 'p-0' : 'p-3 sm:p-4 lg:p-6'}`}>
+          <div className="h-full min-h-0">{content}</div>
         </section>
       </main>
     </div>

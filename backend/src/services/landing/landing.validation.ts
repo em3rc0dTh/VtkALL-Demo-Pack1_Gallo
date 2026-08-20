@@ -6,6 +6,19 @@ const unsafeValuePattern = /<\s*\/?\s*(script|iframe|object|embed|style|link|met
 const allowedManagedAssetPathPattern = /^\/(?:uploads|upload_utils)\//i;
 const forbiddenAssetValuePattern = /^(blob|data|file):|c:\\fakepath|^[a-z]:[\\/]|^\\\\/i;
 const bareFileNamePattern = /^[^/\\]+\.(?:png|jpe?g|webp|gif|mp4|webm|ogg)$/i;
+const sectionAnchorPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SECTION_MOTIONS = ['none', 'fade', 'rise', 'slide', 'stagger', 'scale', 'blur-reveal'] as const;
+const SECTION_DEPTHS = ['none', 'subtle', 'tilt', 'layered'] as const;
+const GALLO_SINGLETON_VARIANT_ANCHORS = new Map<string, string>([
+  ['gallo_workshop_hero', 'inicio'],
+  ['gallo_partners_scene', 'confianza'],
+  ['gallo_services_scene', 'servicios'],
+  ['gallo_diagnostic_scene', 'diagnostico'],
+  ['gallo_process_scene', 'proceso'],
+  ['gallo_experience_scene', 'nosotros'],
+  ['gallo_evidence_scene', 'evidencia'],
+  ['gallo_contact_scene', 'contacto'],
+]);
 
 const isAllowedPublicAssetUrl = (value = '') => {
   const path = String(value || '').trim();
@@ -37,6 +50,18 @@ const assertNoUnsafeContent = (value: unknown, path: string[] = []) => {
     assertNoUnsafeContent(nested, [...path, key]);
   }
 };
+
+const sectionInstanceSchema = z.object({
+  schemaVersion: z.literal(1),
+  templateKey: z.string().trim().min(1),
+  semanticFamily: z.string().trim().min(1),
+  anchor: z.string().trim().min(1).regex(sectionAnchorPattern, 'Section anchor must be URL-safe kebab-case'),
+  navLabel: z.string().trim().min(1),
+  showInNavigation: z.boolean(),
+  repeatable: z.boolean(),
+  motion: z.enum(SECTION_MOTIONS),
+  depth: z.enum(SECTION_DEPTHS),
+}).strict();
 
 const landingBlockSchema = z.object({
   id: z.string().min(1),
@@ -83,6 +108,94 @@ export const landingContentSchema = z.object({
       message: error instanceof Error ? error.message : 'Unsafe landing content',
     });
   }
+
+  const seenIds = new Map<string, number>();
+  const seenAnchors = new Map<string, number>();
+  const seenSingletonVariants = new Map<string, number>();
+
+  content.blocks.forEach((block, index) => {
+    const previousIdIndex = seenIds.get(block.id);
+    if (previousIdIndex !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['blocks', index, 'id'],
+        message: `Landing block id must be unique; duplicates blocks.${previousIdIndex}.id`,
+      });
+    } else {
+      seenIds.set(block.id, index);
+    }
+
+    const variant = block.layout?.variant || block.data?.variant;
+    const canonicalAnchor = variant ? GALLO_SINGLETON_VARIANT_ANCHORS.get(variant) : undefined;
+
+    if (variant && canonicalAnchor) {
+      const previousVariantIndex = seenSingletonVariants.get(variant);
+      if (previousVariantIndex !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'layout', 'variant'],
+          message: `Gallo singleton scene variant ${variant} must be unique; duplicates blocks.${previousVariantIndex}`,
+        });
+      } else {
+        seenSingletonVariants.set(variant, index);
+      }
+
+      const previousCanonicalAnchorIndex = seenAnchors.get(canonicalAnchor);
+      if (previousCanonicalAnchorIndex !== undefined && previousCanonicalAnchorIndex !== index) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'layout', 'variant'],
+          message: `Canonical Gallo anchor ${canonicalAnchor} is already owned by blocks.${previousCanonicalAnchorIndex}`,
+        });
+      } else {
+        seenAnchors.set(canonicalAnchor, index);
+      }
+    }
+
+    const instance = block.data?.instance;
+    if (instance === undefined) return;
+
+    const parsed = sectionInstanceSchema.safeParse(instance);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', ...issue.path],
+          message: issue.message,
+        });
+      }
+      return;
+    }
+
+    if (canonicalAnchor) {
+      if (parsed.data.anchor !== canonicalAnchor) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', 'anchor'],
+          message: `Gallo singleton scene ${variant} must keep canonical anchor ${canonicalAnchor}`,
+        });
+      }
+      if (parsed.data.repeatable) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['blocks', index, 'data', 'instance', 'repeatable'],
+          message: `Gallo singleton scene ${variant} cannot be marked repeatable`,
+        });
+      }
+      return;
+    }
+
+    const previousAnchorIndex = seenAnchors.get(parsed.data.anchor);
+    if (previousAnchorIndex !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['blocks', index, 'data', 'instance', 'anchor'],
+        message: `Section anchor must be unique; duplicates blocks.${previousAnchorIndex}.data.instance.anchor`,
+      });
+    } else {
+      seenAnchors.set(parsed.data.anchor, index);
+    }
+  });
 });
 
 export const landingPagePatchSchema = z.object({

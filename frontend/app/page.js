@@ -1,5 +1,5 @@
 import { PublicLandingPage } from '@/components/landing/PublicLandingPage';
 
 export default function Home() {
-  return <PublicLandingPage businessSlug="turagua" pageSlug="home" />;
+  return <PublicLandingPage businessSlug="gallo" pageSlug="home" />;
 }

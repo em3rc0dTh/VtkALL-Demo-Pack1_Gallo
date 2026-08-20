@@ -4,12 +4,19 @@ import { connectDB } from './db/connect';
 import { warmUpConfiguredModel } from './agent/hermes/model/hermesInferenceRuntime.service';
 import { validateHermesOperationalConfig } from './agent/hermes/operational/hermesOperationalConfig.service';
 import { seedDatabase } from './services/seed.service';
+import { seedGalloBusiness } from './services/galloSeed.service';
 
 const startServer = async () => {
   validateHermesOperationalConfig();
   await connectDB();
   if (process.env.AUTO_SEED_ON_START === 'true') {
-    await seedDatabase(false);
+    const scope = process.env.SEED_BUSINESS_SLUG;
+    if (scope === 'gallo') {
+      await seedGalloBusiness(false);
+    } else {
+      await seedDatabase(false);
+      await seedGalloBusiness(false);
+    }
   }
   
   app.listen(env.port, () => {

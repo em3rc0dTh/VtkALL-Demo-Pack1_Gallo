@@ -1,3 +1,5 @@
+import { withBasePath } from '@/lib/config/basePath';
+
 const trimTrailingSlash = (value) => String(value || '').replace(/\/$/, '');
 
 const publicAssetBaseUrl = trimTrailingSlash(
@@ -8,7 +10,7 @@ export function resolvePublicAssetUrl(value) {
   if (!value) return '';
   const path = String(value).trim();
   if (!path) return '';
-  if (/^https:\/\//i.test(path)) return path;
+  if (/^https?:\/\//i.test(path)) return path;
   if ((path.startsWith('/uploads/') || path.startsWith('/upload_utils/')) && publicAssetBaseUrl) return `${publicAssetBaseUrl}${path}`;
-  return path;
+  return withBasePath(path);
 }

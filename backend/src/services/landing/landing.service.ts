@@ -58,6 +58,31 @@ const assertLandingAgentAssetsExist = async (content: any) => {
   await assertManagedAssetExists(content?.agent?.bannerUrl || '', 'Agent banner');
 };
 
+const normalizedVersion = (value: any, fallback = 1) => {
+  const version = Number(value);
+  return Number.isInteger(version) && version > 0 ? version : fallback;
+};
+
+const ensurePublishedVersionSnapshot = async (page: any, createdBy: string) => {
+  const publishedVersion = normalizedVersion(page?.publishedVersion, 0);
+  if (!page?.published || publishedVersion < 1) return null;
+
+  const existing = await LandingPageVersion.findOne({ landingPageId: page._id, version: publishedVersion });
+  if (existing) return existing;
+
+  return LandingPageVersion.create({
+    _id: versionId(String(page._id), publishedVersion),
+    landingPageId: page._id,
+    businessSlug: page.businessSlug,
+    pageSlug: page.pageSlug,
+    version: publishedVersion,
+    title: page.title,
+    content: page.published,
+    action: 'publish',
+    createdBy,
+  });
+};
+
 export const toPublicBusinessProfile = (profile: any) => {
   const serialized = serializePage(profile);
   if (!serialized) return null;
@@ -159,18 +184,20 @@ export const seedLandingPages = async (seeds: any[], reset: boolean) => {
   for (const seed of seeds) {
     const existing = await LandingPage.findById(seed._id);
     if (!existing) {
-      await LandingPage.create(seed);
+      const seedVersion = normalizedVersion(seed.publishedVersion, 1);
+      const page = await LandingPage.create(seed);
       await LandingPageVersion.create({
-        _id: versionId(seed._id, 1),
+        _id: versionId(seed._id, seedVersion),
         landingPageId: seed._id,
         businessSlug: seed.businessSlug,
         pageSlug: seed.pageSlug,
-        version: 1,
+        version: seedVersion,
         title: seed.title,
         content: seed.published || seed.draft,
         action: 'seed',
         createdBy: 'seed',
       });
+      await ensurePublishedVersionSnapshot(page, 'seed:reconcile-published-version');
       pages++;
       versions++;
       continue;
@@ -185,6 +212,7 @@ export const seedLandingPages = async (seeds: any[], reset: boolean) => {
         },
       }
     );
+    await ensurePublishedVersionSnapshot(existing, 'seed:reconcile-published-version');
     pages++;
   }
 
@@ -212,15 +240,17 @@ export const getPublicLandingPage = async (businessSlug: string, pageSlug: strin
 };
 
 export const getAdminLandingPage = async (businessSlug: string, pageSlug: string) => {
-  const [page, businessProfile] = await Promise.all([
+  const [page, businessProfile, catalogOfferings] = await Promise.all([
     LandingPage.findOne({ businessSlug, pageSlug }),
     BusinessProfile.findOne({ businessSlug, active: true }),
+    CatalogOffering.find({ businessSlug, active: true, publicVisible: true }).sort({ displayOrder: 1, name: 1 }).limit(100),
   ]);
   if (!page) return null;
   const versions = await LandingPageVersion.find({ landingPageId: page._id }).sort({ version: -1 }).limit(20);
   return {
     landingPage: toPublicLandingPageView(page),
-    businessProfile: serializePage(businessProfile),
+    businessProfile: toPublicBusinessProfile(businessProfile),
+    catalogOfferings: catalogOfferings.map(serializePage),
     versions: versions.map(serializePage),
   };
 };
@@ -262,10 +292,11 @@ export const publishLandingPage = async ({
 
   const content = assertLandingContent(stripBusinessOwnedLandingData(page.draft)) as LandingContent;
   await assertLandingAgentAssetsExist(content);
+  await ensurePublishedVersionSnapshot(page, `${actor}:preserve-existing-published`);
   const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
-  const nextVersion = Number(latest?.version || 0) + 1;
+  const nextVersion = Math.max(Number(latest?.version || 0), Number(page.publishedVersion || 0)) + 1;
   await LandingPageVersion.create({
-    _id: versionId(page._id, nextVersion),
+    _id: versionId(String(page._id), nextVersion),
     landingPageId: page._id,
     businessSlug,
     pageSlug,
@@ -302,10 +333,11 @@ export const restoreLandingPageVersion = async ({
 
   page.draft = assertLandingContent(stripBusinessOwnedLandingData(snapshot.content));
   await page.save();
+  await ensurePublishedVersionSnapshot(page, `${actor}:preserve-existing-published`);
   const latest = await LandingPageVersion.findOne({ landingPageId: page._id }).sort({ version: -1 });
-  const nextVersion = Number(latest?.version || 0) + 1;
+  const nextVersion = Math.max(Number(latest?.version || 0), Number(page.publishedVersion || 0)) + 1;
   await LandingPageVersion.create({
-    _id: versionId(page._id, nextVersion),
+    _id: versionId(String(page._id), nextVersion),
     landingPageId: page._id,
     businessSlug,
     pageSlug,

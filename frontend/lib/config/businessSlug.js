@@ -1,7 +1,7 @@
 export const DEFAULT_PUBLIC_BUSINESS_SLUG =
   process.env.NEXT_PUBLIC_BUSINESS_SLUG ||
   process.env.NEXT_PUBLIC_DEMO_TEST_BUSINESS_SLUG ||
-  'turagua';
+  'gallo';
 
 export const flowStorageKey = `${DEFAULT_PUBLIC_BUSINESS_SLUG}_flow`;
 

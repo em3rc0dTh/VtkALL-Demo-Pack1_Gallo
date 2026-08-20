@@ -1,5 +1,5 @@
-import { LandingAdminPage } from '@/components/landing/LandingAdminPage';
+import { AdminWireframes } from '@/components/wireframes/WireframeScreens';
 
 export default function AdminLandingRoute() {
-  return <LandingAdminPage businessSlug="turagua" pageSlug="home" />;
+  return <AdminWireframes initialScreen="builder" />;
 }

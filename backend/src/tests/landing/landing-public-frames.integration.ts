@@ -2,8 +2,12 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import mongoose from 'mongoose';
 import app from '../../app';
-import { env } from '../../config/env';
+import { LandingPage } from '../../models/LandingPage.model';
+import { LandingPageVersion } from '../../models/LandingPageVersion.model';
+import { landingSeeds } from '../../services/landing/landing.seed';
 import { migrateTuraguaLandingToFrames } from '../../services/landing/turaguaFrames.migration';
+import { seedLandingPages } from '../../services/landing/landing.service';
+import { assertDedicatedLandingTestDatabase, landingTestMongoUri } from './landingTestMongo';
 
 const listen = () =>
   new Promise<http.Server>((resolve) => {
@@ -61,8 +65,14 @@ const assertPublishedFrames = (payload: any) => {
 };
 
 const run = async () => {
-  await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+  const testDatabase = assertDedicatedLandingTestDatabase();
+  await mongoose.connect(landingTestMongoUri, { serverSelectionTimeoutMS: 5000 });
   try {
+    console.log(`Landing public frames integration database: ${testDatabase}`);
+
+    await LandingPage.deleteMany({ businessSlug: 'turagua' });
+    await LandingPageVersion.deleteMany({ businessSlug: 'turagua' });
+    await seedLandingPages(landingSeeds.filter((seed) => seed.businessSlug === 'turagua'), false);
     await migrateTuraguaLandingToFrames();
 
     const firstServer = await listen();
@@ -75,7 +85,7 @@ const run = async () => {
     }
 
     await mongoose.disconnect();
-    await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(landingTestMongoUri, { serverSelectionTimeoutMS: 5000 });
 
     const secondServer = await listen();
     try {

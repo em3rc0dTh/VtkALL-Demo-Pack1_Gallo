@@ -1,7 +1,7 @@
 import { ApiError } from '../api/apiError';
 
 const validModes = new Set(['api', 'mock']);
-const defaultMode = 'api';
+const defaultMode = process.env.NODE_ENV === 'development' ? 'mock' : 'api';
 
 export function getDemoTestDataModeStatus() {
   const rawMode = process.env.NEXT_PUBLIC_DEMO_TEST_DATA_MODE

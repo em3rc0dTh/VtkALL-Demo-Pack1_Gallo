@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { LandingPageRenderer } from './LandingPageRenderer';
+import { GalloWorkshopExperience as GalloWorkshopExperienceV8 } from './GalloWorkshopExperienceV8';
 
 export function LandingPreviewFrame() {
   const [payload, setPayload] = useState(null);
@@ -31,6 +32,8 @@ export function LandingPreviewFrame() {
     window.parent?.postMessage(message, window.location.origin);
   };
 
+  const businessSlug = payload?.landingPage?.businessSlug || payload?.businessProfile?.businessSlug;
+
   return (
     <>
       <style jsx global>{`
@@ -49,18 +52,22 @@ export function LandingPreviewFrame() {
       `}</style>
       <div
         data-landing-preview-mode="draft"
-        data-landing-renderer-version="turagua-frames-v2"
+        data-landing-renderer-version={businessSlug === 'gallo' ? 'gallo-section-instance-v8' : 'turagua-frames-v2'}
       >
         {payload ? (
-          <LandingPageRenderer
-            payload={payload}
-            builderEditing={{
-              enabled: true,
-              onHeroDataChange: (patch) => sendToBuilder({ type: 'landing-preview:hero-data-change', patch }),
-              onBlockDataChange: (blockType, patch) => sendToBuilder({ type: 'landing-preview:block-data-change', blockType, patch }),
-              onSelectElement: (selection) => sendToBuilder({ type: 'landing-preview:element-selected', selection }),
-            }}
-          />
+          businessSlug === 'gallo' ? (
+            <GalloWorkshopExperienceV8 payload={payload} />
+          ) : (
+            <LandingPageRenderer
+              payload={payload}
+              builderEditing={{
+                enabled: true,
+                onHeroDataChange: (patch) => sendToBuilder({ type: 'landing-preview:hero-data-change', patch }),
+                onBlockDataChange: (blockType, patch) => sendToBuilder({ type: 'landing-preview:block-data-change', blockType, patch }),
+                onSelectElement: (selection) => sendToBuilder({ type: 'landing-preview:element-selected', selection }),
+              }}
+            />
+          )
         ) : (
           <div className="flex min-h-screen items-center justify-center bg-white text-sm font-semibold text-slate-500">
             Preparando preview...
